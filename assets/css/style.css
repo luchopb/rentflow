@@ -1,0 +1,93 @@
+/* Estilos generales */
+body {
+    background-color: #f8f9fa;
+}
+
+/* Navbar personalizado */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+/* Contenedor principal */
+#main-content {
+    min-height: calc(100vh - 56px);
+    padding: 20px 0;
+}
+
+/* Tablas */
+.table {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+}
+
+.table thead th {
+    border-bottom: 2px solid #dee2e6;
+    background-color: #f8f9fa;
+}
+
+/* Modales */
+.modal-content {
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.1);
+}
+
+.modal-header {
+    background-color: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+}
+
+/* Botones */
+.btn {
+    border-radius: 4px;
+}
+
+.btn-sm {
+    padding: .25rem .5rem;
+    font-size: .875rem;
+}
+
+/* Badges */
+.badge {
+    padding: 0.5em 0.75em;
+}
+
+/* Forms */
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .table-responsive {
+        border-radius: 8px;
+    }
+    
+    .btn-sm {
+        padding: .375rem .75rem;
+    }
+}
+
+/* Estados */
+.badge.bg-success {
+    background-color: #28a745 !important;
+}
+
+.badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000;
+}
+
+/* Animaciones */
+.modal.fade .modal-dialog {
+    transition: transform .3s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+} 
