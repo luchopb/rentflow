@@ -12,14 +12,14 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <h2>Propiedades</h2>
     </div>
     <div class="col text-end">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalPropiedad">
+        <button type="button" class="btn btn-primary" onclick="nuevaPropiedad()">
             Nueva Propiedad
         </button>
     </div>
 </div>
 
 <div class="table-responsive">
-    <table class="table table-striped">
+    <table class="table table-hover">
         <thead>
             <tr>
                 <th>ID</th>
@@ -27,12 +27,11 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <th>Tipo</th>
                 <th>Precio</th>
                 <th>Estado</th>
-                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             <?php foreach ($propiedades as $propiedad): ?>
-            <tr>
+            <tr class="cursor-pointer" onclick='mostrarDetallePropiedad(<?php echo json_encode($propiedad); ?>)'>
                 <td><?php echo htmlspecialchars($propiedad['id']); ?></td>
                 <td><?php echo htmlspecialchars($propiedad['direccion']); ?></td>
                 <td><?php echo htmlspecialchars($propiedad['tipo']); ?></td>
@@ -41,14 +40,6 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <span class="badge <?php echo $propiedad['estado'] == 'Disponible' ? 'bg-success' : 'bg-warning'; ?>">
                         <?php echo htmlspecialchars($propiedad['estado']); ?>
                     </span>
-                </td>
-                <td>
-                    <button class="btn btn-sm btn-info" onclick="editarPropiedad(<?php echo $propiedad['id']; ?>)">
-                        Editar
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="eliminarPropiedad(<?php echo $propiedad['id']; ?>)">
-                        Eliminar
-                    </button>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -61,7 +52,7 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Nueva Propiedad</h5>
+                <h5 class="modal-title">Detalles de la Propiedad</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -102,9 +93,49 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </form>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-danger me-auto" onclick="eliminarPropiedad()">Eliminar</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" onclick="guardarPropiedad()">Guardar</button>
             </div>
         </div>
     </div>
-</div> 
+</div>
+
+<style>
+.cursor-pointer {
+    cursor: pointer;
+}
+.cursor-pointer:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+</style>
+
+<script>
+function nuevaPropiedad() {
+    // Limpiar el formulario
+    document.getElementById('formPropiedad').reset();
+    document.getElementById('propiedad_id').value = '';
+    document.querySelector('#modalPropiedad .modal-title').textContent = 'Nueva Propiedad';
+    document.querySelector('#modalPropiedad .btn-danger').style.display = 'none';
+    
+    // Mostrar el modal
+    new bootstrap.Modal(document.getElementById('modalPropiedad')).show();
+}
+
+function mostrarDetallePropiedad(propiedad) {
+    // Llenar el formulario con los datos de la propiedad
+    document.getElementById('propiedad_id').value = propiedad.id;
+    document.getElementById('direccion').value = propiedad.direccion;
+    document.getElementById('tipo').value = propiedad.tipo;
+    document.getElementById('precio').value = propiedad.precio;
+    document.getElementById('estado').value = propiedad.estado;
+    document.getElementById('caracteristicas').value = propiedad.caracteristicas || '';
+    
+    // Actualizar título y mostrar botón de eliminar
+    document.querySelector('#modalPropiedad .modal-title').textContent = 'Detalles de la Propiedad';
+    document.querySelector('#modalPropiedad .btn-danger').style.display = 'block';
+    
+    // Mostrar el modal
+    new bootstrap.Modal(document.getElementById('modalPropiedad')).show();
+}
+</script> 
