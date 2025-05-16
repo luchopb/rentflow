@@ -9,7 +9,7 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <div class="row mb-4">
     <div class="col">
-        <h2>Gestión de Propiedades</h2>
+        <h2>Propiedades</h2>
     </div>
     <div class="col text-end">
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalPropiedad">

@@ -35,7 +35,7 @@ $contratos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <div class="row mb-4">
     <div class="col">
-        <h2>Gestión de Pagos</h2>
+        <h2>Pagos</h2>
     </div>
     <div class="col text-end">
         <button type="button" class="btn btn-primary" onclick="limpiarFormPago()" data-bs-toggle="modal" data-bs-target="#modalPago">

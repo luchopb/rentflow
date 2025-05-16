@@ -28,7 +28,7 @@ $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <div class="row mb-4">
     <div class="col">
-        <h2>Gestión de Contratos</h2>
+        <h2>Contratos</h2>
     </div>
     <div class="col text-end">
         <button type="button" class="btn btn-primary" onclick="limpiarFormContrato()" data-bs-toggle="modal" data-bs-target="#modalContrato">
