@@ -44,8 +44,8 @@ $(document).ready(function() {
         cargarModulo(modulo);
     });
 
-    // Cargar el módulo de propiedades por defecto
-    cargarModulo('propiedades');
+    // Cargar el dashboard por defecto
+    cargarModulo('dashboard');
 });
 
 // Funciones para el módulo de propiedades
@@ -68,6 +68,8 @@ function editarPropiedad(id) {
             $('#precio').val(propiedad.precio);
             $('#estado').val(propiedad.estado);
             $('#caracteristicas').val(propiedad.caracteristicas);
+            $('#galeria').val(propiedad.galeria);
+            $('#local').val(propiedad.local);
             
             $('.modal-title').text('Editar Propiedad');
             $('#modalPropiedad').modal('show');
@@ -155,25 +157,118 @@ function limpiarFormInquilino() {
     $('.modal-title').text('Nuevo Inquilino');
 }
 
-function editarInquilino(id) {
+function nuevoInquilino() {
+    document.getElementById('formInquilino').reset();
+    document.getElementById('inquilino_id').value = '';
+    document.querySelector('#modalInquilino .modal-title').textContent = 'Nuevo Inquilino';
+    document.querySelector('#modalInquilino .btn-danger').classList.add('d-none');
+    new bootstrap.Modal(document.getElementById('modalInquilino')).show();
+}
+
+function mostrarDetalleInquilino(inquilino) {
+    // Guardar el inquilino actual en una variable global
+    window.currentInquilino = inquilino;
+
+    // Mostrar información del inquilino
+    let infoHtml = `
+        <dl class="row">
+            <dt class="col-sm-3">Nombre</dt>
+            <dd class="col-sm-9">${inquilino.nombre}</dd>
+            <dt class="col-sm-3">DNI</dt>
+            <dd class="col-sm-9">${inquilino.dni}</dd>
+            <dt class="col-sm-3">Email</dt>
+            <dd class="col-sm-9">${inquilino.email}</dd>
+            <dt class="col-sm-3">Teléfono</dt>
+            <dd class="col-sm-9">${inquilino.telefono}</dd>
+        </dl>
+    `;
+    document.getElementById('info-inquilino').innerHTML = infoHtml;
+
+    // Cargar contratos
     $.post('modules/inquilinos/actions.php', {
-        action: 'get',
-        id: id
+        action: 'get_contratos',
+        id: inquilino.id
     }, function(response) {
         if (response.success) {
-            const inquilino = response.data;
-            $('#inquilino_id').val(inquilino.id);
-            $('#nombre').val(inquilino.nombre);
-            $('#dni').val(inquilino.dni);
-            $('#email').val(inquilino.email);
-            $('#telefono').val(inquilino.telefono);
+            let html = '<table class="table table-hover">';
+            html += '<thead><tr><th>Propiedad</th><th>Fecha Inicio</th><th>Fecha Fin</th><th>Renta</th><th>Estado</th></tr></thead>';
+            html += '<tbody>';
             
-            $('.modal-title').text('Editar Inquilino');
-            $('#modalInquilino').modal('show');
-        } else {
-            alert(response.message);
+            response.data.forEach(contrato => {
+                html += `<tr class="cursor-pointer" onclick='mostrarDetalleContrato(${JSON.stringify(contrato)})'>
+                    <td>${contrato.propiedad_direccion}</td>
+                    <td>${contrato.fecha_inicio}</td>
+                    <td>${contrato.fecha_fin}</td>
+                    <td>$${parseFloat(contrato.renta_mensual).toFixed(2)}</td>
+                    <td><span class="badge ${contrato.estado === 'Activo' ? 'bg-success' : 'bg-secondary'}">${contrato.estado}</span></td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table>';
+            $('#lista-contratos').html(html);
         }
     }, 'json');
+
+    // Cargar pagos
+    $.post('modules/inquilinos/actions.php', {
+        action: 'get_pagos',
+        id: inquilino.id
+    }, function(response) {
+        if (response.success) {
+            let html = '<table class="table table-hover">';
+            html += '<thead><tr><th>Propiedad</th><th>Vencimiento</th><th>Monto</th><th>Fecha Pago</th><th>Estado</th></tr></thead>';
+            html += '<tbody>';
+            
+            response.data.forEach(pago => {
+                const estado_class = {
+                    'Pendiente': 'bg-warning',
+                    'Pagado': 'bg-success',
+                    'Vencido': 'bg-danger'
+                }[pago.estado];
+
+                html += `<tr class="cursor-pointer" onclick='mostrarDetallePago(${JSON.stringify(pago)})'>
+                    <td>${pago.propiedad_direccion}</td>
+                    <td>${pago.fecha_vencimiento}</td>
+                    <td>$${parseFloat(pago.monto).toFixed(2)}</td>
+                    <td>${pago.fecha_pago || '-'}</td>
+                    <td><span class="badge ${estado_class}">${pago.estado}</span></td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table>';
+            $('#lista-pagos').html(html);
+        }
+    }, 'json');
+
+    $('#modalDetallesInquilino').modal('show');
+}
+
+function editarInquilino() {
+    // Usar el inquilino actual guardado
+    if (!window.currentInquilino) {
+        showAlert({
+            success: false,
+            message: 'Error: No se pudo obtener la información del inquilino'
+        });
+        return;
+    }
+
+    // Cerrar el modal de detalles
+    $('#modalDetallesInquilino').modal('hide');
+    
+    // Esperar a que se cierre el modal de detalles antes de abrir el de edición
+    setTimeout(() => {
+        // Llenar el formulario con los datos del inquilino actual
+        document.getElementById('inquilino_id').value = window.currentInquilino.id;
+        document.getElementById('nombre').value = window.currentInquilino.nombre;
+        document.getElementById('dni').value = window.currentInquilino.dni;
+        document.getElementById('email').value = window.currentInquilino.email;
+        document.getElementById('telefono').value = window.currentInquilino.telefono;
+        
+        document.querySelector('#modalInquilino .modal-title').textContent = 'Editar Inquilino';
+        document.querySelector('#modalInquilino .btn-danger').classList.remove('d-none');
+        $('#modalInquilino').modal('show');
+    }, 300); // Esperar 300ms para asegurar que el primer modal se haya cerrado
 }
 
 function guardarInquilino() {
@@ -186,15 +281,41 @@ function guardarInquilino() {
         data: formData,
         processData: false,
         contentType: false,
+        dataType: 'json',
         success: function(response) {
-            if (response.success) {
-                $('#modalInquilino').modal('hide');
-                cargarModulo('inquilinos');
+            try {
+                if (typeof response === 'string') {
+                    response = JSON.parse(response);
+                }
+                showAlert({
+                    success: response.success,
+                    message: response.message || 'Operación completada exitosamente'
+                }).then((result) => {
+                    if (response.success) {
+                        $('#modalInquilino').modal('hide');
+                        cargarModulo('inquilinos');
+                    }
+                });
+            } catch (e) {
+                console.error('Error al procesar la respuesta:', e);
+                showAlert({
+                    success: false,
+                    message: 'Error al procesar la respuesta del servidor'
+                });
             }
-            alert(response.message);
         },
-        error: function() {
-            alert('Error al procesar la solicitud');
+        error: function(xhr, status, error) {
+            console.error('Error en la solicitud:', error);
+            let errorMessage = 'Error al procesar la solicitud';
+            try {
+                const response = JSON.parse(xhr.responseText);
+                if (response.message && response.message.includes('SQLSTATE[23000]')) {
+                    errorMessage = 'Error: No se pudo crear el inquilino. El DNI o email ya existe en el sistema.';
+                } else {
+                    errorMessage = response.message || errorMessage;
+                }
+            } catch (e) {}
+            showAlert({success: false, message: errorMessage});
         }
     });
 }
@@ -213,40 +334,54 @@ function eliminarInquilino(id) {
     }
 }
 
-function verDetallesInquilino(id) {
-    // Cargar contratos
-    $.post('modules/inquilinos/actions.php', {
-        action: 'get_contratos',
-        id: id
-    }, function(response) {
-        if (response.success) {
-            let html = '<table class="table table-striped">';
-            html += '<thead><tr><th>Propiedad</th><th>Fecha Inicio</th><th>Fecha Fin</th><th>Renta</th><th>Estado</th></tr></thead>';
-            html += '<tbody>';
-            
-            response.data.forEach(contrato => {
-                html += `<tr>
-                    <td>${contrato.propiedad_direccion}</td>
-                    <td>${contrato.fecha_inicio}</td>
-                    <td>${contrato.fecha_fin}</td>
-                    <td>$${parseFloat(contrato.renta_mensual).toFixed(2)}</td>
-                    <td><span class="badge ${contrato.estado === 'Activo' ? 'bg-success' : 'bg-secondary'}">${contrato.estado}</span></td>
-                </tr>`;
-            });
-            
-            html += '</tbody></table>';
-            $('#lista-contratos').html(html);
-        }
-    }, 'json');
+// Funciones para el módulo de contratos
+function limpiarFormContrato() {
+    $('#formContrato')[0].reset();
+    $('#contrato_id').val('');
+    $('.modal-title').text('Nuevo Contrato');
+}
 
-    // Cargar pagos
-    $.post('modules/inquilinos/actions.php', {
+function nuevoContrato() {
+    document.getElementById('formContrato').reset();
+    document.getElementById('contrato_id').value = '';
+    document.querySelector('#modalContrato .modal-title').textContent = 'Nuevo Contrato';
+    document.querySelector('#modalContrato .btn-danger').classList.add('d-none');
+    new bootstrap.Modal(document.getElementById('modalContrato')).show();
+}
+
+function mostrarDetalleContrato(contrato) {
+    // Mostrar información del contrato
+    let infoHtml = `
+        <dl class="row">
+            <dt class="col-sm-3">Propiedad</dt>
+            <dd class="col-sm-9">${contrato.propiedad_direccion}</dd>
+            <dt class="col-sm-3">Inquilino</dt>
+            <dd class="col-sm-9">${contrato.inquilino_nombre} (DNI: ${contrato.inquilino_dni})</dd>
+            <dt class="col-sm-3">Fecha Inicio</dt>
+            <dd class="col-sm-9">${contrato.fecha_inicio}</dd>
+            <dt class="col-sm-3">Fecha Fin</dt>
+            <dd class="col-sm-9">${contrato.fecha_fin}</dd>
+            <dt class="col-sm-3">Renta Mensual</dt>
+            <dd class="col-sm-9">$${parseFloat(contrato.renta_mensual).toFixed(2)}</dd>
+            <dt class="col-sm-3">Estado</dt>
+            <dd class="col-sm-9">
+                <span class="badge ${contrato.estado === 'Activo' ? 'bg-success' : 'bg-secondary'}">
+                    ${contrato.estado}
+                </span>
+            </dd>
+        </dl>
+    `;
+    document.getElementById('info-contrato').innerHTML = infoHtml;
+    document.getElementById('contrato_id').value = contrato.id;
+
+    // Cargar pagos del contrato
+    $.post('modules/contratos/actions.php', {
         action: 'get_pagos',
-        id: id
+        id: contrato.id
     }, function(response) {
         if (response.success) {
-            let html = '<table class="table table-striped">';
-            html += '<thead><tr><th>Propiedad</th><th>Vencimiento</th><th>Monto</th><th>Fecha Pago</th><th>Estado</th></tr></thead>';
+            let html = '<table class="table table-hover">';
+            html += '<thead><tr><th>Fecha Vencimiento</th><th>Monto</th><th>Fecha Pago</th><th>Monto Pagado</th><th>Estado</th></tr></thead>';
             html += '<tbody>';
             
             response.data.forEach(pago => {
@@ -256,51 +391,41 @@ function verDetallesInquilino(id) {
                     'Vencido': 'bg-danger'
                 }[pago.estado];
 
-                html += `<tr>
-                    <td>${pago.propiedad_direccion}</td>
+                html += `<tr class="cursor-pointer" onclick='mostrarDetallePago(${JSON.stringify(pago)})'>
                     <td>${pago.fecha_vencimiento}</td>
                     <td>$${parseFloat(pago.monto).toFixed(2)}</td>
                     <td>${pago.fecha_pago || '-'}</td>
+                    <td>$${pago.monto_pagado ? parseFloat(pago.monto_pagado).toFixed(2) : '-'}</td>
                     <td><span class="badge ${estado_class}">${pago.estado}</span></td>
                 </tr>`;
             });
             
             html += '</tbody></table>';
-            $('#lista-pagos').html(html);
+            $('#lista-pagos-contrato').html(html);
         }
     }, 'json');
 
-    $('#modalDetallesInquilino').modal('show');
+    $('#modalDetallesContrato').modal('show');
 }
 
-function registrarNuevoPago() {
-    // Esta función se implementará cuando creemos el módulo de pagos
-    alert('Funcionalidad en desarrollo');
-}
-
-// Funciones para el módulo de contratos
-function limpiarFormContrato() {
-    $('#formContrato')[0].reset();
-    $('#contrato_id').val('');
-    $('.modal-title').text('Nuevo Contrato');
-}
-
-function editarContrato(id) {
+function editarContrato() {
+    const contrato_id = document.getElementById('contrato_id').value;
     $.post('modules/contratos/actions.php', {
         action: 'get',
-        id: id
+        id: contrato_id
     }, function(response) {
         if (response.success) {
             const contrato = response.data;
-            $('#contrato_id').val(contrato.id);
-            $('#propiedad_id').val(contrato.propiedad_id);
-            $('#inquilino_id').val(contrato.inquilino_id);
-            $('#fecha_inicio').val(contrato.fecha_inicio);
-            $('#fecha_fin').val(contrato.fecha_fin);
-            $('#renta_mensual').val(contrato.renta_mensual);
-            $('#estado').val(contrato.estado);
+            document.getElementById('contrato_id').value = contrato.id;
+            document.getElementById('propiedad_id').value = contrato.propiedad_id;
+            document.getElementById('inquilino_id').value = contrato.inquilino_id;
+            document.getElementById('fecha_inicio').value = contrato.fecha_inicio;
+            document.getElementById('fecha_fin').value = contrato.fecha_fin;
+            document.getElementById('renta_mensual').value = contrato.renta_mensual;
+            document.getElementById('estado').value = contrato.estado;
             
-            $('.modal-title').text('Editar Contrato');
+            document.querySelector('#modalContrato .modal-title').textContent = 'Editar Contrato';
+            document.querySelector('#modalContrato .btn-danger').classList.remove('d-none');
             $('#modalContrato').modal('show');
         } else {
             alert(response.message);
@@ -428,22 +553,61 @@ function limpiarFormPago() {
     $('.modal-title').text('Nuevo Pago');
 }
 
-function editarPago(id) {
+function nuevoPago() {
+    document.getElementById('formPago').reset();
+    document.getElementById('pago_id').value = '';
+    document.querySelector('#modalPago .modal-title').textContent = 'Nuevo Pago';
+    document.querySelector('#modalPago .btn-danger').classList.add('d-none');
+    document.getElementById('fecha_pago').value = new Date().toISOString().split('T')[0];
+    new bootstrap.Modal(document.getElementById('modalPago')).show();
+}
+
+function mostrarDetallePago(pago) {
+    // Mostrar información del pago
+    let infoHtml = `
+        <dl class="row">
+            <dt class="col-sm-3">Propiedad</dt>
+            <dd class="col-sm-9">${pago.propiedad_direccion}</dd>
+            <dt class="col-sm-3">Inquilino</dt>
+            <dd class="col-sm-9">${pago.inquilino_nombre} (DNI: ${pago.inquilino_dni})</dd>
+            <dt class="col-sm-3">Vencimiento</dt>
+            <dd class="col-sm-9">${pago.fecha_vencimiento}</dd>
+            <dt class="col-sm-3">Monto</dt>
+            <dd class="col-sm-9">$${parseFloat(pago.monto).toFixed(2)}</dd>
+            <dt class="col-sm-3">Fecha Pago</dt>
+            <dd class="col-sm-9">${pago.fecha_pago || '-'}</dd>
+            <dt class="col-sm-3">Monto Pagado</dt>
+            <dd class="col-sm-9">${pago.monto_pagado ? '$' + parseFloat(pago.monto_pagado).toFixed(2) : '-'}</dd>
+            <dt class="col-sm-3">Estado</dt>
+            <dd class="col-sm-9">
+                <span class="badge ${pago.estado === 'Pagado' ? 'bg-success' : (pago.estado === 'Vencido' ? 'bg-danger' : 'bg-warning')}">
+                    ${pago.estado}
+                </span>
+            </dd>
+        </dl>
+    `;
+    document.getElementById('info-pago').innerHTML = infoHtml;
+    document.getElementById('pago_id').value = pago.id;
+
+    $('#modalDetallePago').modal('show');
+}
+
+function editarPago() {
+    const pago_id = document.getElementById('pago_id').value;
     $.post('modules/pagos/actions.php', {
         action: 'get',
-        id: id
+        id: pago_id
     }, function(response) {
         if (response.success) {
             const pago = response.data;
-            $('#pago_id').val(pago.id);
-            $('#contrato_id').val(pago.contrato_id);
-            $('#fecha_vencimiento').val(pago.fecha_vencimiento);
-            $('#monto').val(pago.monto);
-            $('#fecha_pago').val(pago.fecha_pago || '');
-            $('#monto_pagado').val(pago.monto_pagado || '');
-            $('#estado').val(pago.estado);
+            document.getElementById('pago_id').value = pago.id;
+            document.getElementById('contrato_id').value = pago.contrato_id;
+            document.getElementById('monto').value = pago.monto;
+            document.getElementById('fecha_pago').value = pago.fecha_pago || new Date().toISOString().split('T')[0];
+            document.getElementById('monto_pagado').value = pago.monto_pagado || pago.monto;
             
-            $('.modal-title').text('Editar Pago');
+            document.querySelector('#modalPago .modal-title').textContent = 'Editar Pago';
+            document.querySelector('#modalPago .btn-danger').classList.remove('d-none');
             $('#modalPago').modal('show');
         } else {
             alert(response.message);

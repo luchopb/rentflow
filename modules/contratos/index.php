@@ -31,14 +31,14 @@ $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <h2>Contratos</h2>
     </div>
     <div class="col text-end">
-        <button type="button" class="btn btn-primary" onclick="limpiarFormContrato()" data-bs-toggle="modal" data-bs-target="#modalContrato">
+        <button type="button" class="btn btn-primary" onclick="nuevoContrato()">
             Nuevo Contrato
         </button>
     </div>
 </div>
 
 <div class="table-responsive">
-    <table class="table table-striped">
+    <table class="table table-hover">
         <thead>
             <tr>
                 <th>ID</th>
@@ -48,12 +48,11 @@ $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <th>Fecha Fin</th>
                 <th>Renta Mensual</th>
                 <th>Estado</th>
-                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             <?php foreach ($contratos as $contrato): ?>
-            <tr>
+            <tr class="cursor-pointer" onclick='mostrarDetalleContrato(<?php echo json_encode($contrato); ?>)'>
                 <td><?php echo htmlspecialchars($contrato['id']); ?></td>
                 <td><?php echo htmlspecialchars($contrato['propiedad_direccion']); ?></td>
                 <td>
@@ -68,17 +67,6 @@ $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <span class="badge <?php echo $contrato['estado'] == 'Activo' ? 'bg-success' : 'bg-secondary'; ?>">
                         <?php echo htmlspecialchars($contrato['estado']); ?>
                     </span>
-                </td>
-                <td>
-                    <button class="btn btn-sm btn-info" onclick="editarContrato(<?php echo $contrato['id']; ?>)">
-                        Editar
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="eliminarContrato(<?php echo $contrato['id']; ?>)">
-                        Eliminar
-                    </button>
-                    <button class="btn btn-sm btn-success" onclick="verPagosContrato(<?php echo $contrato['id']; ?>)">
-                        Pagos
-                    </button>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -148,6 +136,7 @@ $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </form>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-danger me-auto d-none" onclick="eliminarContrato()">Eliminar</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" onclick="guardarContrato()">Guardar</button>
             </div>
@@ -155,18 +144,29 @@ $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 </div>
 
-<!-- Modal para Ver Pagos -->
-<div class="modal fade" id="modalPagosContrato" tabindex="-1">
+<!-- Modal para Detalles del Contrato -->
+<div class="modal fade" id="modalDetallesContrato" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Pagos del Contrato</h5>
+                <h5 class="modal-title">Detalles del Contrato</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col">
+                        <h6>Información del Contrato</h6>
+                        <div id="info-contrato" class="mb-4"></div>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="editarContrato()">
+                            Editar Contrato
+                        </button>
+                    </div>
+                </div>
+                <h6>Pagos del Contrato</h6>
                 <div id="lista-pagos-contrato"></div>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-danger me-auto" onclick="eliminarContrato()">Eliminar Contrato</button>
                 <button type="button" class="btn btn-primary" onclick="registrarPagoContrato()">Registrar Pago</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>

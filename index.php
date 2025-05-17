@@ -3,26 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RentFlow - Sistema de Gestión Inmobiliaria</title>
+    <title>RentFlow - Sistema de Gestión de Alquileres</title>
     
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- SweetAlert2 -->
-    <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bootstrap-4/bootstrap-4.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     
-    <!-- Custom CSS -->
-    <link href="assets/css/style.css" rel="stylesheet">
+    <style>
+        .cursor-pointer {
+            cursor: pointer;
+        }
+        .nav-link {
+            color: rgba(255,255,255,.75);
+        }
+        .nav-link:hover {
+            color: rgba(255,255,255,1);
+        }
+        .nav-link.active {
+            color: white !important;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">RentFlow</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -31,28 +37,45 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="#" data-page="propiedades">Propiedades</a>
+                        <a class="nav-link active" href="#" data-page="dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Inicio
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" data-page="inquilinos">Inquilinos</a>
+                        <a class="nav-link" href="#" data-page="propiedades">
+                            <i class="fas fa-home"></i> Propiedades
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" data-page="contratos">Contratos</a>
+                        <a class="nav-link" href="#" data-page="inquilinos">
+                            <i class="fas fa-users"></i> Inquilinos
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" data-page="pagos">Pagos</a>
+                        <a class="nav-link" href="#" data-page="contratos">
+                            <i class="fas fa-file-contract"></i> Contratos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-page="pagos">
+                            <i class="fas fa-money-bill-wave"></i> Pagos
+                        </a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <div class="container mt-4">
-        <div id="main-content">
-            <!-- El contenido dinámico se cargará aquí -->
-        </div>
+    <div id="main-content" class="container-fluid mt-4">
+        <!-- El contenido se cargará aquí dinámicamente -->
     </div>
 
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Custom JS -->
     <script src="assets/js/main.js"></script>
 </body>

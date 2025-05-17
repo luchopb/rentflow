@@ -38,14 +38,14 @@ $contratos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <h2>Pagos</h2>
     </div>
     <div class="col text-end">
-        <button type="button" class="btn btn-primary" onclick="limpiarFormPago()" data-bs-toggle="modal" data-bs-target="#modalPago">
+        <button type="button" class="btn btn-primary" onclick="nuevoPago()">
             Nuevo Pago
         </button>
     </div>
 </div>
 
 <div class="table-responsive">
-    <table class="table table-striped">
+    <table class="table table-hover">
         <thead>
             <tr>
                 <th>ID</th>
@@ -56,12 +56,11 @@ $contratos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <th>Fecha Pago</th>
                 <th>Monto Pagado</th>
                 <th>Estado</th>
-                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             <?php foreach ($pagos as $pago): ?>
-            <tr>
+            <tr class="cursor-pointer" onclick='mostrarDetallePago(<?php echo json_encode($pago); ?>)'>
                 <td><?php echo htmlspecialchars($pago['id']); ?></td>
                 <td><?php echo htmlspecialchars($pago['propiedad_direccion']); ?></td>
                 <td>
@@ -80,14 +79,6 @@ $contratos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     ?>">
                         <?php echo htmlspecialchars($pago['estado']); ?>
                     </span>
-                </td>
-                <td>
-                    <button class="btn btn-sm btn-info" onclick="editarPago(<?php echo $pago['id']; ?>)">
-                        Editar
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="eliminarPago(<?php echo $pago['id']; ?>)">
-                        Eliminar
-                    </button>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -136,8 +127,36 @@ $contratos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </form>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-danger me-auto d-none" onclick="eliminarPago()">Eliminar</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" onclick="guardarPago()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Detalles del Pago -->
+<div class="modal fade" id="modalDetallePago" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles del Pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col">
+                        <h6>Información del Pago</h6>
+                        <div id="info-pago" class="mb-4"></div>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="editarPago()">
+                            Editar Pago
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger me-auto" onclick="eliminarPago()">Eliminar Pago</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>

@@ -2,7 +2,7 @@
 require_once '../../config/database.php';
 
 // Obtener todos los inquilinos
-$stmt = $conn->prepare("SELECT * FROM inquilinos ORDER BY nombre ASC");
+$stmt = $conn->prepare("SELECT * FROM inquilinos ORDER BY created_at DESC");
 $stmt->execute();
 $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
@@ -12,14 +12,14 @@ $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <h2>Inquilinos</h2>
     </div>
     <div class="col text-end">
-        <button type="button" class="btn btn-primary" onclick="limpiarFormInquilino()" data-bs-toggle="modal" data-bs-target="#modalInquilino">
+        <button type="button" class="btn btn-primary" onclick="nuevoInquilino()">
             Nuevo Inquilino
         </button>
     </div>
 </div>
 
 <div class="table-responsive">
-    <table class="table table-striped">
+    <table class="table table-hover">
         <thead>
             <tr>
                 <th>ID</th>
@@ -27,28 +27,16 @@ $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <th>DNI</th>
                 <th>Email</th>
                 <th>Teléfono</th>
-                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             <?php foreach ($inquilinos as $inquilino): ?>
-            <tr>
+            <tr class="cursor-pointer" onclick='mostrarDetalleInquilino(<?php echo json_encode($inquilino); ?>)'>
                 <td><?php echo htmlspecialchars($inquilino['id']); ?></td>
                 <td><?php echo htmlspecialchars($inquilino['nombre']); ?></td>
                 <td><?php echo htmlspecialchars($inquilino['dni']); ?></td>
                 <td><?php echo htmlspecialchars($inquilino['email']); ?></td>
                 <td><?php echo htmlspecialchars($inquilino['telefono']); ?></td>
-                <td>
-                    <button class="btn btn-sm btn-info" onclick="editarInquilino(<?php echo $inquilino['id']; ?>)">
-                        Editar
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="eliminarInquilino(<?php echo $inquilino['id']; ?>)">
-                        Eliminar
-                    </button>
-                    <button class="btn btn-sm btn-success" onclick="verDetallesInquilino(<?php echo $inquilino['id']; ?>)">
-                        Detalles
-                    </button>
-                </td>
             </tr>
             <?php endforeach; ?>
         </tbody>
@@ -89,6 +77,7 @@ $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </form>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-danger me-auto d-none" onclick="eliminarInquilino()">Eliminar</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" onclick="guardarInquilino()">Guardar</button>
             </div>
@@ -105,6 +94,15 @@ $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col">
+                        <h6>Información Personal</h6>
+                        <div id="info-inquilino" class="mb-4"></div>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="editarInquilino()">
+                            Editar Información
+                        </button>
+                    </div>
+                </div>
                 <ul class="nav nav-tabs" id="detallesTab" role="tablist">
                     <li class="nav-item">
                         <a class="nav-link active" id="contratos-tab" data-bs-toggle="tab" href="#contratos" role="tab">
@@ -127,7 +125,8 @@ $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="registrarNuevoPago()">Registrar Nuevo Pago</button>
+                <button type="button" class="btn btn-danger me-auto" onclick="eliminarInquilino()">Eliminar Inquilino</button>
+                <button type="button" class="btn btn-primary" onclick="nuevoContrato()">Nuevo Contrato</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>

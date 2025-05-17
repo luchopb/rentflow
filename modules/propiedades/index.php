@@ -90,6 +90,16 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <label for="caracteristicas" class="form-label">Características</label>
                         <textarea class="form-control" id="caracteristicas" name="caracteristicas" rows="3"></textarea>
                     </div>
+                    
+                    <div class="mb-3">
+                        <label for="galeria" class="form-label">Galería</label>
+                        <textarea class="form-control" id="galeria" name="galeria" rows="3" placeholder="Ingrese las URLs de las imágenes, una por línea"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="local" class="form-label">Local</label>
+                        <textarea class="form-control" id="local" name="local" rows="3" placeholder="Información adicional sobre el local"></textarea>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -130,6 +140,8 @@ function mostrarDetallePropiedad(propiedad) {
     document.getElementById('precio').value = propiedad.precio;
     document.getElementById('estado').value = propiedad.estado;
     document.getElementById('caracteristicas').value = propiedad.caracteristicas || '';
+    document.getElementById('galeria').value = propiedad.galeria || '';
+    document.getElementById('local').value = propiedad.local || '';
     
     // Actualizar título y mostrar botón de eliminar
     document.querySelector('#modalPropiedad .modal-title').textContent = 'Detalles de la Propiedad';

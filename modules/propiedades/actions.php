@@ -14,18 +14,21 @@ switch ($action) {
         $precio = $_POST['precio'] ?? 0;
         $estado = $_POST['estado'] ?? 'Disponible';
         $caracteristicas = $_POST['caracteristicas'] ?? '';
+        $galeria = $_POST['galeria'] ?? '';
+        $local = $_POST['local'] ?? '';
 
         try {
             if ($action === 'create') {
-                $stmt = $conn->prepare("INSERT INTO propiedades (direccion, tipo, precio, estado, caracteristicas) 
-                                      VALUES (?, ?, ?, ?, ?)");
-                $stmt->execute([$direccion, $tipo, $precio, $estado, $caracteristicas]);
+                $stmt = $conn->prepare("INSERT INTO propiedades (direccion, tipo, precio, estado, caracteristicas, galeria, local) 
+                                      VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$direccion, $tipo, $precio, $estado, $caracteristicas, $galeria, $local]);
                 $response = ['success' => true, 'message' => 'Propiedad creada exitosamente'];
             } else {
                 $stmt = $conn->prepare("UPDATE propiedades 
-                                      SET direccion = ?, tipo = ?, precio = ?, estado = ?, caracteristicas = ? 
+                                      SET direccion = ?, tipo = ?, precio = ?, estado = ?, caracteristicas = ?, 
+                                          galeria = ?, local = ? 
                                       WHERE id = ?");
-                $stmt->execute([$direccion, $tipo, $precio, $estado, $caracteristicas, $id]);
+                $stmt->execute([$direccion, $tipo, $precio, $estado, $caracteristicas, $galeria, $local, $id]);
                 $response = ['success' => true, 'message' => 'Propiedad actualizada exitosamente'];
             }
         } catch (PDOException $e) {
