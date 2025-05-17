@@ -60,17 +60,29 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <input type="hidden" id="propiedad_id" name="id">
                     
                     <div class="mb-3">
-                        <label for="direccion" class="form-label">Dirección</label>
-                        <input type="text" class="form-control" id="direccion" name="direccion" required>
-                    </div>
-                    
-                    <div class="mb-3">
                         <label for="tipo" class="form-label">Tipo</label>
-                        <select class="form-select" id="tipo" name="tipo" required>
+                        <select class="form-select" id="tipo" name="tipo" required onchange="mostrarOcultarCamposLocal()">
                             <option value="Departamento">Departamento</option>
                             <option value="Casa">Casa</option>
                             <option value="Local">Local</option>
                         </select>
+                    </div>
+
+                    <div id="camposLocal" style="display:none">
+                        <div class="mb-3">
+                            <label for="galeria" class="form-label">Galería</label>
+                            <input type="text" class="form-control" id="galeria" name="galeria" placeholder="Nombre de la galería">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="local" class="form-label">Local</label>
+                            <input type="text" class="form-control" id="local" name="local" placeholder="Número de local">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="direccion" class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="direccion" name="direccion" required>
                     </div>
                     
                     <div class="mb-3">
@@ -91,15 +103,6 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <textarea class="form-control" id="caracteristicas" name="caracteristicas" rows="3"></textarea>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="galeria" class="form-label">Galería</label>
-                        <textarea class="form-control" id="galeria" name="galeria" rows="3" placeholder="Ingrese las URLs de las imágenes, una por línea"></textarea>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="local" class="form-label">Local</label>
-                        <textarea class="form-control" id="local" name="local" rows="3" placeholder="Información adicional sobre el local"></textarea>
-                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -121,6 +124,13 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </style>
 
 <script>
+// Función simple para mostrar/ocultar campos de Local
+function mostrarOcultarCamposLocal() {
+    const tipo = document.getElementById('tipo').value;
+    const camposLocal = document.getElementById('camposLocal');
+    camposLocal.style.display = tipo === 'Local' ? 'block' : 'none';
+}
+
 function nuevaPropiedad() {
     // Limpiar el formulario
     document.getElementById('formPropiedad').reset();
@@ -130,6 +140,9 @@ function nuevaPropiedad() {
     
     // Mostrar el modal
     new bootstrap.Modal(document.getElementById('modalPropiedad')).show();
+    
+    // Verificar campos Local
+    mostrarOcultarCamposLocal();
 }
 
 function mostrarDetallePropiedad(propiedad) {
@@ -149,5 +162,11 @@ function mostrarDetallePropiedad(propiedad) {
     
     // Mostrar el modal
     new bootstrap.Modal(document.getElementById('modalPropiedad')).show();
+    
+    // Verificar campos Local
+    mostrarOcultarCamposLocal();
 }
+
+// Asegurarse de que los campos se actualicen cuando se abre el modal
+document.getElementById('modalPropiedad').addEventListener('shown.bs.modal', mostrarOcultarCamposLocal);
 </script> 
