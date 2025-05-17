@@ -1,6 +1,15 @@
 <?php
 require_once '../../config/database.php';
 
+// Obtener cantidad de propiedades disponibles
+$stmt = $conn->prepare("
+    SELECT COUNT(*) as total 
+    FROM propiedades 
+    WHERE estado = 'Disponible'
+");
+$stmt->execute();
+$propiedades_disponibles = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+
 // Obtener cantidad de contratos activos
 $stmt = $conn->prepare("
     SELECT COUNT(*) as total 
@@ -21,7 +30,7 @@ $stmt = $conn->prepare("
 $stmt->execute();
 $deudores = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
-// Obtener próximos vencimientos (20 días)
+// Obtener próximos vencimientos de pagos (20 días)
 $stmt = $conn->prepare("
     SELECT 
         p.fecha_vencimiento,
@@ -40,29 +49,55 @@ $stmt = $conn->prepare("
 ");
 $stmt->execute();
 $proximos_vencimientos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Obtener contratos por vencer (60 días)
+$stmt = $conn->prepare("
+    SELECT 
+        c.fecha_fin,
+        c.renta_mensual,
+        pr.direccion as propiedad,
+        i.nombre as inquilino,
+        i.dni
+    FROM contratos c
+    JOIN propiedades pr ON c.propiedad_id = pr.id
+    JOIN inquilinos i ON c.inquilino_id = i.id
+    WHERE c.fecha_fin BETWEEN CURRENT_DATE AND DATE_ADD(CURRENT_DATE, INTERVAL 60 DAY)
+    AND c.estado = 'Activo'
+    ORDER BY c.fecha_fin ASC
+");
+$stmt->execute();
+$contratos_por_vencer = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <div class="container-fluid py-4">
     <!-- Indicadores -->
     <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card bg-primary text-white h-100">
+        <div class="col-md-3">
+            <div class="card bg-info text-white h-100 cursor-pointer" onclick="cargarModulo('propiedades')">
+                <div class="card-body">
+                    <h5 class="card-title">Propiedades Disponibles</h5>
+                    <h2 class="display-4"><?php echo $propiedades_disponibles; ?></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-primary text-white h-100 cursor-pointer" onclick="cargarModulo('contratos')">
                 <div class="card-body">
                     <h5 class="card-title">Contratos Activos</h5>
                     <h2 class="display-4"><?php echo $contratos_activos; ?></h2>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card bg-danger text-white h-100">
+        <div class="col-md-3">
+            <div class="card bg-danger text-white h-100 cursor-pointer" onclick="cargarModulo('inquilinos')">
                 <div class="card-body">
                     <h5 class="card-title">Deudores</h5>
                     <h2 class="display-4"><?php echo $deudores; ?></h2>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card bg-success text-white h-100">
+        <div class="col-md-3">
+            <div class="card bg-success text-white h-100 cursor-pointer" onclick="cargarModulo('contratos')">
                 <div class="card-body">
                     <h5 class="card-title">Próximos Vencimientos</h5>
                     <h2 class="display-4"><?php echo count($proximos_vencimientos); ?></h2>
@@ -71,35 +106,12 @@ $proximos_vencimientos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
-    <!-- Acciones Rápidas -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Acciones Rápidas</h5>
-                    <button class="btn btn-primary me-2" onclick="nuevoInquilino()">
-                        <i class="fas fa-user-plus"></i> Nuevo Inquilino
-                    </button>
-                    <button class="btn btn-success me-2" onclick="nuevaPropiedad()">
-                        <i class="fas fa-home"></i> Nueva Propiedad
-                    </button>
-                    <button class="btn btn-info me-2" onclick="nuevoContrato()">
-                        <i class="fas fa-file-signature"></i> Nuevo Contrato
-                    </button>
-                    <button class="btn btn-warning" onclick="nuevoPago()">
-                        <i class="fas fa-money-bill-wave"></i> Registrar Pago
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Próximos Vencimientos -->
     <div class="row">
-        <div class="col-12">
+        <!-- Próximos Vencimientos de Pagos -->
+        <div class="col-12 col-xl-6 mb-4">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title mb-3">Próximos Vencimientos (20 días)</h5>
+                    <h5 class="card-title mb-3">Próximos Vencimientos de Pagos (20 días)</h5>
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
@@ -108,7 +120,7 @@ $proximos_vencimientos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <th>Propiedad</th>
                                     <th>Inquilino</th>
                                     <th>Monto</th>
-                                    <th>Días Restantes</th>
+                                    <th>Días</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -126,7 +138,7 @@ $proximos_vencimientos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <td>$<?php echo number_format($vencimiento['monto'], 2); ?></td>
                                     <td>
                                         <span class="badge <?php echo $dias_restantes <= 5 ? 'bg-danger' : ($dias_restantes <= 10 ? 'bg-warning' : 'bg-success'); ?>">
-                                            <?php echo round($dias_restantes); ?> días
+                                            <?php echo round($dias_restantes); ?>
                                         </span>
                                     </td>
                                 </tr>
@@ -142,5 +154,63 @@ $proximos_vencimientos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
             </div>
         </div>
+
+        <!-- Contratos por Vencer -->
+        <div class="col-12 col-xl-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Contratos por Vencer (60 días)</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Fecha Fin</th>
+                                    <th>Propiedad</th>
+                                    <th>Inquilino</th>
+                                    <th>Renta</th>
+                                    <th>Días</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($contratos_por_vencer as $contrato): 
+                                    $dias_restantes = (strtotime($contrato['fecha_fin']) - strtotime(date('Y-m-d'))) / (60 * 60 * 24);
+                                ?>
+                                <tr>
+                                    <td><?php echo date('d/m/Y', strtotime($contrato['fecha_fin'])); ?></td>
+                                    <td><?php echo htmlspecialchars($contrato['propiedad']); ?></td>
+                                    <td>
+                                        <?php echo htmlspecialchars($contrato['inquilino']); ?>
+                                        <br>
+                                        <small class="text-muted">DNI: <?php echo htmlspecialchars($contrato['dni']); ?></small>
+                                    </td>
+                                    <td>$<?php echo number_format($contrato['renta_mensual'], 2); ?></td>
+                                    <td>
+                                        <span class="badge <?php echo $dias_restantes <= 15 ? 'bg-danger' : ($dias_restantes <= 30 ? 'bg-warning' : 'bg-success'); ?>">
+                                            <?php echo round($dias_restantes); ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                                <?php if (empty($contratos_por_vencer)): ?>
+                                <tr>
+                                    <td colspan="5" class="text-center">No hay contratos por vencer</td>
+                                </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div> 
+</div>
+
+<style>
+.cursor-pointer {
+    cursor: pointer;
+}
+.cursor-pointer:hover {
+    background-color: rgba(255,255,255,0.1);
+    transition: background-color 0.3s ease;
+}
+</style> 

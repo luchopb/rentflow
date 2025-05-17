@@ -26,6 +26,29 @@ $stmt->execute();
 $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
+<style>
+.cursor-pointer {
+    cursor: pointer;
+}
+.cursor-pointer:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+/* Fix for modal stacking */
+#modalContrato {
+    z-index: 1060 !important;
+}
+#modalContrato .modal-backdrop {
+    z-index: 1059 !important;
+}
+#modalDetallesContrato {
+    z-index: 1050 !important;
+}
+#modalDetallesContrato .modal-backdrop {
+    z-index: 1049 !important;
+}
+</style>
+
 <div class="row mb-4">
     <div class="col">
         <h2>Contratos</h2>
@@ -172,4 +195,187 @@ $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
     </div>
-</div> 
+</div>
+
+<script>
+let contratoActual = null;
+
+function mostrarDetalleContrato(contrato) {
+    contratoActual = contrato;
+    
+    // Actualizar la información del contrato
+    const infoContrato = document.getElementById('info-contrato');
+    infoContrato.innerHTML = `
+        <p><strong>Propiedad:</strong> ${contrato.propiedad_direccion}</p>
+        <p><strong>Inquilino:</strong> ${contrato.inquilino_nombre} (DNI: ${contrato.inquilino_dni})</p>
+        <p><strong>Fecha Inicio:</strong> ${contrato.fecha_inicio}</p>
+        <p><strong>Fecha Fin:</strong> ${contrato.fecha_fin}</p>
+        <p><strong>Renta Mensual:</strong> $${parseFloat(contrato.renta_mensual).toFixed(2)}</p>
+        <p><strong>Estado:</strong> ${contrato.estado}</p>
+    `;
+    
+    // Mostrar el modal de detalles
+    const modalDetalles = new bootstrap.Modal(document.getElementById('modalDetallesContrato'));
+    modalDetalles.show();
+    
+    // Cargar los pagos del contrato
+    cargarPagosContrato(contrato.id);
+}
+
+function editarContrato() {
+    if (!contratoActual) return;
+    
+    // Llenar el formulario con los datos actuales
+    document.getElementById('contrato_id').value = contratoActual.id;
+    document.getElementById('propiedad_id').value = contratoActual.propiedad_id;
+    document.getElementById('inquilino_id').value = contratoActual.inquilino_id;
+    document.getElementById('fecha_inicio').value = contratoActual.fecha_inicio;
+    document.getElementById('fecha_fin').value = contratoActual.fecha_fin;
+    document.getElementById('renta_mensual').value = contratoActual.renta_mensual;
+    document.getElementById('estado').value = contratoActual.estado;
+    
+    // Actualizar título y mostrar botón de eliminar
+    document.querySelector('#modalContrato .modal-title').textContent = 'Editar Contrato';
+    document.querySelector('#modalContrato .btn-danger').classList.remove('d-none');
+    
+    // Mostrar el modal de edición
+    const modalEditar = new bootstrap.Modal(document.getElementById('modalContrato'));
+    modalEditar.show();
+}
+
+function nuevoContrato() {
+    // Limpiar el formulario
+    document.getElementById('formContrato').reset();
+    document.getElementById('contrato_id').value = '';
+    
+    // Actualizar título y ocultar botón de eliminar
+    document.querySelector('#modalContrato .modal-title').textContent = 'Nuevo Contrato';
+    document.querySelector('#modalContrato .btn-danger').classList.add('d-none');
+    
+    // Mostrar el modal
+    const modal = new bootstrap.Modal(document.getElementById('modalContrato'));
+    modal.show();
+}
+
+function guardarContrato() {
+    const formData = new FormData(document.getElementById('formContrato'));
+    formData.append('action', formData.get('id') ? 'update' : 'create');
+    
+    fetch('modules/contratos/actions.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Cerrar el modal y recargar la página
+            bootstrap.Modal.getInstance(document.getElementById('modalContrato')).hide();
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al guardar el contrato');
+    });
+}
+
+function eliminarContrato() {
+    if (!confirm('¿Está seguro de que desea eliminar este contrato?')) return;
+    
+    const formData = new FormData();
+    formData.append('action', 'delete');
+    formData.append('id', document.getElementById('contrato_id').value);
+    
+    fetch('modules/contratos/actions.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Cerrar los modales y recargar la página
+            bootstrap.Modal.getInstance(document.getElementById('modalContrato')).hide();
+            bootstrap.Modal.getInstance(document.getElementById('modalDetallesContrato')).hide();
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al eliminar el contrato');
+    });
+}
+
+function cargarPagosContrato(contratoId) {
+    const formData = new FormData();
+    formData.append('action', 'get_pagos');
+    formData.append('id', contratoId);
+    
+    fetch('modules/contratos/actions.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarPagosContrato(data.data);
+        } else {
+            document.getElementById('lista-pagos-contrato').innerHTML = 
+                '<div class="alert alert-warning">No se pudieron cargar los pagos</div>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('lista-pagos-contrato').innerHTML = 
+            '<div class="alert alert-danger">Error al cargar los pagos</div>';
+    });
+}
+
+function mostrarPagosContrato(pagos) {
+    const listaPagos = document.getElementById('lista-pagos-contrato');
+    if (!pagos || pagos.length === 0) {
+        listaPagos.innerHTML = '<div class="alert alert-info">No hay pagos registrados</div>';
+        return;
+    }
+    
+    let html = '<div class="table-responsive"><table class="table table-sm">';
+    html += '<thead><tr><th>Fecha</th><th>Monto</th><th>Estado</th></tr></thead><tbody>';
+    
+    pagos.forEach(pago => {
+        const estado = pago.estado === 'Pagado' ? 'success' : 'warning';
+        html += `
+            <tr>
+                <td>${pago.fecha_vencimiento}</td>
+                <td>$${parseFloat(pago.monto).toFixed(2)}</td>
+                <td><span class="badge bg-${estado}">${pago.estado}</span></td>
+            </tr>
+        `;
+    });
+    
+    html += '</tbody></table></div>';
+    listaPagos.innerHTML = html;
+}
+
+// Asegurarse de que los modales se inicialicen correctamente
+document.addEventListener('DOMContentLoaded', function() {
+    const modalContrato = document.getElementById('modalContrato');
+    const modalDetalles = document.getElementById('modalDetallesContrato');
+    
+    // Limpiar el contrato actual cuando se cierra el modal de detalles
+    modalDetalles.addEventListener('hidden.bs.modal', function() {
+        contratoActual = null;
+    });
+    
+    // Asegurarse de que el modal de edición aparezca por encima
+    modalContrato.addEventListener('show.bs.modal', function() {
+        const modalBackdrop = document.querySelector('.modal-backdrop:last-child');
+        if (modalBackdrop) {
+            modalBackdrop.style.zIndex = '1059';
+        }
+        this.style.zIndex = '1060';
+    });
+});
+</script> 
