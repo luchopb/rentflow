@@ -35,17 +35,20 @@ $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 /* Fix for modal stacking */
-#modalContrato {
-    z-index: 1060 !important;
-}
-#modalContrato .modal-backdrop {
-    z-index: 1059 !important;
-}
-#modalDetallesContrato {
+.modal {
     z-index: 1050 !important;
 }
-#modalDetallesContrato .modal-backdrop {
-    z-index: 1049 !important;
+.modal-backdrop {
+    z-index: 1040 !important;
+}
+.modal-backdrop + .modal-backdrop {
+    z-index: 1041 !important;
+}
+.modal.show {
+    z-index: 1042 !important;
+}
+#modalContrato.show {
+    z-index: 1052 !important;
 }
 </style>
 
@@ -215,7 +218,10 @@ function mostrarDetalleContrato(contrato) {
     `;
     
     // Mostrar el modal de detalles
-    const modalDetalles = new bootstrap.Modal(document.getElementById('modalDetallesContrato'));
+    const modalDetalles = new bootstrap.Modal(document.getElementById('modalDetallesContrato'), {
+        backdrop: 'static',
+        keyboard: false
+    });
     modalDetalles.show();
     
     // Cargar los pagos del contrato
@@ -239,7 +245,10 @@ function editarContrato() {
     document.querySelector('#modalContrato .btn-danger').classList.remove('d-none');
     
     // Mostrar el modal de edición
-    const modalEditar = new bootstrap.Modal(document.getElementById('modalContrato'));
+    const modalEditar = new bootstrap.Modal(document.getElementById('modalContrato'), {
+        backdrop: 'static',
+        keyboard: false
+    });
     modalEditar.show();
 }
 
@@ -367,15 +376,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Limpiar el contrato actual cuando se cierra el modal de detalles
     modalDetalles.addEventListener('hidden.bs.modal', function() {
         contratoActual = null;
+        // Remover cualquier backdrop extra
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach((backdrop, index) => {
+            if (index > 0) backdrop.remove();
+        });
     });
     
-    // Asegurarse de que el modal de edición aparezca por encima
-    modalContrato.addEventListener('show.bs.modal', function() {
-        const modalBackdrop = document.querySelector('.modal-backdrop:last-child');
-        if (modalBackdrop) {
-            modalBackdrop.style.zIndex = '1059';
-        }
-        this.style.zIndex = '1060';
+    // Limpiar backdrops extras cuando se cierra el modal de edición
+    modalContrato.addEventListener('hidden.bs.modal', function() {
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach((backdrop, index) => {
+            if (index > 0) backdrop.remove();
+        });
     });
 });
 </script> 
