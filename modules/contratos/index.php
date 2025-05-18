@@ -1,30 +1,50 @@
 <?php
+// Habilitar reporte de errores
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+require_once '../../config/error_log.php';
 require_once '../../config/database.php';
 require_once '../../config/helpers.php';
 
-// Obtener todos los contratos con información relacionada
-$stmt = $conn->prepare("
-    SELECT c.*, 
-           p.*,
-           i.nombre as inquilino_nombre,
-           i.dni as inquilino_dni
-    FROM contratos c
-    JOIN propiedades p ON c.propiedad_id = p.id
-    JOIN inquilinos i ON c.inquilino_id = i.id
-    ORDER BY c.fecha_inicio DESC
-");
-$stmt->execute();
-$contratos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+try {
+    // Obtener todos los contratos con información relacionada
+    $stmt = $conn->prepare("
+        SELECT c.*, 
+               p.direccion as propiedad_direccion,
+               p.galeria,
+               p.local,
+               i.nombre as inquilino_nombre,
+               i.documento as inquilino_dni
+        FROM contratos c
+        JOIN propiedades p ON c.propiedad_id = p.id
+        JOIN inquilinos i ON c.inquilino_id = i.id
+        ORDER BY c.fecha_inicio DESC
+    ");
+    $stmt->execute();
+    $contratos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Obtener propiedades disponibles
-$stmt = $conn->prepare("SELECT * FROM propiedades WHERE estado = 'Disponible' OR id IN (SELECT propiedad_id FROM contratos)");
-$stmt->execute();
-$propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Obtener propiedades disponibles
+    $stmt = $conn->prepare("SELECT * FROM propiedades WHERE estado = 'Disponible' OR id IN (SELECT propiedad_id FROM contratos)");
+    $stmt->execute();
+    $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Obtener inquilinos
-$stmt = $conn->prepare("SELECT id, nombre, dni FROM inquilinos");
-$stmt->execute();
-$inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Obtener inquilinos
+    $stmt = $conn->prepare("SELECT id, nombre, documento as dni FROM inquilinos");
+    $stmt->execute();
+    $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    // Registrar el error
+    error_log("Error en contratos/index.php: " . $e->getMessage());
+    // Mostrar mensaje de error
+    echo "<div class='alert alert-danger'>
+            <h4 class='alert-heading'>Error al cargar los contratos</h4>
+            <p>Se produjo un error al cargar la información de contratos.</p>
+            <hr>
+            <p class='mb-0'>Error: " . htmlspecialchars($e->getMessage()) . "</p>
+          </div>";
+    exit;
+}
 ?>
 
 <style>
@@ -202,10 +222,9 @@ $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 <script>
-let contratoActual = null;
-
-function mostrarDetalleContrato(contrato) {
-    contratoActual = contrato;
+// Asegurarse de que las funciones estén disponibles globalmente
+window.mostrarDetalleContrato = function(contrato) {
+    window.currentContrato = contrato;
     
     // Actualizar la información del contrato
     const infoContrato = document.getElementById('info-contrato');
@@ -215,45 +234,45 @@ function mostrarDetalleContrato(contrato) {
         <p><strong>Fecha Inicio:</strong> ${contrato.fecha_inicio}</p>
         <p><strong>Fecha Fin:</strong> ${contrato.fecha_fin}</p>
         <p><strong>Renta Mensual:</strong> $${parseFloat(contrato.renta_mensual).toFixed(2)}</p>
-        <p><strong>Estado:</strong> ${contrato.estado}</p>
+        <p><strong>Estado:</strong> <span class="badge ${contrato.estado === 'Activo' ? 'bg-success' : 'bg-secondary'}">${contrato.estado}</span></p>
     `;
     
     // Mostrar el modal de detalles
-    const modalDetalles = new bootstrap.Modal(document.getElementById('modalDetallesContrato'), {
-        backdrop: 'static',
-        keyboard: false
-    });
+    const modalDetalles = new bootstrap.Modal(document.getElementById('modalDetallesContrato'));
     modalDetalles.show();
     
     // Cargar los pagos del contrato
     cargarPagosContrato(contrato.id);
-}
+};
 
-function editarContrato() {
-    if (!contratoActual) return;
+window.editarContrato = function() {
+    if (!window.currentContrato) return;
     
     // Llenar el formulario con los datos actuales
-    document.getElementById('contrato_id').value = contratoActual.id;
-    document.getElementById('propiedad_id').value = contratoActual.propiedad_id;
-    document.getElementById('inquilino_id').value = contratoActual.inquilino_id;
-    document.getElementById('fecha_inicio').value = contratoActual.fecha_inicio;
-    document.getElementById('fecha_fin').value = contratoActual.fecha_fin;
-    document.getElementById('renta_mensual').value = contratoActual.renta_mensual;
-    document.getElementById('estado').value = contratoActual.estado;
+    document.getElementById('contrato_id').value = window.currentContrato.id;
+    document.getElementById('propiedad_id').value = window.currentContrato.propiedad_id;
+    document.getElementById('inquilino_id').value = window.currentContrato.inquilino_id;
+    document.getElementById('fecha_inicio').value = window.currentContrato.fecha_inicio;
+    document.getElementById('fecha_fin').value = window.currentContrato.fecha_fin;
+    document.getElementById('renta_mensual').value = window.currentContrato.renta_mensual;
+    document.getElementById('estado').value = window.currentContrato.estado;
     
     // Actualizar título y mostrar botón de eliminar
     document.querySelector('#modalContrato .modal-title').textContent = 'Editar Contrato';
     document.querySelector('#modalContrato .btn-danger').classList.remove('d-none');
     
+    // Cerrar el modal de detalles antes de abrir el de edición
+    const modalDetalles = bootstrap.Modal.getInstance(document.getElementById('modalDetallesContrato'));
+    if (modalDetalles) {
+        modalDetalles.hide();
+    }
+    
     // Mostrar el modal de edición
-    const modalEditar = new bootstrap.Modal(document.getElementById('modalContrato'), {
-        backdrop: 'static',
-        keyboard: false
-    });
+    const modalEditar = new bootstrap.Modal(document.getElementById('modalContrato'));
     modalEditar.show();
-}
+};
 
-function nuevoContrato() {
+window.nuevoContrato = function() {
     // Limpiar el formulario
     document.getElementById('formContrato').reset();
     document.getElementById('contrato_id').value = '';
@@ -265,7 +284,7 @@ function nuevoContrato() {
     // Mostrar el modal
     const modal = new bootstrap.Modal(document.getElementById('modalContrato'));
     modal.show();
-}
+};
 
 function guardarContrato() {
     const formData = new FormData(document.getElementById('formContrato'));
@@ -369,28 +388,30 @@ function mostrarPagosContrato(pagos) {
     listaPagos.innerHTML = html;
 }
 
-// Asegurarse de que los modales se inicialicen correctamente
+// Inicializar los event listeners cuando se carga el módulo
 document.addEventListener('DOMContentLoaded', function() {
     const modalContrato = document.getElementById('modalContrato');
     const modalDetalles = document.getElementById('modalDetallesContrato');
     
-    // Limpiar el contrato actual cuando se cierra el modal de detalles
-    modalDetalles.addEventListener('hidden.bs.modal', function() {
-        contratoActual = null;
-        // Remover cualquier backdrop extra
-        const backdrops = document.querySelectorAll('.modal-backdrop');
-        backdrops.forEach((backdrop, index) => {
-            if (index > 0) backdrop.remove();
+    if (modalDetalles) {
+        modalDetalles.addEventListener('hidden.bs.modal', function() {
+            window.currentContrato = null;
+            // Remover cualquier backdrop extra
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach((backdrop, index) => {
+                if (index > 0) backdrop.remove();
+            });
         });
-    });
+    }
     
-    // Limpiar backdrops extras cuando se cierra el modal de edición
-    modalContrato.addEventListener('hidden.bs.modal', function() {
-        const backdrops = document.querySelectorAll('.modal-backdrop');
-        backdrops.forEach((backdrop, index) => {
-            if (index > 0) backdrop.remove();
+    if (modalContrato) {
+        modalContrato.addEventListener('hidden.bs.modal', function() {
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach((backdrop, index) => {
+                if (index > 0) backdrop.remove();
+            });
         });
-    });
+    }
 });
 
 // Add the JavaScript version of getNombrePropiedad

@@ -37,7 +37,7 @@ $stmt = $conn->prepare("
         p.monto,
         pr.direccion as propiedad,
         i.nombre as inquilino,
-        i.dni
+        i.documento
     FROM pagos p
     JOIN contratos c ON p.contrato_id = c.id
     JOIN propiedades pr ON c.propiedad_id = pr.id
@@ -57,7 +57,7 @@ $stmt = $conn->prepare("
         c.renta_mensual,
         pr.direccion as propiedad,
         i.nombre as inquilino,
-        i.dni
+        i.documento
     FROM contratos c
     JOIN propiedades pr ON c.propiedad_id = pr.id
     JOIN inquilinos i ON c.inquilino_id = i.id
@@ -133,7 +133,7 @@ $contratos_por_vencer = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <td>
                                         <?php echo htmlspecialchars($vencimiento['inquilino']); ?>
                                         <br>
-                                        <small class="text-muted">DNI: <?php echo htmlspecialchars($vencimiento['dni']); ?></small>
+                                        <small class="text-muted">Documento: <?php echo htmlspecialchars($vencimiento['documento']); ?></small>
                                     </td>
                                     <td>$<?php echo number_format($vencimiento['monto'], 2); ?></td>
                                     <td>
@@ -181,7 +181,7 @@ $contratos_por_vencer = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <td>
                                         <?php echo htmlspecialchars($contrato['inquilino']); ?>
                                         <br>
-                                        <small class="text-muted">DNI: <?php echo htmlspecialchars($contrato['dni']); ?></small>
+                                        <small class="text-muted">Documento: <?php echo htmlspecialchars($contrato['documento']); ?></small>
                                     </td>
                                     <td>$<?php echo number_format($contrato['renta_mensual'], 2); ?></td>
                                     <td>

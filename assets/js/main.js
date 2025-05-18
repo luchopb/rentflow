@@ -31,8 +31,46 @@ function showConfirm(options) {
 
 // Función para cargar contenido en el contenedor principal
 function cargarModulo(modulo) {
-    $.get(`modules/${modulo}/index.php`, function(data) {
-        $('#main-content').html(data);
+    $.ajax({
+        url: `modules/${modulo}/index.php`,
+        method: 'GET',
+        success: function(data) {
+            $('#main-content').html(data);
+            
+            // Inicializar los modales de Bootstrap después de cargar el contenido
+            const modales = document.querySelectorAll('.modal');
+            modales.forEach(modal => {
+                new bootstrap.Modal(modal);
+            });
+            
+            // Limpiar variables globales al cambiar de módulo
+            window.currentContrato = null;
+            window.currentPago = null;
+            window.currentInquilino = null;
+            
+            // Remover cualquier backdrop extra que pueda haber quedado
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach((backdrop, index) => {
+                if (index > 0) backdrop.remove();
+            });
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error('Error al cargar el módulo:', {
+                status: jqXHR.status,
+                statusText: jqXHR.statusText,
+                responseText: jqXHR.responseText,
+                textStatus: textStatus,
+                errorThrown: errorThrown
+            });
+            $('#main-content').html(`
+                <div class="alert alert-danger">
+                    <h4 class="alert-heading">Error al cargar el módulo</h4>
+                    <p>Se produjo un error al cargar el módulo ${modulo}.</p>
+                    <hr>
+                    <p class="mb-0">Detalles técnicos: ${textStatus} - ${errorThrown}</p>
+                </div>
+            `);
+        }
     });
 }
 
@@ -53,6 +91,31 @@ function limpiarFormPropiedad() {
     $('#formPropiedad')[0].reset();
     $('#propiedad_id').val('');
     $('.modal-title').text('Nueva Propiedad');
+}
+
+function mostrarDetallePropiedad(propiedad) {
+    // Llenar el formulario con los datos de la propiedad
+    document.getElementById('propiedad_id').value = propiedad.id;
+    document.getElementById('direccion').value = propiedad.direccion;
+    document.getElementById('tipo').value = propiedad.tipo;
+    document.getElementById('precio').value = propiedad.precio;
+    document.getElementById('gastos_comunes').value = propiedad.gastos_comunes;
+    document.getElementById('contribucion_inmobiliaria_cc').value = parseInt(propiedad.contribucion_inmobiliaria_cc) || 0;
+    document.getElementById('contribucion_inmobiliaria_padron').value = parseInt(propiedad.contribucion_inmobiliaria_padron) || 0;
+    document.getElementById('estado').value = propiedad.estado;
+    document.getElementById('caracteristicas').value = propiedad.caracteristicas || '';
+    document.getElementById('galeria').value = propiedad.galeria || '';
+    document.getElementById('local').value = propiedad.local || '';
+    
+    // Actualizar título y mostrar botón de eliminar
+    document.querySelector('#modalPropiedad .modal-title').textContent = 'Detalles de la Propiedad';
+    document.querySelector('#modalPropiedad .btn-danger').style.display = 'block';
+    
+    // Mostrar el modal
+    new bootstrap.Modal(document.getElementById('modalPropiedad')).show();
+    
+    // Verificar campos Local
+    mostrarOcultarCamposLocal();
 }
 
 function editarPropiedad(id) {
@@ -174,8 +237,8 @@ function mostrarDetalleInquilino(inquilino) {
         <dl class="row">
             <dt class="col-sm-3">Nombre</dt>
             <dd class="col-sm-9">${inquilino.nombre}</dd>
-            <dt class="col-sm-3">DNI</dt>
-            <dd class="col-sm-9">${inquilino.dni}</dd>
+            <dt class="col-sm-3">Documento</dt>
+            <dd class="col-sm-9">${inquilino.documento}</dd>
             <dt class="col-sm-3">Email</dt>
             <dd class="col-sm-9">${inquilino.email}</dd>
             <dt class="col-sm-3">Teléfono</dt>
@@ -261,7 +324,7 @@ function editarInquilino() {
         // Llenar el formulario con los datos del inquilino actual
         document.getElementById('inquilino_id').value = window.currentInquilino.id;
         document.getElementById('nombre').value = window.currentInquilino.nombre;
-        document.getElementById('dni').value = window.currentInquilino.dni;
+        document.getElementById('documento').value = window.currentInquilino.documento;
         document.getElementById('email').value = window.currentInquilino.email;
         document.getElementById('telefono').value = window.currentInquilino.telefono;
         
@@ -350,6 +413,9 @@ function nuevoContrato() {
 }
 
 function mostrarDetalleContrato(contrato) {
+    // Guardar el contrato actual en una variable global
+    window.currentContrato = contrato;
+
     // Mostrar información del contrato
     let infoHtml = `
         <dl class="row">
@@ -409,28 +475,24 @@ function mostrarDetalleContrato(contrato) {
 }
 
 function editarContrato() {
-    const contrato_id = document.getElementById('contrato_id').value;
-    $.post('modules/contratos/actions.php', {
-        action: 'get',
-        id: contrato_id
-    }, function(response) {
-        if (response.success) {
-            const contrato = response.data;
-            document.getElementById('contrato_id').value = contrato.id;
-            document.getElementById('propiedad_id').value = contrato.propiedad_id;
-            document.getElementById('inquilino_id').value = contrato.inquilino_id;
-            document.getElementById('fecha_inicio').value = contrato.fecha_inicio;
-            document.getElementById('fecha_fin').value = contrato.fecha_fin;
-            document.getElementById('renta_mensual').value = contrato.renta_mensual;
-            document.getElementById('estado').value = contrato.estado;
-            
-            document.querySelector('#modalContrato .modal-title').textContent = 'Editar Contrato';
-            document.querySelector('#modalContrato .btn-danger').classList.remove('d-none');
-            $('#modalContrato').modal('show');
-        } else {
-            alert(response.message);
-        }
-    }, 'json');
+    if (!window.currentContrato) return;
+    
+    // Llenar el formulario con los datos actuales
+    document.getElementById('contrato_id').value = window.currentContrato.id;
+    document.getElementById('propiedad_id').value = window.currentContrato.propiedad_id;
+    document.getElementById('inquilino_id').value = window.currentContrato.inquilino_id;
+    document.getElementById('fecha_inicio').value = window.currentContrato.fecha_inicio;
+    document.getElementById('fecha_fin').value = window.currentContrato.fecha_fin;
+    document.getElementById('renta_mensual').value = window.currentContrato.renta_mensual;
+    document.getElementById('estado').value = window.currentContrato.estado;
+    
+    // Actualizar título y mostrar botón de eliminar
+    document.querySelector('#modalContrato .modal-title').textContent = 'Editar Contrato';
+    document.querySelector('#modalContrato .btn-danger').classList.remove('d-none');
+    
+    // Mostrar el modal de edición
+    const modalEditar = new bootstrap.Modal(document.getElementById('modalContrato'));
+    modalEditar.show();
 }
 
 function guardarContrato() {
@@ -563,6 +625,9 @@ function nuevoPago() {
 }
 
 function mostrarDetallePago(pago) {
+    // Guardar el pago actual en una variable global
+    window.currentPago = pago;
+
     // Mostrar información del pago
     let infoHtml = `
         <dl class="row">
@@ -593,26 +658,19 @@ function mostrarDetallePago(pago) {
 }
 
 function editarPago() {
-    const pago_id = document.getElementById('pago_id').value;
-    $.post('modules/pagos/actions.php', {
-        action: 'get',
-        id: pago_id
-    }, function(response) {
-        if (response.success) {
-            const pago = response.data;
-            document.getElementById('pago_id').value = pago.id;
-            document.getElementById('contrato_id').value = pago.contrato_id;
-            document.getElementById('monto').value = pago.monto;
-            document.getElementById('fecha_pago').value = pago.fecha_pago || new Date().toISOString().split('T')[0];
-            document.getElementById('monto_pagado').value = pago.monto_pagado || pago.monto;
-            
-            document.querySelector('#modalPago .modal-title').textContent = 'Editar Pago';
-            document.querySelector('#modalPago .btn-danger').classList.remove('d-none');
-            $('#modalPago').modal('show');
-        } else {
-            alert(response.message);
-        }
-    }, 'json');
+    if (!window.currentPago) return;
+    
+    // Llenar el formulario con los datos actuales
+    document.getElementById('pago_id').value = window.currentPago.id;
+    document.getElementById('contrato_id').value = window.currentPago.contrato_id;
+    document.getElementById('monto').value = window.currentPago.monto;
+    document.getElementById('fecha_pago').value = window.currentPago.fecha_pago || new Date().toISOString().split('T')[0];
+    document.getElementById('monto_pagado').value = window.currentPago.monto_pagado || window.currentPago.monto;
+    
+    // Actualizar título y mostrar botón de eliminar
+    document.querySelector('#modalPago .modal-title').textContent = 'Editar Pago';
+    document.querySelector('#modalPago .btn-danger').classList.remove('d-none');
+    $('#modalPago').modal('show');
 }
 
 function guardarPago() {

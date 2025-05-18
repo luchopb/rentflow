@@ -10,26 +10,26 @@ switch ($action) {
     case 'update':
         $id = $_POST['id'] ?? null;
         $nombre = $_POST['nombre'] ?? '';
-        $dni = $_POST['dni'] ?? '';
+        $documento = $_POST['documento'] ?? '';
         $email = $_POST['email'] ?? '';
         $telefono = $_POST['telefono'] ?? '';
 
         try {
-            // Verificar si el DNI ya existe
-            $stmt = $conn->prepare("SELECT id FROM inquilinos WHERE dni = ? AND id != ?");
-            $stmt->execute([$dni, $id ?? 0]);
+            // Verificar si el Documento ya existe
+            $stmt = $conn->prepare("SELECT id FROM inquilinos WHERE documento = ? AND id != ?");
+            $stmt->execute([$documento, $id ?? 0]);
             if ($stmt->rowCount() > 0) {
-                $response = ['success' => false, 'message' => 'Ya existe un inquilino con ese DNI'];
+                $response = ['success' => false, 'message' => 'Ya existe un inquilino con ese Documento'];
                 break;
             }
 
             if ($action === 'create') {
-                $stmt = $conn->prepare("INSERT INTO inquilinos (nombre, dni, email, telefono) VALUES (?, ?, ?, ?)");
-                $stmt->execute([$nombre, $dni, $email, $telefono]);
+                $stmt = $conn->prepare("INSERT INTO inquilinos (nombre, documento, email, telefono) VALUES (?, ?, ?, ?)");
+                $stmt->execute([$nombre, $documento, $email, $telefono]);
                 $response = ['success' => true, 'message' => 'Inquilino creado exitosamente'];
             } else {
-                $stmt = $conn->prepare("UPDATE inquilinos SET nombre = ?, dni = ?, email = ?, telefono = ? WHERE id = ?");
-                $stmt->execute([$nombre, $dni, $email, $telefono, $id]);
+                $stmt = $conn->prepare("UPDATE inquilinos SET nombre = ?, documento = ?, email = ?, telefono = ? WHERE id = ?");
+                $stmt->execute([$nombre, $documento, $email, $telefono, $id]);
                 $response = ['success' => true, 'message' => 'Inquilino actualizado exitosamente'];
             }
         } catch (PDOException $e) {

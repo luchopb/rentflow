@@ -87,8 +87,23 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                     
                     <div class="mb-3">
-                        <label for="precio" class="form-label">Precio</label>
+                        <label for="precio" class="form-label">Precio $</label>
                         <input type="number" class="form-control" id="precio" name="precio" step="0.01" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="gastos_comunes" class="form-label">Gastos Comunes $</label>
+                        <input type="number" class="form-control" id="gastos_comunes" name="gastos_comunes" step="0.01" value="0.00">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="contribucion_inmobiliaria_cc" class="form-label">Contribución Inmobiliaria CC</label>
+                        <input type="number" class="form-control" id="contribucion_inmobiliaria_cc" name="contribucion_inmobiliaria_cc" value="0" min="0" step="1">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="contribucion_inmobiliaria_padron" class="form-label">Contribución Inmobiliaria Padrón</label>
+                        <input type="number" class="form-control" id="contribucion_inmobiliaria_padron" name="contribucion_inmobiliaria_padron" value="0" min="0" step="1">
                     </div>
                     
                     <div class="mb-3">
