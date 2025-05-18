@@ -1,5 +1,6 @@
 <?php
 require_once '../../config/database.php';
+require_once '../../config/helpers.php';
 
 // Obtener todas las propiedades
 $stmt = $conn->prepare("SELECT * FROM propiedades ORDER BY created_at DESC");
@@ -23,7 +24,7 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Dirección</th>
+                <th>Nombre</th>
                 <th>Tipo</th>
                 <th>Precio</th>
                 <th>Estado</th>
@@ -33,7 +34,7 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php foreach ($propiedades as $propiedad): ?>
             <tr class="cursor-pointer" onclick='mostrarDetallePropiedad(<?php echo json_encode($propiedad); ?>)'>
                 <td><?php echo htmlspecialchars($propiedad['id']); ?></td>
-                <td><?php echo htmlspecialchars($propiedad['direccion']); ?></td>
+                <td><?php echo htmlspecialchars(getNombrePropiedad($propiedad)); ?></td>
                 <td><?php echo htmlspecialchars($propiedad['tipo']); ?></td>
                 <td>$<?php echo number_format($propiedad['precio'], 2); ?></td>
                 <td>

@@ -1,10 +1,11 @@
 <?php
 require_once '../../config/database.php';
+require_once '../../config/helpers.php';
 
 // Obtener todos los contratos con información relacionada
 $stmt = $conn->prepare("
     SELECT c.*, 
-           p.direccion as propiedad_direccion,
+           p.*,
            i.nombre as inquilino_nombre,
            i.dni as inquilino_dni
     FROM contratos c
@@ -16,7 +17,7 @@ $stmt->execute();
 $contratos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Obtener propiedades disponibles
-$stmt = $conn->prepare("SELECT id, direccion FROM propiedades WHERE estado = 'Disponible' OR id IN (SELECT propiedad_id FROM contratos)");
+$stmt = $conn->prepare("SELECT * FROM propiedades WHERE estado = 'Disponible' OR id IN (SELECT propiedad_id FROM contratos)");
 $stmt->execute();
 $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -80,7 +81,7 @@ $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php foreach ($contratos as $contrato): ?>
             <tr class="cursor-pointer" onclick='mostrarDetalleContrato(<?php echo json_encode($contrato); ?>)'>
                 <td><?php echo htmlspecialchars($contrato['id']); ?></td>
-                <td><?php echo htmlspecialchars($contrato['propiedad_direccion']); ?></td>
+                <td><?php echo htmlspecialchars(getNombrePropiedad($contrato)); ?></td>
                 <td>
                     <?php echo htmlspecialchars($contrato['inquilino_nombre']); ?>
                     <br>
@@ -209,7 +210,7 @@ function mostrarDetalleContrato(contrato) {
     // Actualizar la información del contrato
     const infoContrato = document.getElementById('info-contrato');
     infoContrato.innerHTML = `
-        <p><strong>Propiedad:</strong> ${contrato.propiedad_direccion}</p>
+        <p><strong>Propiedad:</strong> ${getNombrePropiedadJS(contrato)}</p>
         <p><strong>Inquilino:</strong> ${contrato.inquilino_nombre} (DNI: ${contrato.inquilino_dni})</p>
         <p><strong>Fecha Inicio:</strong> ${contrato.fecha_inicio}</p>
         <p><strong>Fecha Fin:</strong> ${contrato.fecha_fin}</p>
@@ -391,4 +392,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Add the JavaScript version of getNombrePropiedad
+function getNombrePropiedadJS(propiedad) {
+    const partes = [];
+    
+    if (propiedad.galeria) {
+        partes.push(`Galería ${propiedad.galeria}`);
+    }
+    
+    if (propiedad.local) {
+        partes.push(`Local ${propiedad.local}`);
+    }
+    
+    if (propiedad.direccion) {
+        partes.push(propiedad.direccion);
+    }
+    
+    return partes.join(' - ');
+}
 </script> 
