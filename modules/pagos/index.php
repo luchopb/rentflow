@@ -113,7 +113,7 @@ try {
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="formPago">
+                <form id="formPago" enctype="multipart/form-data">
                     <input type="hidden" id="pago_id" name="id">
                     
                     <div class="mb-3">
@@ -142,6 +142,12 @@ try {
                         <label for="monto_pagado" class="form-label">Monto Pagado</label>
                         <input type="number" class="form-control" id="monto_pagado" name="monto_pagado" step="0.01" required>
                     </div>
+
+                    <div class="mb-3">
+                        <label for="comprobante" class="form-label">Comprobante de Pago</label>
+                        <input type="file" class="form-control" id="comprobante" name="comprobante" accept=".pdf,.jpg,.jpeg,.png">
+                        <div class="form-text">Formatos permitidos: PDF, JPG, JPEG, PNG. Tamaño máximo: 5MB</div>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -166,6 +172,9 @@ try {
                     <div class="col">
                         <h6>Información del Pago</h6>
                         <div id="info-pago" class="mb-4"></div>
+                        <div id="comprobante-container" class="mb-3">
+                            <!-- El contenedor del comprobante se llenará dinámicamente -->
+                        </div>
                         <button type="button" class="btn btn-primary btn-sm" onclick="editarPago()">
                             Editar Pago
                         </button>
@@ -209,6 +218,33 @@ window.mostrarDetallePago = function(pago) {
             </dd>
         </dl>
     `;
+
+    // Mostrar el comprobante si existe
+    const comprobanteContainer = document.getElementById('comprobante-container');
+    if (pago.comprobante) {
+        const extension = pago.comprobante.split('.').pop().toLowerCase();
+        if (['jpg', 'jpeg', 'png'].includes(extension)) {
+            comprobanteContainer.innerHTML = `
+                <h6>Comprobante de Pago</h6>
+                <img src="uploads/pagos/${pago.comprobante}" class="img-fluid mb-2" alt="Comprobante de pago">
+                <div>
+                    <a href="uploads/pagos/${pago.comprobante}" class="btn btn-sm btn-secondary" target="_blank">Ver Original</a>
+                </div>
+            `;
+        } else {
+            comprobanteContainer.innerHTML = `
+                <h6>Comprobante de Pago</h6>
+                <div class="mb-2">
+                    <i class="bi bi-file-earmark-pdf"></i> Documento PDF
+                </div>
+                <div>
+                    <a href="uploads/pagos/${pago.comprobante}" class="btn btn-sm btn-secondary" target="_blank">Ver Documento</a>
+                </div>
+            `;
+        }
+    } else {
+        comprobanteContainer.innerHTML = '<p class="text-muted">No hay comprobante adjunto</p>';
+    }
     
     // Mostrar el modal de detalles
     const modalDetalles = new bootstrap.Modal(document.getElementById('modalDetallePago'));

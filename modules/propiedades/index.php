@@ -30,6 +30,9 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <h2>Propiedades</h2>
     </div>
     <div class="col text-end">
+        <a href="https://www.montevideo.gub.uy/fwtc/pages/tributosDomiciliarios.xhtml" target="_blank" class="btn btn-info me-2">
+            <i class="bi bi-building"></i> Tributos Domiciliarios
+        </a>
         <button type="button" class="btn btn-primary" onclick="nuevaPropiedad()">
             Nueva Propiedad
         </button>
