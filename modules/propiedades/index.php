@@ -147,6 +147,14 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <textarea class="form-control" id="caracteristicas" name="caracteristicas" rows="3"></textarea>
                     </div>
                     
+                    <div class="mb-3">
+                        <label for="imagenes" class="form-label">Imágenes de la Propiedad</label>
+                        <input type="file" class="form-control" id="imagenes" name="imagenes[]" accept="image/*" multiple>
+                        <div class="form-text">Formatos permitidos: JPG, JPEG, PNG. Tamaño máximo por imagen: 5MB</div>
+                    </div>
+                    
+                    <div id="previewImagenes" class="mb-3"></div>
+                    
                 </form>
             </div>
             <div class="modal-footer">
@@ -199,6 +207,15 @@ function mostrarDetallePropiedad(propiedad) {
     document.getElementById('caracteristicas').value = propiedad.caracteristicas || '';
     document.getElementById('galeria').value = propiedad.galeria || '';
     document.getElementById('local').value = propiedad.local || '';
+    
+    // Mostrar previsualización de imágenes
+    const preview = document.getElementById('previewImagenes');
+    preview.innerHTML = '';
+    if (Array.isArray(propiedad.imagenes) && propiedad.imagenes.length > 0) {
+        propiedad.imagenes.forEach(function(img) {
+            preview.innerHTML += `<img src="uploads/propiedades/${img}" class="img-thumbnail me-2 mb-2" style="max-width:120px;max-height:120px;">`;
+        });
+    }
     
     // Actualizar título y mostrar botón de eliminar
     document.querySelector('#modalPropiedad .modal-title').textContent = 'Detalles de la Propiedad';

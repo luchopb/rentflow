@@ -83,8 +83,12 @@ switch ($action) {
             $stmt = $conn->prepare("SELECT * FROM propiedades WHERE id = ?");
             $stmt->execute([$id]);
             $propiedad = $stmt->fetch(PDO::FETCH_ASSOC);
-            
             if ($propiedad) {
+                // Obtener imágenes asociadas
+                $stmt = $conn->prepare("SELECT filename FROM propiedad_imagenes WHERE propiedad_id = ?");
+                $stmt->execute([$id]);
+                $imagenes = $stmt->fetchAll(PDO::FETCH_COLUMN);
+                $propiedad['imagenes'] = $imagenes;
                 $response = ['success' => true, 'data' => $propiedad];
             } else {
                 $response = ['success' => false, 'message' => 'Propiedad no encontrada'];
