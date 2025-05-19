@@ -25,12 +25,23 @@ try {
     $contratos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Obtener propiedades disponibles
-    $stmt = $conn->prepare("SELECT * FROM propiedades WHERE estado = 'Disponible' OR id IN (SELECT propiedad_id FROM contratos)");
+    $stmt = $conn->prepare("
+        SELECT p.* 
+        FROM propiedades p
+        WHERE p.estado = 'Disponible' 
+        OR p.id NOT IN (
+            SELECT c.propiedad_id 
+            FROM contratos c 
+            WHERE c.estado = 'Activo'
+            AND CURRENT_DATE BETWEEN c.fecha_inicio AND c.fecha_fin
+        )
+        ORDER BY p.galeria, p.local, p.direccion
+    ");
     $stmt->execute();
     $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Obtener inquilinos
-    $stmt = $conn->prepare("SELECT id, nombre, documento as dni FROM inquilinos");
+    $stmt = $conn->prepare("SELECT id, nombre, documento as dni FROM inquilinos ORDER BY nombre");
     $stmt->execute();
     $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
@@ -139,7 +150,7 @@ try {
                             <option value="">Seleccione una propiedad</option>
                             <?php foreach ($propiedades as $propiedad): ?>
                             <option value="<?php echo $propiedad['id']; ?>">
-                                <?php echo htmlspecialchars($propiedad['direccion']); ?>
+                                <?php echo htmlspecialchars(getNombrePropiedad($propiedad)); ?>
                             </option>
                             <?php endforeach; ?>
                         </select>
