@@ -2,8 +2,25 @@
 require_once '../../config/database.php';
 require_once '../../config/helpers.php';
 
-// Obtener todas las propiedades
-$stmt = $conn->prepare("SELECT * FROM propiedades ORDER BY created_at DESC");
+// Obtener todas las propiedades con información del inquilino actual
+$stmt = $conn->prepare("
+    SELECT p.*,
+           i.nombre as inquilino_actual,
+           c.estado as estado_contrato
+    FROM propiedades p
+    LEFT JOIN (
+        SELECT c1.*
+        FROM contratos c1
+        LEFT JOIN contratos c2 
+        ON c1.propiedad_id = c2.propiedad_id 
+        AND c1.fecha_inicio < c2.fecha_inicio
+        WHERE c2.propiedad_id IS NULL
+        AND c1.estado = 'Activo'
+        AND CURRENT_DATE BETWEEN c1.fecha_inicio AND c1.fecha_fin
+    ) c ON p.id = c.propiedad_id
+    LEFT JOIN inquilinos i ON c.inquilino_id = i.id
+    ORDER BY p.created_at DESC
+");
 $stmt->execute();
 $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
@@ -28,6 +45,7 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <th>Tipo</th>
                 <th>Precio</th>
                 <th>Estado</th>
+                <th>Inquilino</th>
             </tr>
         </thead>
         <tbody>
@@ -41,6 +59,13 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <span class="badge <?php echo $propiedad['estado'] == 'Disponible' ? 'bg-success' : 'bg-warning'; ?>">
                         <?php echo htmlspecialchars($propiedad['estado']); ?>
                     </span>
+                </td>
+                <td>
+                    <?php if ($propiedad['estado'] == 'Alquilado' && $propiedad['inquilino_actual']): ?>
+                        <?php echo htmlspecialchars($propiedad['inquilino_actual']); ?>
+                    <?php else: ?>
+                        <span class="text-muted">-</span>
+                    <?php endif; ?>
                 </td>
             </tr>
             <?php endforeach; ?>

@@ -7,11 +7,11 @@ function getNombrePropiedad($propiedad) {
     $nombre = [];
     
     if (!empty($propiedad['galeria'])) {
-        $nombre[] = "Galería " . $propiedad['galeria'];
+        $nombre[] = " " . $propiedad['galeria'];
     }
     
     if (!empty($propiedad['local'])) {
-        $nombre[] = "Local " . $propiedad['local'];
+        $nombre[] = " " . $propiedad['local'];
     }
     
     if (!empty($propiedad['direccion'])) {
