@@ -53,7 +53,7 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </thead>
         <tbody>
             <?php foreach ($propiedades as $propiedad): ?>
-            <tr class="cursor-pointer" onclick='mostrarDetallePropiedad(<?php echo json_encode($propiedad); ?>)'>
+            <tr class="cursor-pointer" onclick='cargarYMostrarDetallePropiedad(<?php echo $propiedad['id']; ?>)'>
                 <td><?php echo htmlspecialchars($propiedad['id']); ?></td>
                 <td><?php echo htmlspecialchars(getNombrePropiedad($propiedad)); ?></td>
                 <td><?php echo htmlspecialchars($propiedad['tipo']); ?></td>
@@ -85,7 +85,7 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="formPropiedad">
+                <form id="formPropiedad" enctype="multipart/form-data">
                     <input type="hidden" id="propiedad_id" name="id">
                     
                     <div class="mb-3">
@@ -173,9 +173,18 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 .cursor-pointer:hover {
     background-color: rgba(0,0,0,0.05);
 }
+#previewImagenes {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 8px;
+}
 </style>
 
 <script>
+let imagenesGuardadas = [];
+
 // Función simple para mostrar/ocultar campos de Local
 function mostrarOcultarCamposLocal() {
     const tipo = document.getElementById('tipo').value;
@@ -208,14 +217,9 @@ function mostrarDetallePropiedad(propiedad) {
     document.getElementById('galeria').value = propiedad.galeria || '';
     document.getElementById('local').value = propiedad.local || '';
     
-    // Mostrar previsualización de imágenes
-    const preview = document.getElementById('previewImagenes');
-    preview.innerHTML = '';
-    if (Array.isArray(propiedad.imagenes) && propiedad.imagenes.length > 0) {
-        propiedad.imagenes.forEach(function(img) {
-            preview.innerHTML += `<img src="uploads/propiedades/${img}" class="img-thumbnail me-2 mb-2" style="max-width:120px;max-height:120px;">`;
-        });
-    }
+    // Guardar imágenes originales
+    imagenesGuardadas = Array.isArray(propiedad.imagenes) ? propiedad.imagenes : [];
+    mostrarPreviewImagenesGuardadas();
     
     // Actualizar título y mostrar botón de eliminar
     document.querySelector('#modalPropiedad .modal-title').textContent = 'Detalles de la Propiedad';
@@ -228,6 +232,94 @@ function mostrarDetallePropiedad(propiedad) {
     mostrarOcultarCamposLocal();
 }
 
+function mostrarPreviewImagenesGuardadas() {
+    const preview = document.getElementById('previewImagenes');
+    preview.innerHTML = '';
+    if (imagenesGuardadas.length > 0) {
+        imagenesGuardadas.forEach(function(img) {
+            preview.innerHTML += `<img src="uploads/propiedades/${img}" class="img-thumbnail me-2 mb-2" style="max-width:120px;max-height:120px;">`;
+        });
+    }
+}
+
 // Asegurarse de que los campos se actualicen cuando se abre el modal
 document.getElementById('modalPropiedad').addEventListener('shown.bs.modal', mostrarOcultarCamposLocal);
+
+function cargarYMostrarDetallePropiedad(id) {
+    fetch('modules/propiedades/actions.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'action=get&id=' + encodeURIComponent(id)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.data) {
+            mostrarDetallePropiedad(data.data);
+        } else {
+            alert('No se pudo cargar la información de la propiedad.');
+        }
+    })
+    .catch(() => alert('Error de red al cargar la propiedad.'));
+}
+
+// Vista previa instantánea de imágenes seleccionadas
+const inputImagenes = document.getElementById('imagenes');
+const previewImagenes = document.getElementById('previewImagenes');
+if (inputImagenes) {
+    inputImagenes.addEventListener('change', function() {
+        // Mostrar primero las imágenes guardadas
+        mostrarPreviewImagenesGuardadas();
+        // Luego, agregar las nuevas seleccionadas
+        if (this.files && this.files.length > 0) {
+            Array.from(this.files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'img-thumbnail me-2 mb-2';
+                        img.style.maxWidth = '120px';
+                        img.style.maxHeight = '120px';
+                        previewImagenes.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    });
+}
+
+function guardarPropiedad() {
+    const form = document.getElementById('formPropiedad');
+    const formData = new FormData(form);
+
+    // Determinar si es create o update
+    const id = document.getElementById('propiedad_id').value;
+    formData.append('action', id ? 'update' : 'create');
+    if (id) formData.append('id', id);
+
+    fetch('modules/propiedades/actions.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Cerrar modal y mostrar la sección de Propiedades
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalPropiedad'));
+            if (modal) modal.hide();
+            if (typeof cargarModulo === 'function') {
+                cargarModulo('propiedades');
+            }
+        } else {
+            alert(data.message || 'Error al guardar la propiedad');
+        }
+    })
+    .catch(() => alert('Error de red al guardar la propiedad'));
+}
+
+document.getElementById('formPropiedad').addEventListener('submit', function(e) {
+    e.preventDefault();
+    guardarPropiedad();
+});
 </script> 

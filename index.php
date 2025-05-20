@@ -78,5 +78,31 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Custom JS -->
     <script src="assets/js/main.js"></script>
+    <script>
+    // --- SPA Navegación con hash en la URL ---
+    // Llama a cargarModulo y actualiza el hash al hacer clic en los links de menú
+    function navegarModulo(modulo) {
+        window.location.hash = '#' + modulo;
+        if (typeof cargarModulo === 'function') {
+            cargarModulo(modulo);
+        }
+    }
+
+    // Al cargar la página, si hay hash, cargar el módulo correspondiente
+    window.addEventListener('DOMContentLoaded', function() {
+        if (window.location.hash) {
+            const modulo = window.location.hash.replace('#', '');
+            if (modulo) navegarModulo(modulo);
+        }
+    });
+
+    // Al cambiar el hash (navegación con atrás/adelante), cargar el módulo
+    window.addEventListener('hashchange', function() {
+        if (window.location.hash) {
+            const modulo = window.location.hash.replace('#', '');
+            if (modulo) navegarModulo(modulo);
+        }
+    });
+    </script>
 </body>
 </html> 

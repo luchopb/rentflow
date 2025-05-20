@@ -7,6 +7,8 @@ CREATE TABLE propiedades (
     id INT PRIMARY KEY AUTO_INCREMENT,
     direccion VARCHAR(255) NOT NULL,
     tipo ENUM('Departamento', 'Casa', 'Local') NOT NULL,
+    galeria VARCHAR(255),
+    local VARCHAR(255),
     precio DECIMAL(10,2) NOT NULL,
     estado ENUM('Disponible', 'Alquilado') NOT NULL DEFAULT 'Disponible',
     caracteristicas TEXT,
@@ -49,24 +51,18 @@ CREATE TABLE pagos (
     monto DECIMAL(10,2) NOT NULL,
     fecha_pago DATE,
     monto_pagado DECIMAL(10,2),
+    comprobante VARCHAR(255) NULL,
     estado ENUM('Pendiente', 'Pagado', 'Vencido') NOT NULL DEFAULT 'Pendiente',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Actualizar registros existentes
-UPDATE propiedades SET 
-    gastos_comunes = 0.00,
-    contribucion_inmobiliaria_cc = 0,
-    contribucion_inmobiliaria_padron = 0
-WHERE gastos_comunes IS NULL 
-   OR contribucion_inmobiliaria_cc IS NULL 
-   OR contribucion_inmobiliaria_padron IS NULL;
 
--- Renombrar campo DNI a Documento en la tabla inquilinos
-ALTER TABLE inquilinos CHANGE COLUMN dni documento VARCHAR(20) NOT NULL;
+CREATE TABLE propiedad_imagenes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    propiedad_id INT NOT NULL,
+    filename VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (propiedad_id) REFERENCES propiedades(id) ON DELETE CASCADE
+); 
 
--- Convert existing decimal values to integers
-UPDATE propiedades SET 
-    contribucion_inmobiliaria_cc = CAST(contribucion_inmobiliaria_cc AS UNSIGNED),
-    contribucion_inmobiliaria_padron = CAST(contribucion_inmobiliaria_padron AS UNSIGNED); 

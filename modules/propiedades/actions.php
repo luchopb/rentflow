@@ -34,6 +34,7 @@ switch ($action) {
                     $galeria, $local, $gastos_comunes,
                     $contribucion_inmobiliaria_cc, $contribucion_inmobiliaria_padron
                 ]);
+                $propiedad_id = $conn->lastInsertId();
                 $response = ['success' => true, 'message' => 'Propiedad creada exitosamente'];
             } else {
                 $stmt = $conn->prepare("
@@ -50,8 +51,35 @@ switch ($action) {
                     $contribucion_inmobiliaria_cc, $contribucion_inmobiliaria_padron,
                     $id
                 ]);
+                $propiedad_id = $id;
                 $response = ['success' => true, 'message' => 'Propiedad actualizada exitosamente'];
             }
+
+            // --- BLOQUE DE MANEJO DE IMÁGENES ---
+            if (!empty($_FILES['imagenes']['name'][0])) {
+                $uploadDir = '../../uploads/propiedades/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+                $maxSize = 5 * 1024 * 1024; // 5MB
+                foreach ($_FILES['imagenes']['tmp_name'] as $idx => $tmpName) {
+                    $fileName = basename($_FILES['imagenes']['name'][$idx]);
+                    $fileType = $_FILES['imagenes']['type'][$idx];
+                    $fileSize = $_FILES['imagenes']['size'][$idx];
+                    $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                    $newFileName = uniqid('img_') . '.' . $fileExt;
+                    $targetPath = $uploadDir . $newFileName;
+
+                    if (!in_array($fileType, $allowedTypes)) continue;
+                    if ($fileSize > $maxSize) continue;
+                    if (move_uploaded_file($tmpName, $targetPath)) {
+                        $stmt = $conn->prepare("INSERT INTO propiedad_imagenes (propiedad_id, filename) VALUES (?, ?)");
+                        $stmt->execute([$propiedad_id, $newFileName]);
+                    }
+                }
+            }
+            // --- FIN BLOQUE DE IMÁGENES ---
         } catch (PDOException $e) {
             $response = ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
         }
