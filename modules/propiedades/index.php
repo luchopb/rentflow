@@ -59,7 +59,7 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <td><?php echo htmlspecialchars($propiedad['tipo']); ?></td>
                 <td>$<?php echo number_format($propiedad['precio'], 2); ?></td>
                 <td>
-                    <span class="badge <?php echo $propiedad['estado'] == 'Disponible' ? 'bg-success' : 'bg-warning'; ?>">
+                    <span class="badge <?php echo $propiedad['estado'] == 'Disponible' ? 'bg-success' : ($propiedad['estado'] == 'Alquilado' ? 'bg-warning' : ($propiedad['estado'] == 'Reservado' ? 'bg-info' : ($propiedad['estado'] == 'En venta' ? 'bg-primary' : 'bg-secondary'))); ?>">
                         <?php echo htmlspecialchars($propiedad['estado']); ?>
                     </span>
                 </td>
@@ -94,6 +94,7 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <option value="Departamento">Departamento</option>
                             <option value="Casa">Casa</option>
                             <option value="Local">Local</option>
+                            <option value="Cochera">Cochera</option>
                         </select>
                     </div>
 
@@ -119,26 +120,31 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <input type="number" class="form-control" id="precio" name="precio" step="0.01" required>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="gastos_comunes" class="form-label">Gastos Comunes $</label>
-                        <input type="number" class="form-control" id="gastos_comunes" name="gastos_comunes" step="0.01" value="0.00">
-                    </div>
+                    <div id="camposGastosComunes" style="display:none">
+                        <div class="mb-3">
+                            <label for="gastos_comunes" class="form-label">Gastos Comunes $</label>
+                            <input type="number" class="form-control" id="gastos_comunes" name="gastos_comunes" step="0.01" value="0.00">
+                        </div>
 
-                    <div class="mb-3">
-                        <label for="contribucion_inmobiliaria_cc" class="form-label">Contribución Inmobiliaria CC</label>
-                        <input type="number" class="form-control" id="contribucion_inmobiliaria_cc" name="contribucion_inmobiliaria_cc" value="0" min="0" step="1">
-                    </div>
+                        <div class="mb-3">
+                            <label for="contribucion_inmobiliaria_cc" class="form-label">Contribución Inmobiliaria CC</label>
+                            <input type="number" class="form-control" id="contribucion_inmobiliaria_cc" name="contribucion_inmobiliaria_cc" value="0" min="0" step="1">
+                        </div>
 
-                    <div class="mb-3">
-                        <label for="contribucion_inmobiliaria_padron" class="form-label">Contribución Inmobiliaria Padrón</label>
-                        <input type="number" class="form-control" id="contribucion_inmobiliaria_padron" name="contribucion_inmobiliaria_padron" value="0" min="0" step="1">
+                        <div class="mb-3">
+                            <label for="contribucion_inmobiliaria_padron" class="form-label">Contribución Inmobiliaria Padrón</label>
+                            <input type="number" class="form-control" id="contribucion_inmobiliaria_padron" name="contribucion_inmobiliaria_padron" value="0" min="0" step="1">
+                        </div>
                     </div>
-                    
+                        
                     <div class="mb-3">
                         <label for="estado" class="form-label">Estado</label>
                         <select class="form-select" id="estado" name="estado" required>
                             <option value="Disponible">Disponible</option>
                             <option value="Alquilado">Alquilado</option>
+                            <option value="Reservado">Reservado</option>
+                            <option value="En venta">En venta</option>
+                            <option value="Vendido">Vendido</option>
                         </select>
                     </div>
                     
@@ -321,5 +327,23 @@ function guardarPropiedad() {
 document.getElementById('formPropiedad').addEventListener('submit', function(e) {
     e.preventDefault();
     guardarPropiedad();
+});
+
+$(document).ready(function() {
+    // Función para mostrar/ocultar campos según el tipo de propiedad
+    function toggleFields() {
+        var tipo = $('#tipo').val();
+        if (tipo === 'Cochera') {
+            $('#camposGastosComunes').hide();
+        } else {
+            $('#camposGastosComunes').show();
+        }
+    }
+
+    // Ejecutar al cargar la página
+    toggleFields();
+
+    // Ejecutar cuando cambie el tipo de propiedad
+    $('#tipo').change(toggleFields);
 });
 </script> 

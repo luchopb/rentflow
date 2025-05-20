@@ -21,6 +21,6 @@ INSERT INTO propiedades (tipo, galeria, local, direccion, precio, estado, caract
 INSERT INTO propiedades (tipo, galeria, local, direccion, precio, estado, caracteristicas) VALUES
 ('Local', 'Torre Maldonado', 'Local 030', 'Torre Maldonado - Local 030', 5500, 'Alquilado', 'alquilado a "Mariana" 094511313, garantia de porto $5500 gastos comunes incluidos son muy baratos paga muy bien paga a papa'),
 ('Local', 'Galeria Cristal', 'Local 39', 'Galeria Cristal - Local 39', 7000, 'Alquilado', 'alquilado a "Elsa" 094800635 $7000'),
-('Local', 'Local Figueroa', 'Local 6', 'Local Figueroa - Local 6', NULL, 'Disponible', 'es el local 6 esta vacio'),
+('Local', 'Local Figueroa', 'Local 6', 'Local Figueroa - Local 6', 0, 'Disponible', 'es el local 6 esta vacio'),
 ('Local', 'Galeria Entrevero', 'Local 7/8', 'Galeria Entrevero - Local 7/8', 9000, 'Disponible', 'vacio esta para alquilar "economico" paga $4400 de alquiler'),
 ('Local', 'Galeria Entrevero', 'Local 41', 'Galeria Entrevero - Local 41', 9100, 'Alquilado', 'alquilado a "nails"'); 

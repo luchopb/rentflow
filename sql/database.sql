@@ -6,7 +6,7 @@ USE rentflow;
 CREATE TABLE propiedades (
     id INT PRIMARY KEY AUTO_INCREMENT,
     direccion VARCHAR(255) NOT NULL,
-    tipo ENUM('Departamento', 'Casa', 'Local') NOT NULL,
+    tipo ENUM('Departamento', 'Casa', 'Local', 'Cochera') NOT NULL,
     galeria VARCHAR(255),
     local VARCHAR(255),
     precio DECIMAL(10,2) NOT NULL,
@@ -26,6 +26,8 @@ CREATE TABLE inquilinos (
     documento VARCHAR(20) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL,
     telefono VARCHAR(20) NOT NULL,
+    vehiculo VARCHAR(100),
+    matricula VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

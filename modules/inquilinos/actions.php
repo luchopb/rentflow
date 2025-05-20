@@ -13,6 +13,8 @@ switch ($action) {
         $documento = $_POST['documento'] ?? '';
         $email = $_POST['email'] ?? '';
         $telefono = $_POST['telefono'] ?? '';
+        $vehiculo = $_POST['vehiculo'] ?? '';
+        $matricula = $_POST['matricula'] ?? '';
 
         try {
             // Verificar si el Documento ya existe
@@ -24,12 +26,12 @@ switch ($action) {
             }
 
             if ($action === 'create') {
-                $stmt = $conn->prepare("INSERT INTO inquilinos (nombre, documento, email, telefono) VALUES (?, ?, ?, ?)");
-                $stmt->execute([$nombre, $documento, $email, $telefono]);
+                $stmt = $conn->prepare("INSERT INTO inquilinos (nombre, documento, email, telefono, vehiculo, matricula) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$nombre, $documento, $email, $telefono, $vehiculo, $matricula]);
                 $response = ['success' => true, 'message' => 'Inquilino creado exitosamente'];
             } else {
-                $stmt = $conn->prepare("UPDATE inquilinos SET nombre = ?, documento = ?, email = ?, telefono = ? WHERE id = ?");
-                $stmt->execute([$nombre, $documento, $email, $telefono, $id]);
+                $stmt = $conn->prepare("UPDATE inquilinos SET nombre = ?, documento = ?, email = ?, telefono = ?, vehiculo = ?, matricula = ? WHERE id = ?");
+                $stmt->execute([$nombre, $documento, $email, $telefono, $vehiculo, $matricula, $id]);
                 $response = ['success' => true, 'message' => 'Inquilino actualizado exitosamente'];
             }
         } catch (PDOException $e) {

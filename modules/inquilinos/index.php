@@ -74,6 +74,18 @@ $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <label for="telefono" class="form-label">Teléfono</label>
                         <input type="tel" class="form-control" id="telefono" name="telefono" required>
                     </div>
+                    
+                    <button type="button" class="btn btn-outline-secondary mb-2" id="btnAgregarVehiculo" onclick="mostrarCamposVehiculo()">Agregar detalles vehículo</button>
+                    <div id="camposVehiculo" style="display:none;">
+                        <div class="mb-3">
+                            <label for="vehiculo" class="form-label">Vehículo</label>
+                            <input type="text" class="form-control" id="vehiculo" name="vehiculo" maxlength="100">
+                        </div>
+                        <div class="mb-3">
+                            <label for="matricula" class="form-label">Matrícula</label>
+                            <input type="text" class="form-control" id="matricula" name="matricula" maxlength="20">
+                        </div>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -153,6 +165,13 @@ function mostrarDetalleInquilino(inquilino) {
     // Cargar contratos y pagos
     cargarContratosInquilino(inquilino.id);
     cargarPagosInquilino(inquilino.id);
+    
+    // Al editar, si hay datos de vehiculo o matricula, mostrar los campos y rellenar
+    document.getElementById('vehiculo').value = inquilino.vehiculo || '';
+    document.getElementById('matricula').value = inquilino.matricula || '';
+    if (inquilino.vehiculo || inquilino.matricula) {
+        mostrarCamposVehiculo();
+    }
 }
 
 function editarInquilino() {
@@ -341,5 +360,10 @@ function mostrarPagosInquilino(pagos) {
     
     html += '</tbody></table></div>';
     listaPagos.innerHTML = html;
+}
+
+function mostrarCamposVehiculo() {
+    document.getElementById('camposVehiculo').style.display = 'block';
+    document.getElementById('btnAgregarVehiculo').style.display = 'none';
 }
 </script> 
