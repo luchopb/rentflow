@@ -13,6 +13,7 @@ switch ($action) {
         $monto = $_POST['monto'] ?? 0;
         $fecha_pago = $_POST['fecha_pago'] ?? null;
         $monto_pagado = $_POST['monto_pagado'] ?? null;
+        $concepto = $_POST['concepto'] ?? null;
 
         try {
             // Validaciones básicas
@@ -28,18 +29,18 @@ switch ($action) {
 
             if ($action === 'create') {
                 $stmt = $conn->prepare("
-                    INSERT INTO pagos (contrato_id, fecha_vencimiento, monto, fecha_pago, monto_pagado, estado) 
-                    VALUES (?, ?, ?, ?, ?, 'Pagado')
+                    INSERT INTO pagos (contrato_id, fecha_vencimiento, monto, fecha_pago, monto_pagado, concepto, estado) 
+                    VALUES (?, ?, ?, ?, ?, ?, 'Pagado')
                 ");
-                $stmt->execute([$contrato_id, $fecha_pago, $monto, $fecha_pago, $monto_pagado]);
+                $stmt->execute([$contrato_id, $fecha_pago, $monto, $fecha_pago, $monto_pagado, $concepto]);
                 $response = ['success' => true, 'message' => 'Pago registrado exitosamente'];
             } else {
                 $stmt = $conn->prepare("
                     UPDATE pagos 
-                    SET contrato_id = ?, fecha_vencimiento = ?, monto = ?, fecha_pago = ?, monto_pagado = ?, estado = 'Pagado'
+                    SET contrato_id = ?, fecha_vencimiento = ?, monto = ?, fecha_pago = ?, monto_pagado = ?, concepto = ?, estado = 'Pagado'
                     WHERE id = ?
                 ");
-                $stmt->execute([$contrato_id, $fecha_pago, $monto, $fecha_pago, $monto_pagado, $id]);
+                $stmt->execute([$contrato_id, $fecha_pago, $monto, $fecha_pago, $monto_pagado, $concepto, $id]);
                 $response = ['success' => true, 'message' => 'Pago actualizado exitosamente'];
             }
         } catch (PDOException $e) {

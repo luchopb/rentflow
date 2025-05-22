@@ -44,6 +44,21 @@ try {
     $stmt = $conn->prepare("SELECT id, nombre, documento as dni FROM inquilinos ORDER BY nombre");
     $stmt->execute();
     $inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Obtener contratos activos para el formulario de nuevo pago (para el modal centralizado)
+    $stmt = $conn->prepare("
+        SELECT c.id, c.renta_mensual, 
+               p.direccion as propiedad_direccion,
+               i.nombre as inquilino_nombre,
+               i.documento as inquilino_dni
+        FROM contratos c
+        JOIN propiedades p ON c.propiedad_id = p.id
+        JOIN inquilinos i ON c.inquilino_id = i.id
+        WHERE c.estado = 'Activo'
+        ORDER BY p.direccion ASC
+    ");
+    $stmt->execute();
+    $contratos_activos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     // Registrar el error
     error_log("Error en contratos/index.php: " . $e->getMessage());
@@ -225,12 +240,14 @@ try {
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger me-auto" onclick="eliminarContrato()">Eliminar Contrato</button>
-                <button type="button" class="btn btn-primary" onclick="registrarPagoContrato()">Registrar Pago</button>
+                <button type="button" class="btn btn-primary" onclick="window.nuevoPago()">Registrar Pago</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
 </div>
+
+<?php include __DIR__ . '/../pagos/modal_pago.php'; ?>
 
 <script>
 // Asegurarse de que las funciones estén disponibles globalmente

@@ -53,6 +53,7 @@ CREATE TABLE pagos (
     monto DECIMAL(10,2) NOT NULL,
     fecha_pago DATE,
     monto_pagado DECIMAL(10,2),
+    concepto VARCHAR(50) NULL,
     comprobante VARCHAR(255) NULL,
     estado ENUM('Pendiente', 'Pagado', 'Vencido') NOT NULL DEFAULT 'Pendiente',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

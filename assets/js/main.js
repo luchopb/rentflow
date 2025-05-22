@@ -604,8 +604,7 @@ function verPagosContrato(id) {
 }
 
 function registrarPagoContrato() {
-    // Esta función se implementará cuando creemos el módulo de pagos
-    alert('Funcionalidad en desarrollo');
+    window.nuevoPago();
 }
 
 // Funciones para el módulo de pagos
@@ -616,12 +615,21 @@ function limpiarFormPago() {
 }
 
 function nuevoPago() {
-    document.getElementById('formPago').reset();
+    var form = document.getElementById('formPago');
+    var modal = document.getElementById('modalPago');
+    if (!form || !modal) {
+        showAlert({
+            success: false,
+            message: 'El formulario de pago no está disponible en esta sección.'
+        });
+        return;
+    }
+    form.reset();
     document.getElementById('pago_id').value = '';
     document.querySelector('#modalPago .modal-title').textContent = 'Nuevo Pago';
     document.querySelector('#modalPago .btn-danger').classList.add('d-none');
     document.getElementById('fecha_pago').value = new Date().toISOString().split('T')[0];
-    new bootstrap.Modal(document.getElementById('modalPago')).show();
+    new bootstrap.Modal(modal).show();
 }
 
 function mostrarDetallePago(pago) {
