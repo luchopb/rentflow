@@ -94,8 +94,8 @@ function limpiarFormPropiedad() {
 }
 
 function mostrarDetallePropiedad(propiedad) {
-    // Llenar el formulario con los datos de la propiedad
     document.getElementById('propiedad_id').value = propiedad.id;
+    document.getElementById('nombre').value = propiedad.nombre || '';
     document.getElementById('direccion').value = propiedad.direccion;
     document.getElementById('tipo').value = propiedad.tipo;
     document.getElementById('precio').value = propiedad.precio;
@@ -126,6 +126,7 @@ function editarPropiedad(id) {
         if (response.success) {
             const propiedad = response.data;
             $('#propiedad_id').val(propiedad.id);
+            $('#nombre').val(propiedad.nombre || '');
             $('#direccion').val(propiedad.direccion);
             $('#tipo').val(propiedad.tipo);
             $('#precio').val(propiedad.precio);

@@ -55,7 +55,7 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php foreach ($propiedades as $propiedad): ?>
             <tr class="cursor-pointer" onclick='cargarYMostrarDetallePropiedad(<?php echo $propiedad['id']; ?>)'>
                 <td><?php echo htmlspecialchars($propiedad['id']); ?></td>
-                <td><?php echo htmlspecialchars(getNombrePropiedad($propiedad)); ?></td>
+                <td><?php echo htmlspecialchars($propiedad['nombre'] ?? ''); ?></td>
                 <td><?php echo htmlspecialchars($propiedad['tipo']); ?></td>
                 <td>$<?php echo number_format($propiedad['precio'], 2); ?></td>
                 <td>
@@ -97,6 +97,12 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <option value="Cochera">Cochera</option>
                         </select>
                     </div>
+                    
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre de la propiedad</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" maxlength="255">
+                    </div>
+
 
                     <div id="camposLocal" style="display:none">
                         <div class="mb-3">
@@ -215,6 +221,7 @@ function nuevaPropiedad() {
 function mostrarDetallePropiedad(propiedad) {
     // Llenar el formulario con los datos de la propiedad
     document.getElementById('propiedad_id').value = propiedad.id;
+    document.getElementById('nombre').value = propiedad.nombre || '';
     document.getElementById('direccion').value = propiedad.direccion;
     document.getElementById('tipo').value = propiedad.tipo;
     document.getElementById('precio').value = propiedad.precio;

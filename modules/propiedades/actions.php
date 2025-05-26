@@ -19,18 +19,19 @@ switch ($action) {
         $gastos_comunes = $_POST['gastos_comunes'] ?? 0;
         $contribucion_inmobiliaria_cc = $_POST['contribucion_inmobiliaria_cc'] ?? 0;
         $contribucion_inmobiliaria_padron = $_POST['contribucion_inmobiliaria_padron'] ?? 0;
+        $nombre = $_POST['nombre'] ?? '';
 
         try {
             if ($action === 'create') {
                 $stmt = $conn->prepare("
                     INSERT INTO propiedades (
-                        direccion, tipo, precio, estado, caracteristicas, 
+                        nombre, direccion, tipo, precio, estado, caracteristicas, 
                         galeria, local, gastos_comunes, 
                         contribucion_inmobiliaria_cc, contribucion_inmobiliaria_padron
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
                 $stmt->execute([
-                    $direccion, $tipo, $precio, $estado, $caracteristicas,
+                    $nombre, $direccion, $tipo, $precio, $estado, $caracteristicas,
                     $galeria, $local, $gastos_comunes,
                     $contribucion_inmobiliaria_cc, $contribucion_inmobiliaria_padron
                 ]);
@@ -39,14 +40,14 @@ switch ($action) {
             } else {
                 $stmt = $conn->prepare("
                     UPDATE propiedades 
-                    SET direccion = ?, tipo = ?, precio = ?, estado = ?, 
+                    SET nombre = ?, direccion = ?, tipo = ?, precio = ?, estado = ?, 
                         caracteristicas = ?, galeria = ?, local = ?,
                         gastos_comunes = ?, contribucion_inmobiliaria_cc = ?,
                         contribucion_inmobiliaria_padron = ?
                     WHERE id = ?
                 ");
                 $stmt->execute([
-                    $direccion, $tipo, $precio, $estado, $caracteristicas,
+                    $nombre, $direccion, $tipo, $precio, $estado, $caracteristicas,
                     $galeria, $local, $gastos_comunes,
                     $contribucion_inmobiliaria_cc, $contribucion_inmobiliaria_padron,
                     $id
