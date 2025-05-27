@@ -69,3 +69,6 @@ CREATE TABLE propiedad_imagenes (
     FOREIGN KEY (propiedad_id) REFERENCES propiedades(id) ON DELETE CASCADE
 ); 
 
+ALTER TABLE propiedades ADD COLUMN nombre VARCHAR(255) AFTER id;
+UPDATE `propiedades` SET nombre = direccion;
+
