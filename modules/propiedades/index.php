@@ -171,6 +171,7 @@ $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger me-auto" onclick="eliminarPropiedad()">Eliminar</button>
+                <button type="button" id="btnCrearContrato" class="btn btn-success me-2 d-none" onclick="crearContratoDesdePropiedad()">Crear Contrato</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" onclick="guardarPropiedad()">Guardar</button>
             </div>
@@ -218,8 +219,49 @@ function nuevaPropiedad() {
     mostrarOcultarCamposLocal();
 }
 
+// Función para mostrar/ocultar el botón de crear contrato según el estado de la propiedad
+function actualizarBotonCrearContrato(propiedad) {
+    const btnCrearContrato = document.getElementById('btnCrearContrato');
+    
+    // Mostrar el botón solo si la propiedad está disponible y no tiene contrato vigente
+    if (propiedad.estado === 'Disponible') {
+        btnCrearContrato.classList.remove('d-none');
+    } else {
+        btnCrearContrato.classList.add('d-none');
+    }
+}
+
+// Función para crear un contrato desde la propiedad
+function crearContratoDesdePropiedad() {
+    const propiedadId = document.getElementById('propiedad_id').value;
+    
+    // Cerrar el modal de propiedad
+    const modalPropiedad = bootstrap.Modal.getInstance(document.getElementById('modalPropiedad'));
+    if (modalPropiedad) {
+        modalPropiedad.hide();
+    }
+    
+    // Cargar el módulo de contratos y abrir el modal de nuevo contrato
+    if (typeof cargarModulo === 'function') {
+        cargarModulo('contratos', function() {
+            // Una vez cargado el módulo de contratos, seleccionar la propiedad y abrir el modal
+            if (typeof nuevoContrato === 'function') {
+                nuevoContrato();
+                // Seleccionar la propiedad en el formulario de contrato
+                setTimeout(() => {
+                    const selectPropiedad = document.getElementById('propiedad_id');
+                    if (selectPropiedad) {
+                        selectPropiedad.value = propiedadId;
+                    }
+                }, 500);
+            }
+        });
+    }
+}
+
+// Modificar la función mostrarDetallePropiedad para incluir la actualización del botón
 function mostrarDetallePropiedad(propiedad) {
-    // Llenar el formulario con los datos de la propiedad
+    // Código existente...
     document.getElementById('propiedad_id').value = propiedad.id;
     document.getElementById('nombre').value = propiedad.nombre || '';
     document.getElementById('direccion').value = propiedad.direccion;
@@ -237,6 +279,9 @@ function mostrarDetallePropiedad(propiedad) {
     // Actualizar título y mostrar botón de eliminar
     document.querySelector('#modalPropiedad .modal-title').textContent = 'Detalles de la Propiedad';
     document.querySelector('#modalPropiedad .btn-danger').style.display = 'block';
+    
+    // Actualizar el botón de crear contrato
+    actualizarBotonCrearContrato(propiedad);
     
     // Mostrar el modal
     new bootstrap.Modal(document.getElementById('modalPropiedad')).show();
@@ -353,4 +398,4 @@ $(document).ready(function() {
     // Ejecutar cuando cambie el tipo de propiedad
     $('#tipo').change(toggleFields);
 });
-</script> 
+</script>

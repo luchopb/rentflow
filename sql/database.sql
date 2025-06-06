@@ -5,6 +5,7 @@ USE rentflow;
 -- Tabla de propiedades
 CREATE TABLE propiedades (
     id INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(255),
     direccion VARCHAR(255) NOT NULL,
     tipo ENUM('Departamento', 'Casa', 'Local', 'Cochera') NOT NULL,
     galeria VARCHAR(255),
@@ -68,7 +69,3 @@ CREATE TABLE propiedad_imagenes (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (propiedad_id) REFERENCES propiedades(id) ON DELETE CASCADE
 ); 
-
-ALTER TABLE propiedades ADD COLUMN nombre VARCHAR(255) AFTER id;
-UPDATE `propiedades` SET nombre = direccion;
-
