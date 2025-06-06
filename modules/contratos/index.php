@@ -300,7 +300,7 @@ window.editarContrato = function() {
     modalEditar.show();
 };
 
-window.nuevoContrato = function() {
+window.nuevoContrato = function(propiedadId = null) {
     // Limpiar el formulario
     document.getElementById('formContrato').reset();
     document.getElementById('contrato_id').value = '';
@@ -308,6 +308,16 @@ window.nuevoContrato = function() {
     // Actualizar título y ocultar botón de eliminar
     document.querySelector('#modalContrato .modal-title').textContent = 'Nuevo Contrato';
     document.querySelector('#modalContrato .btn-danger').classList.add('d-none');
+    
+    // Si se proporciona un ID de propiedad, seleccionarlo y deshabilitar el campo
+    if (propiedadId) {
+        const selectPropiedad = document.getElementById('propiedad_id');
+        selectPropiedad.value = propiedadId;
+        selectPropiedad.disabled = true;
+    } else {
+        // Si no hay ID de propiedad, asegurarse de que el campo esté habilitado
+        document.getElementById('propiedad_id').disabled = false;
+    }
     
     // Mostrar el modal
     const modal = new bootstrap.Modal(document.getElementById('modalContrato'));
@@ -317,6 +327,12 @@ window.nuevoContrato = function() {
 function guardarContrato() {
     const formData = new FormData(document.getElementById('formContrato'));
     formData.append('action', formData.get('id') ? 'update' : 'create');
+    
+    // Asegurarse de que el valor de propiedad_id se incluya incluso si el campo está deshabilitado
+    const propiedadId = document.getElementById('propiedad_id').value;
+    if (propiedadId) {
+        formData.set('propiedad_id', propiedadId);
+    }
     
     fetch('modules/contratos/actions.php', {
         method: 'POST',
@@ -460,4 +476,4 @@ function getNombrePropiedadJS(propiedad) {
     
     return partes.join(' - ');
 }
-</script> 
+</script>

@@ -244,16 +244,9 @@ function crearContratoDesdePropiedad() {
     // Cargar el módulo de contratos y abrir el modal de nuevo contrato
     if (typeof cargarModulo === 'function') {
         cargarModulo('contratos', function() {
-            // Una vez cargado el módulo de contratos, seleccionar la propiedad y abrir el modal
+            // Una vez cargado el módulo de contratos, abrir el modal con la propiedad preseleccionada
             if (typeof nuevoContrato === 'function') {
-                nuevoContrato();
-                // Seleccionar la propiedad en el formulario de contrato
-                setTimeout(() => {
-                    const selectPropiedad = document.getElementById('propiedad_id');
-                    if (selectPropiedad) {
-                        selectPropiedad.value = propiedadId;
-                    }
-                }, 500);
+                nuevoContrato(propiedadId);
             }
         });
     }
@@ -261,7 +254,6 @@ function crearContratoDesdePropiedad() {
 
 // Modificar la función mostrarDetallePropiedad para incluir la actualización del botón
 function mostrarDetallePropiedad(propiedad) {
-    // Código existente...
     document.getElementById('propiedad_id').value = propiedad.id;
     document.getElementById('nombre').value = propiedad.nombre || '';
     document.getElementById('direccion').value = propiedad.direccion;

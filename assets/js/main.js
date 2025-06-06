@@ -30,7 +30,7 @@ function showConfirm(options) {
 }
 
 // Función para cargar contenido en el contenedor principal
-function cargarModulo(modulo) {
+function cargarModulo(modulo, callback) {
     $.ajax({
         url: `modules/${modulo}/index.php`,
         method: 'GET',
@@ -53,6 +53,11 @@ function cargarModulo(modulo) {
             backdrops.forEach((backdrop, index) => {
                 if (index > 0) backdrop.remove();
             });
+            
+            // Ejecutar el callback si existe
+            if (typeof callback === 'function') {
+                callback();
+            }
         },
         error: function(jqXHR, textStatus, errorThrown) {
             console.error('Error al cargar el módulo:', {
@@ -809,4 +814,4 @@ function mostrarNotificacion(mensaje, tipo = 'success') {
         icon: tipo,
         title: mensaje
     });
-} 
+}
