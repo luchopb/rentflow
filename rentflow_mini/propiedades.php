@@ -3,16 +3,12 @@ require_once 'config.php';
 check_login();
 
 $edit_id = intval($_GET['edit'] ?? 0);
+// Manejo eliminación propiedad
 $delete_id = intval($_GET['delete'] ?? 0);
 $message = '';
-$errors = [];
-
-$upload_dir = __DIR__ . '/uploads/';
-if (!file_exists($upload_dir)) {
-  mkdir($upload_dir, 0755, true);
-}
-
 if ($delete_id) {
+  // Borrar imágenes asociadas
+  $upload_dir = __DIR__ . '/uploads/';
   $stmt = $pdo->prepare("SELECT galeria FROM propiedades WHERE id = ?");
   $stmt->execute([$delete_id]);
   $row = $stmt->fetch();
@@ -24,12 +20,19 @@ if ($delete_id) {
         if (is_file($file)) unlink($file);
       }
     }
+    // Borrar propiedad
     $pdo->prepare("DELETE FROM propiedades WHERE id = ?")->execute([$delete_id]);
     $message = "Propiedad eliminada correctamente.";
   }
 }
 
+$msg = $_GET['msg'] ?? '';
+if ($msg) {
+  $message = $msg;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $edit_id = intval($_POST['edit_id'] ?? 0);
   $nombre = clean_input($_POST['nombre'] ?? '');
   $tipo = clean_input($_POST['tipo'] ?? '');
   $direccion = clean_input($_POST['direccion'] ?? '');
@@ -50,6 +53,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!is_array($gallery_images)) $gallery_images = [];
   }
   if (!empty($_FILES['galeria']['name'][0])) {
+    $upload_dir = __DIR__ . '/uploads/';
+    if (!file_exists($upload_dir)) {
+      mkdir($upload_dir, 0755, true);
+    }
     foreach ($_FILES['galeria']['name'] as $k => $name) {
       $tmp_name = $_FILES['galeria']['tmp_name'][$k];
       $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
@@ -66,6 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   }
 
+  $errors = [];
   if (!$nombre) {
     $errors[] = "El nombre es obligatorio.";
   }
@@ -81,8 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   if (empty($errors)) {
     $galeria_db = json_encode($gallery_images);
-    if (isset($_POST['edit_id']) && intval($_POST['edit_id']) > 0) {
-      $edit_id = intval($_POST['edit_id']);
+    if ($edit_id > 0) {
       $stmt = $pdo->prepare("UPDATE propiedades SET nombre=?, tipo=?, direccion=?, galeria=?, local=?, precio=?, incluye_gc=?, gastos_comunes=?, estado=?, garantia=?, corredor=?, anep=?, contribucion_inmobiliaria=?, comentarios=? WHERE id=?");
       $stmt->execute([$nombre, $tipo, $direccion, $galeria_db, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios, $edit_id]);
       $message = "Propiedad actualizada correctamente.";
@@ -94,7 +101,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header("Location: propiedades.php?msg=" . urlencode($message));
     exit();
   } else {
-    $edit_id = intval($_POST['edit_id'] ?? 0);
     $edit_data = [
       'nombre' => $nombre,
       'tipo' => $tipo,
@@ -111,27 +117,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'comentarios' => $comentarios,
       'galeria_arr' => $gallery_images,
     ];
+    $edit_id = $edit_id;
   }
-}
-
-if (!$edit_id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+} else {
   $edit_data = null;
-}
-
-if ($edit_id && !isset($edit_data)) {
-  $stmt = $pdo->prepare("SELECT * FROM propiedades WHERE id = ?");
-  $stmt->execute([$edit_id]);
-  $edit_data = $stmt->fetch(PDO::FETCH_ASSOC);
-  if ($edit_data) {
-    $edit_data['galeria_arr'] = json_decode($edit_data['galeria'], true) ?: [];
-  } else {
-    $edit_id = 0;
+  if ($edit_id) {
+    $stmt = $pdo->prepare("SELECT * FROM propiedades WHERE id = ?");
+    $stmt->execute([$edit_id]);
+    $edit_data = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($edit_data) {
+      $edit_data['galeria_arr'] = json_decode($edit_data['galeria'], true) ?: [];
+    }
   }
 }
-
-$msg = $_GET['msg'] ?? '';
-
-$propiedades = $pdo->query("SELECT * FROM propiedades ORDER BY id DESC")->fetchAll();
 
 function estado_label($e)
 {
@@ -142,6 +140,15 @@ function estado_label($e)
     default => ucfirst($e)
   };
 }
+
+// Obtenemos las propiedades junto sus contratos activos y los nombres de los inquilinos
+$sql = "SELECT p.*, c.id AS contrato_id, i.nombre AS inquilino_nombre 
+        FROM propiedades p 
+        LEFT JOIN contratos c ON c.propiedad_id = p.id AND c.estado = 'activo' AND CURDATE() BETWEEN c.fecha_inicio AND c.fecha_fin 
+        LEFT JOIN inquilinos i ON c.inquilino_id = i.id
+        ORDER BY p.id DESC";
+$propiedades = $pdo->query($sql)->fetchAll();
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -228,13 +235,8 @@ function estado_label($e)
 
     <h1>Gestión de Propiedades</h1>
 
-    <?php if ($msg): ?>
-      <div class="alert alert-success"><?= htmlspecialchars($msg) ?></div>
-    <?php endif; ?>
-    <?php if ($errors): ?>
-      <div class="alert alert-danger">
-        <ul><?php foreach ($errors as $e) echo "<li>" . htmlspecialchars($e) . "</li>"; ?></ul>
-      </div>
+    <?php if ($message): ?>
+      <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
     <?php endif; ?>
 
     <button class="btn btn-outline-dark mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formPropiedadCollapse" aria-expanded="<?= $edit_id || !empty($errors) ? 'true' : 'false' ?>" aria-controls="formPropiedadCollapse" style="font-weight:600;">
@@ -372,8 +374,7 @@ function estado_label($e)
                 <th>Dirección</th>
                 <th>Precio</th>
                 <th>Estado</th>
-                <th>Incluye GC?</th>
-                <th>Corredor</th>
+                <th>Contrato</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -385,10 +386,17 @@ function estado_label($e)
                   <td><?= htmlspecialchars($p['direccion']) ?></td>
                   <td>$ <?= number_format($p['precio'], 2, ",", ".") ?></td>
                   <td><?= estado_label($p['estado']) ?></td>
-                  <td><?= $p['incluye_gc'] ? "Sí" : "No" ?></td>
-                  <td><?= htmlspecialchars($p['corredor']) ?></td>
-                  <td style="min-width:120px;">
-                    <a href="propiedades.php?edit=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
+                  <td>
+                    <?php
+                    if ($p['contrato_id'] && $p['inquilino_nombre']) {
+                      echo htmlspecialchars($p['inquilino_nombre']);
+                    } else {
+                      echo "-";
+                    }
+                    ?>
+                  </td>
+                  <td>
+                    <a href="propiedades.php?edit=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-primary me-1">Editar</a>
                     <a href="propiedades.php?delete=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar esta propiedad?')">Eliminar</a>
                   </td>
                 </tr>
@@ -400,6 +408,7 @@ function estado_label($e)
     </section>
 
   </main>
+
   <script>
     function removeImage(img) {
       let container = document.getElementById('image-preview-container');
