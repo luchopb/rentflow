@@ -1,6 +1,8 @@
 <?php
 require_once 'config.php';
 check_login();
+$page_title = 'Dashboard - Inmobiliaria';
+include 'includes/header_nav.php';
 
 $edit_id = intval($_GET['edit'] ?? 0);
 $delete_id = intval($_GET['delete'] ?? 0);
@@ -95,184 +97,126 @@ $contratos = $pdo->query("SELECT
   ORDER BY c.id DESC")->fetchAll();
 
 ?>
-<!DOCTYPE html>
-<html lang="es">
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Contratos - Inmobiliaria</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: #fff;
-      color: #374151;
-      padding-top: 5.5rem;
-      min-height: 100vh;
-    }
+<main class="container container-main py-4">
+  <h1>Contratos</h1>
 
-    nav {
-      box-shadow: 0 2px 5px rgb(0 0 0 / 0.05);
-    }
-
-    .container-main {
-      max-width: 1100px;
-      margin: auto;
-    }
-
-    h1 {
-      font-weight: 700;
-      font-size: 2.5rem;
-      margin-bottom: 1.5rem;
-      color: #111827;
-    }
-
-    label {
-      font-weight: 600;
-    }
-
-    .card {
-      border-radius: 0.75rem;
-      box-shadow: 0 3px 10px rgb(0 0 0 / 0.07);
-    }
-  </style>
-</head>
-
-<body>
-  <nav class="navbar navbar-expand-lg fixed-top bg-white">
-    <div class="container container-main d-flex justify-content-between align-items-center py-2">
-      <a href="dashboard.php" class="navbar-brand fw-bold fs-4 text-dark">Inmobiliaria</a>
-      <ul class="nav">
-        <li><a href="dashboard.php" class="nav-link px-3">Dashboard</a></li>
-        <li><a href="propiedades.php" class="nav-link px-3">Propiedades</a></li>
-        <li><a href="inquilinos.php" class="nav-link px-3">Inquilinos</a></li>
-        <li><a href="contratos.php" class="nav-link active fw-semibold px-3">Contratos</a></li>
-        <li><a href="pagos.php" class="nav-link px-3">Pagos</a></li>
-        <li><a href="logout.php" class="nav-link px-3 text-danger">Cerrar sesión</a></li>
-      </ul>
+  <?php if ($msg): ?>
+    <div class="alert alert-success"><?= htmlspecialchars($msg) ?></div>
+  <?php endif; ?>
+  <?php if ($errors): ?>
+    <div class="alert alert-danger">
+      <ul><?php foreach ($errors as $e) echo "<li>" . htmlspecialchars($e) . "</li>"; ?></ul>
     </div>
-  </nav>
+  <?php endif; ?>
 
-  <main class="container container-main py-4">
-    <h1>Gestión de Contratos</h1>
+  <button class="btn btn-outline-dark mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formContratoCollapse" aria-expanded="<?= $edit_id || !empty($errors) ? 'true' : 'false' ?>" aria-controls="formContratoCollapse" style="font-weight:600;">
+    <?= $edit_id || !empty($errors) ? 'Ocultar' : 'Agregar Nuevo Contrato' ?>
+  </button>
 
-    <?php if ($msg): ?>
-      <div class="alert alert-success"><?= htmlspecialchars($msg) ?></div>
-    <?php endif; ?>
-    <?php if ($errors): ?>
-      <div class="alert alert-danger">
-        <ul><?php foreach ($errors as $e) echo "<li>" . htmlspecialchars($e) . "</li>"; ?></ul>
-      </div>
-    <?php endif; ?>
-
-    <button class="btn btn-outline-dark mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formContratoCollapse" aria-expanded="<?= $edit_id || !empty($errors) ? 'true' : 'false' ?>" aria-controls="formContratoCollapse" style="font-weight:600;">
-      <?= $edit_id || !empty($errors) ? 'Ocultar' : 'Agregar Nuevo Contrato' ?>
-    </button>
-
-    <div class="collapse <?= $edit_id || !empty($errors) ? 'show' : '' ?>" id="formContratoCollapse">
-      <div class="card p-4 mb-4 mt-3">
-        <h3><?= $edit_id ? "Editar Contrato" : "Nuevo Contrato" ?></h3>
-        <form method="POST" novalidate>
-          <input type="hidden" name="edit_id" value="<?= $edit_id ?: '' ?>" />
-          <div class="mb-3">
-            <label for="inquilino_id" class="form-label">Inquilino *</label>
-            <select name="inquilino_id" id="inquilino_id" class="form-select" required>
-              <option value="">Seleccione...</option>
-              <?php foreach ($inquilinos as $i): ?>
-                <option value="<?= $i['id'] ?>" <?= ($edit_data['inquilino_id'] ?? '') == $i['id'] ? 'selected' : '' ?>><?= htmlspecialchars($i['nombre']) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="propiedad_id" class="form-label">Propiedad *</label>
-            <select name="propiedad_id" id="propiedad_id" class="form-select" required>
-              <option value="">Seleccione...</option>
-              <?php foreach ($propiedades as $p): ?>
-                <option value="<?= $p['id'] ?>" <?= ($edit_data['propiedad_id'] ?? '') == $p['id'] ? 'selected' : '' ?>><?= htmlspecialchars($p['nombre']) ?> (<?= $p['estado'] ?>)</option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-
-          <div class="mb-3">
-            <label for="fecha_inicio" class="form-label">Fecha de Inicio *</label>
-            <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required value="<?= htmlspecialchars($edit_data['fecha_inicio'] ?? '') ?>">
-          </div>
-
-          <div class="mb-3">
-            <label for="fecha_fin" class="form-label">Fecha de Fin *</label>
-            <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required value="<?= htmlspecialchars($edit_data['fecha_fin'] ?? '') ?>">
-          </div>
-
-          <div class="mb-3">
-            <label for="importe" class="form-label">Importe *</label>
-            <input type="number" step="0.01" min="0" class="form-control" id="importe" name="importe" required value="<?= htmlspecialchars($edit_data['importe'] ?? '') ?>">
-          </div>
-
-          <div class="mb-3">
-            <label for="estado" class="form-label">Estado *</label>
-            <select name="estado" id="estado" class="form-select" required>
-              <option value="activo" <?= ($edit_data['estado'] ?? '') === 'activo' ? 'selected' : '' ?>>Activo</option>
-              <option value="finalizado" <?= ($edit_data['estado'] ?? '') === 'finalizado' ? 'selected' : '' ?>>Finalizado</option>
-            </select>
-          </div>
-
-          <button type="submit" class="btn btn-primary fw-semibold"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
-          <?php if ($edit_id): ?>
-            <a href="contratos.php" class="btn btn-outline-secondary ms-2">Cancelar</a>
-          <?php endif; ?>
-        </form>
-      </div>
-    </div>
-
-    <section>
-      <h2 class="fw-semibold mb-3">Listado de Contratos</h2>
-      <?php if (count($contratos) === 0): ?>
-        <p>No hay contratos registrados.</p>
-      <?php else: ?>
-        <div class="table-responsive">
-          <table class="table align-middle table-striped">
-            <thead>
-              <tr>
-                <th>Inquilino</th>
-                <th>Propiedad</th>
-                <th>Fecha Inicio</th>
-                <th>Fecha Fin</th>
-                <th>Importe</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach ($contratos as $c): ?>
-                <tr>
-                  <td><?= htmlspecialchars($c['inquilino_nombre']) ?></td>
-                  <td><?= htmlspecialchars($c['propiedad_nombre']) ?></td>
-                  <td><?= htmlspecialchars($c['fecha_inicio']) ?></td>
-                  <td><?= htmlspecialchars($c['fecha_fin']) ?></td>
-                  <td>$ <?= number_format($c['importe'], 2, ",", ".") ?></td>
-                  <td><?= ucfirst(htmlspecialchars($c['estado'])) ?></td>
-                  <td style="min-width:130px;">
-                    <a href="contratos.php?edit=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
-                    <a href="contratos.php?delete=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este contrato y sus pagos?')">Eliminar</a>
-                    <a href="pagos.php?contrato_id=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-success">Pagos</a>
-                  </td>
-                </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
+  <div class="collapse <?= $edit_id || !empty($errors) ? 'show' : '' ?>" id="formContratoCollapse">
+    <div class="card p-4 mb-4 mt-3">
+      <h3><?= $edit_id ? "Editar Contrato" : "Nuevo Contrato" ?></h3>
+      <form method="POST" novalidate>
+        <input type="hidden" name="edit_id" value="<?= $edit_id ?: '' ?>" />
+        <div class="mb-3">
+          <label for="inquilino_id" class="form-label">Inquilino *</label>
+          <select name="inquilino_id" id="inquilino_id" class="form-select" required>
+            <option value="">Seleccione...</option>
+            <?php foreach ($inquilinos as $i): ?>
+              <option value="<?= $i['id'] ?>" <?= ($edit_data['inquilino_id'] ?? '') == $i['id'] ? 'selected' : '' ?>><?= htmlspecialchars($i['nombre']) ?></option>
+            <?php endforeach; ?>
+          </select>
         </div>
-      <?php endif; ?>
-    </section>
+        <div class="mb-3">
+          <label for="propiedad_id" class="form-label">Propiedad *</label>
+          <select name="propiedad_id" id="propiedad_id" class="form-select" required>
+            <option value="">Seleccione...</option>
+            <?php foreach ($propiedades as $p): ?>
+              <option value="<?= $p['id'] ?>" <?= ($edit_data['propiedad_id'] ?? '') == $p['id'] ? 'selected' : '' ?>><?= htmlspecialchars($p['nombre']) ?> (<?= $p['estado'] ?>)</option>
+            <?php endforeach; ?>
+          </select>
+        </div>
 
-  </main>
-  <script>
-    const collapseContrato = document.getElementById('formContratoCollapse');
-    const toggleBtnContrato = document.querySelector('button[data-bs-target="#formContratoCollapse"]');
-    collapseContrato.addEventListener('show.bs.collapse', () => toggleBtnContrato.textContent = 'Ocultar');
-    collapseContrato.addEventListener('hide.bs.collapse', () => toggleBtnContrato.textContent = 'Agregar Nuevo Contrato');
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+        <div class="mb-3">
+          <label for="fecha_inicio" class="form-label">Fecha de Inicio *</label>
+          <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required value="<?= htmlspecialchars($edit_data['fecha_inicio'] ?? '') ?>">
+        </div>
 
-</html>
+        <div class="mb-3">
+          <label for="fecha_fin" class="form-label">Fecha de Fin *</label>
+          <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required value="<?= htmlspecialchars($edit_data['fecha_fin'] ?? '') ?>">
+        </div>
+
+        <div class="mb-3">
+          <label for="importe" class="form-label">Importe *</label>
+          <input type="number" step="0.01" min="0" class="form-control" id="importe" name="importe" required value="<?= htmlspecialchars($edit_data['importe'] ?? '') ?>">
+        </div>
+
+        <div class="mb-3">
+          <label for="estado" class="form-label">Estado *</label>
+          <select name="estado" id="estado" class="form-select" required>
+            <option value="activo" <?= ($edit_data['estado'] ?? '') === 'activo' ? 'selected' : '' ?>>Activo</option>
+            <option value="finalizado" <?= ($edit_data['estado'] ?? '') === 'finalizado' ? 'selected' : '' ?>>Finalizado</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary fw-semibold"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
+        <?php if ($edit_id): ?>
+          <a href="contratos.php" class="btn btn-outline-secondary ms-2">Cancelar</a>
+        <?php endif; ?>
+      </form>
+    </div>
+  </div>
+
+  <section>
+    <h2 class="fw-semibold mb-3">Listado de Contratos</h2>
+    <?php if (count($contratos) === 0): ?>
+      <p>No hay contratos registrados.</p>
+    <?php else: ?>
+      <div class="table-responsive">
+        <table class="table align-middle table-striped">
+          <thead>
+            <tr>
+              <th>Inquilino</th>
+              <th>Propiedad</th>
+              <th>Fecha Inicio</th>
+              <th>Fecha Fin</th>
+              <th>Importe</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($contratos as $c): ?>
+              <tr>
+                <td><?= htmlspecialchars($c['inquilino_nombre']) ?></td>
+                <td><?= htmlspecialchars($c['propiedad_nombre']) ?></td>
+                <td><?= htmlspecialchars($c['fecha_inicio']) ?></td>
+                <td><?= htmlspecialchars($c['fecha_fin']) ?></td>
+                <td>$ <?= number_format($c['importe'], 2, ",", ".") ?></td>
+                <td><?= ucfirst(htmlspecialchars($c['estado'])) ?></td>
+                <td style="min-width:130px;">
+                  <a href="contratos.php?edit=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
+                  <a href="contratos.php?delete=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este contrato y sus pagos?')">Eliminar</a>
+                  <a href="pagos.php?contrato_id=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-success">Pagos</a>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php endif; ?>
+  </section>
+
+</main>
+<script>
+  const collapseContrato = document.getElementById('formContratoCollapse');
+  const toggleBtnContrato = document.querySelector('button[data-bs-target="#formContratoCollapse"]');
+  collapseContrato.addEventListener('show.bs.collapse', () => toggleBtnContrato.textContent = 'Ocultar');
+  collapseContrato.addEventListener('hide.bs.collapse', () => toggleBtnContrato.textContent = 'Agregar Nuevo Contrato');
+</script>
+
+<?php
+include 'includes/footer.php';
+?>
