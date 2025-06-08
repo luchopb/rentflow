@@ -45,7 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $precio = floatval($_POST['precio'] ?? 0);
   $incluye_gc = isset($_POST['incluye_gc']) && $_POST['incluye_gc'] === '1' ? 1 : 0;
   $gastos_comunes = floatval($_POST['gastos_comunes'] ?? 0);
-  $estado = $_POST['estado'] ?? 'disponible';
   $estado = $_POST['estado'] ?? 'libre';
   $garantia = floatval($_POST['garantia'] ?? 0);
   $corredor = clean_input($_POST['corredor'] ?? '');
