@@ -1,10 +1,12 @@
 <?php
 require_once 'config.php';
 check_login();
-$page_title = 'Dashboard - Inmobiliaria';
+$page_title = 'Propiedades - Inmobiliaria';
 include 'includes/header_nav.php';
 
 $edit_id = intval($_GET['edit'] ?? 0);
+$search = clean_input($_GET['search'] ?? '');
+
 // Manejo eliminación propiedad
 $delete_id = intval($_GET['delete'] ?? 0);
 $message = '';
@@ -143,16 +145,25 @@ function estado_label($e)
   };
 }
 
-// Obtenemos las propiedades junto sus contratos activos y los nombres de los inquilinos
+// Consulta con búsqueda
+$search = clean_input($_GET['search'] ?? '');
+$params = [];
 $sql = "SELECT p.*, c.id AS contrato_id, i.nombre AS inquilino_nombre 
         FROM propiedades p 
-        LEFT JOIN contratos c ON c.propiedad_id = p.id AND c.estado = 'activo' AND CURDATE() BETWEEN c.fecha_inicio AND c.fecha_fin 
-        LEFT JOIN inquilinos i ON c.inquilino_id = i.id
-        ORDER BY p.id DESC";
-$propiedades = $pdo->query($sql)->fetchAll();
-
+        LEFT JOIN contratos c ON c.propiedad_id = p.id 
+          AND c.estado = 'activo' 
+          AND CURDATE() BETWEEN c.fecha_inicio AND c.fecha_fin 
+        LEFT JOIN inquilinos i ON c.inquilino_id = i.id";
+if ($search) {
+  $sql .= " WHERE p.nombre LIKE ? OR p.direccion LIKE ? OR p.local LIKE ? OR i.nombre LIKE ? ";
+  $like_search = '%' . $search . '%';
+  $params = [$like_search, $like_search, $like_search, $like_search];
+}
+$sql .= " ORDER BY p.id DESC";
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$propiedades = $stmt->fetchAll();
 ?>
-
 
 <main class="container container-main py-4">
 
@@ -161,6 +172,24 @@ $propiedades = $pdo->query($sql)->fetchAll();
   <?php if ($message): ?>
     <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
   <?php endif; ?>
+
+  <form method="GET" class="mb-4" role="search" aria-label="Buscar propiedades">
+    <div class="input-group" style="max-width:480px;">
+      <input
+        type="search"
+        name="search"
+        class="form-control"
+        placeholder="Buscar por nombre, dirección, local o inquilino"
+        value="<?= htmlspecialchars($search) ?>"
+        aria-label="Buscar propiedades" autocomplete="off" />
+      <button class="btn btn-primary" type="submit" aria-label="Buscar">
+        Buscar
+      </button>
+      <?php if ($search): ?>
+        <a href="propiedades.php" class="btn btn-outline-secondary" aria-label="Limpiar búsqueda">Limpiar</a>
+      <?php endif; ?>
+    </div>
+  </form>
 
   <button class="btn btn-outline-dark mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formPropiedadCollapse" aria-expanded="<?= $edit_id || !empty($errors) ? 'true' : 'false' ?>" aria-controls="formPropiedadCollapse" style="font-weight:600;">
     <?= $edit_id || !empty($errors) ? 'Ocultar' : 'Agregar Nueva Propiedad' ?>
