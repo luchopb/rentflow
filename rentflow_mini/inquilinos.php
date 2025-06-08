@@ -1,7 +1,7 @@
 <?php
 require_once 'config.php';
 check_login();
-$page_title = 'Dashboard - Inmobiliaria';
+$page_title = 'Inquilinos - Inmobiliaria';
 include 'includes/header_nav.php';
 
 $edit_id = intval($_GET['edit'] ?? 0);
@@ -19,18 +19,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $telefono = clean_input($_POST['telefono'] ?? '');
   $vehiculo = clean_input($_POST['vehiculo'] ?? '');
   $matricula = clean_input($_POST['matricula'] ?? '');
+  $documentos_subidos = [];
+
+  // Manejo archivos adjuntos documentos
+  if (!empty($_FILES['documentos']['name'][0])) {
+    $upload_dir = __DIR__ . '/uploads/';
+    if (!file_exists($upload_dir)) {
+      mkdir($upload_dir, 0755, true);
+    }
+    foreach ($_FILES['documentos']['name'] as $k => $name) {
+      $tmp_name = $_FILES['documentos']['tmp_name'][$k];
+      $basename = uniqid() . '-' . basename($name);
+      if (move_uploaded_file($tmp_name, $upload_dir . $basename)) {
+        $documentos_subidos[] = $basename;
+      } else {
+        $errors[] = "Error al subir el documento: $name";
+      }
+    }
+  }
 
   if (!$nombre) $errors[] = "El nombre es obligatorio.";
 
   if (empty($errors)) {
     if (isset($_POST['edit_id']) && intval($_POST['edit_id']) > 0) {
       $edit_id = intval($_POST['edit_id']);
-      $stmt = $pdo->prepare("UPDATE inquilinos SET nombre=?, telefono=?, vehiculo=?, matricula=? WHERE id=?");
-      $stmt->execute([$nombre, $telefono, $vehiculo, $matricula, $edit_id]);
+      // Leer documentos anteriores para conservarlos y agregar nuevos
+      $stmt = $pdo->prepare("SELECT documentos FROM inquilinos WHERE id = ?");
+      $stmt->execute([$edit_id]);
+      $doc_ant = $stmt->fetchColumn();
+      $doc_ant_arr = json_decode($doc_ant, true);
+      if (!is_array($doc_ant_arr)) $doc_ant_arr = [];
+      $todos_docs = array_merge($doc_ant_arr, $documentos_subidos);
+      $docs_json = json_encode($todos_docs);
+
+      $stmt = $pdo->prepare("UPDATE inquilinos SET nombre=?, telefono=?, vehiculo=?, matricula=?, documentos=? WHERE id=?");
+      $stmt->execute([$nombre, $telefono, $vehiculo, $matricula, $docs_json, $edit_id]);
       $message = "Inquilino actualizado correctamente.";
     } else {
-      $stmt = $pdo->prepare("INSERT INTO inquilinos (nombre, telefono, vehiculo, matricula) VALUES (?, ?, ?, ?)");
-      $stmt->execute([$nombre, $telefono, $vehiculo, $matricula]);
+      $docs_json = json_encode($documentos_subidos);
+      $stmt = $pdo->prepare("INSERT INTO inquilinos (nombre, telefono, vehiculo, matricula, documentos) VALUES (?, ?, ?, ?, ?)");
+      $stmt->execute([$nombre, $telefono, $vehiculo, $matricula, $docs_json]);
       $message = "Inquilino creado correctamente.";
     }
     header("Location: inquilinos.php?msg=" . urlencode($message));
@@ -61,9 +89,8 @@ $msg = $_GET['msg'] ?? '';
 $inquilinos = $pdo->query("SELECT * FROM inquilinos ORDER BY id DESC")->fetchAll();
 
 ?>
-
-
 <main class="container container-main py-4">
+
   <h1>Inquilinos</h1>
 
   <?php if ($msg): ?>
@@ -82,8 +109,9 @@ $inquilinos = $pdo->query("SELECT * FROM inquilinos ORDER BY id DESC")->fetchAll
   <div class="collapse <?= $edit_id || !empty($errors) ? 'show' : '' ?>" id="formInquilinoCollapse">
     <div class="card p-4 mb-4 mt-3">
       <h3><?= $edit_id ? "Editar Inquilino" : "Nuevo Inquilino" ?></h3>
-      <form method="POST" novalidate>
+      <form method="POST" enctype="multipart/form-data" novalidate>
         <input type="hidden" name="edit_id" value="<?= $edit_id ?: '' ?>" />
+
         <div class="mb-3">
           <label for="nombre" class="form-label">Nombre *</label>
           <input type="text" class="form-control" id="nombre" name="nombre" required value="<?= htmlspecialchars($edit_data['nombre'] ?? '') ?>" />
@@ -100,6 +128,27 @@ $inquilinos = $pdo->query("SELECT * FROM inquilinos ORDER BY id DESC")->fetchAll
           <label for="matricula" class="form-label">Matrícula</label>
           <input type="text" class="form-control" id="matricula" name="matricula" value="<?= htmlspecialchars($edit_data['matricula'] ?? '') ?>" />
         </div>
+
+        <div class="mb-3">
+          <label for="documentos" class="form-label">Adjuntar Documentos</label>
+          <input type="file" name="documentos[]" multiple class="form-control" />
+        </div>
+
+        <?php if (!empty($edit_data['documentos'])):
+          $documentos = json_decode($edit_data['documentos'], true);
+          if (is_array($documentos) && count($documentos) > 0):
+        ?>
+            <div class="mb-3">
+              <label class="form-label">Documentos Adjuntos:</label>
+              <ul>
+                <?php foreach ($documentos as $doc): ?>
+                  <li><a href="uploads/<?= htmlspecialchars($doc) ?>" target="_blank"><?= htmlspecialchars($doc) ?></a></li>
+                <?php endforeach; ?>
+              </ul>
+            </div>
+        <?php endif;
+        endif; ?>
+
         <button type="submit" class="btn btn-primary fw-semibold"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
         <?php if ($edit_id): ?>
           <a href="inquilinos.php" class="btn btn-outline-secondary ms-2">Cancelar</a>
@@ -143,12 +192,15 @@ $inquilinos = $pdo->query("SELECT * FROM inquilinos ORDER BY id DESC")->fetchAll
     <?php endif; ?>
   </section>
 </main>
+
 <script>
   const collapseInquilino = document.getElementById('formInquilinoCollapse');
   const toggleBtnInquilino = document.querySelector('button[data-bs-target="#formInquilinoCollapse"]');
   collapseInquilino.addEventListener('show.bs.collapse', () => toggleBtnInquilino.textContent = 'Ocultar');
   collapseInquilino.addEventListener('hide.bs.collapse', () => toggleBtnInquilino.textContent = 'Agregar Nuevo Inquilino');
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <?php
 include 'includes/footer.php';
