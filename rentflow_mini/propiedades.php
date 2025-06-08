@@ -343,7 +343,7 @@ $propiedades = $stmt->fetchAll();
                   <?php if ($p['contrato_id'] && $p['inquilino_nombre']): ?>
                     <?= htmlspecialchars($p['inquilino_nombre']) ?>
                   <?php else: ?>
-                    <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-success" style="white-space: nowrap;">Crear contrato</a>
+                    <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-sm btn-success" style="white-space: nowrap;">Crear contrato</a>
                   <?php endif; ?>
                 </td>
                 <td>

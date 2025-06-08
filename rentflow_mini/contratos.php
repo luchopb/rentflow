@@ -246,7 +246,7 @@ $contratos = $pdo->query("SELECT
                 <td style="min-width:130px;">
                   <a href="contratos.php?edit=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
                   <a href="contratos.php?delete=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este contrato y sus pagos?')">Eliminar</a>
-                  <a href="pagos.php?contrato_id=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-success">Pagos</a>
+                  <a href="pagos.php?contrato_id=<?= intval($c['id']) ?>" class="btn btn-sm btn-success">Pagos</a>
                 </td>
               </tr>
             <?php endforeach; ?>
