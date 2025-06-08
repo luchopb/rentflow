@@ -46,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $incluye_gc = isset($_POST['incluye_gc']) && $_POST['incluye_gc'] === '1' ? 1 : 0;
   $gastos_comunes = floatval($_POST['gastos_comunes'] ?? 0);
   $estado = $_POST['estado'] ?? 'disponible';
+  $estado = $_POST['estado'] ?? 'libre';
   $garantia = floatval($_POST['garantia'] ?? 0);
   $corredor = clean_input($_POST['corredor'] ?? '');
   $anep = clean_input($_POST['anep'] ?? '');
@@ -59,9 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
   if (!empty($_FILES['imagenes']['name'][0])) {
     $upload_dir = __DIR__ . '/uploads/';
-    if (!file_exists($upload_dir)) {
-      mkdir($upload_dir, 0755, true);
-    }
+    if (!file_exists($upload_dir)) mkdir($upload_dir, 0755, true);
     foreach ($_FILES['imagenes']['name'] as $k => $name) {
       $tmp_name = $_FILES['imagenes']['tmp_name'][$k];
       $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
@@ -79,18 +78,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   $errors = [];
-  if (!$nombre) {
-    $errors[] = "El nombre es obligatorio.";
-  }
-  if (!$tipo) {
-    $errors[] = "El tipo es obligatorio.";
-  }
-  if (!$direccion) {
-    $errors[] = "La dirección es obligatoria.";
-  }
-  if (!$estado || !in_array($estado, ['libre', 'alquilado', 'uso propio', 'enventa'])) {
-    $estado = 'libre';
-  }
+  if (!$nombre) $errors[] = "El nombre es obligatorio.";
+  if (!$tipo) $errors[] = "El tipo es obligatorio.";
+  if (!$direccion) $errors[] = "La dirección es obligatoria.";
+  if (!$estado || !in_array($estado, ['libre', 'alquilado', 'uso propio', 'en venta'])) $estado = 'libre';
 
   if (empty($errors)) {
     $imagenes_db = json_encode($gallery_images);
@@ -137,13 +128,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 function estado_label($e)
 {
-  return match ($e) {
-    'libre' => 'Libre',
-    'alquilado' => 'Alquilado',
-    'enventa' => 'En venta',
-    'usopropio' => 'Uso propio',
-    default => ucfirst($e)
-  };
+  switch ($e) {
+    case 'libre':
+      return '<span class="badge bg-danger">Libre</span>';
+    case 'alquilado':
+      return '<span class="badge bg-success">Alquilado</span>';
+    case 'uso propio':
+      return '<span class="badge bg-warning text-dark">Uso Propio</span>';
+    case 'en venta':
+      return '<span class="badge bg-warning">En Venta</span>';
+    default:
+      return ucfirst($e);
+  }
 }
 
 // Consulta con búsqueda
@@ -263,8 +259,8 @@ $propiedades = $stmt->fetchAll();
             $estados = [
               'libre' => 'Libre',
               'alquilado' => 'Alquilado',
-              'en venta' => 'En venta',
-              'uso propio' => 'Uso propio'
+              'uso propio' => 'Uso Propio',
+              'en venta' => 'En Venta'
             ];
             foreach ($estados as $key => $val) {
               $sel = ($edit_data['estado'] ?? '') === $key ? "selected" : "";
