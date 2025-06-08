@@ -13,11 +13,11 @@ $message = '';
 if ($delete_id) {
   // Borrar imágenes asociadas
   $upload_dir = __DIR__ . '/uploads/';
-  $stmt = $pdo->prepare("SELECT galeria FROM propiedades WHERE id = ?");
+  $stmt = $pdo->prepare("SELECT imagenes FROM propiedades WHERE id = ?");
   $stmt->execute([$delete_id]);
   $row = $stmt->fetch();
   if ($row) {
-    $images = json_decode($row['galeria'], true);
+    $images = json_decode($row['imagenes'], true);
     if (is_array($images)) {
       foreach ($images as $img) {
         $file = $upload_dir . basename($img);
@@ -40,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $nombre = clean_input($_POST['nombre'] ?? '');
   $tipo = clean_input($_POST['tipo'] ?? '');
   $direccion = clean_input($_POST['direccion'] ?? '');
+  $galeria = clean_input($_POST['galeria'] ?? '');
   $local = clean_input($_POST['local'] ?? '');
   $precio = floatval($_POST['precio'] ?? 0);
   $incluye_gc = isset($_POST['incluye_gc']) && $_POST['incluye_gc'] === '1' ? 1 : 0;
@@ -56,13 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $gallery_images = json_decode($_POST['existing_images'], true);
     if (!is_array($gallery_images)) $gallery_images = [];
   }
-  if (!empty($_FILES['galeria']['name'][0])) {
+  if (!empty($_FILES['imagenes']['name'][0])) {
     $upload_dir = __DIR__ . '/uploads/';
     if (!file_exists($upload_dir)) {
       mkdir($upload_dir, 0755, true);
     }
-    foreach ($_FILES['galeria']['name'] as $k => $name) {
-      $tmp_name = $_FILES['galeria']['tmp_name'][$k];
+    foreach ($_FILES['imagenes']['name'] as $k => $name) {
+      $tmp_name = $_FILES['imagenes']['tmp_name'][$k];
       $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
       if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) {
         $errors[] = "Solo se permiten imágenes jpg, jpeg, png o gif.";
@@ -92,14 +93,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   if (empty($errors)) {
-    $galeria_db = json_encode($gallery_images);
+    $imagenes_db = json_encode($gallery_images);
     if ($edit_id > 0) {
-      $stmt = $pdo->prepare("UPDATE propiedades SET nombre=?, tipo=?, direccion=?, galeria=?, local=?, precio=?, incluye_gc=?, gastos_comunes=?, estado=?, garantia=?, corredor=?, anep=?, contribucion_inmobiliaria=?, comentarios=? WHERE id=?");
-      $stmt->execute([$nombre, $tipo, $direccion, $galeria_db, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios, $edit_id]);
+      $stmt = $pdo->prepare("UPDATE propiedades SET nombre=?, tipo=?, direccion=?, imagenes=?, galeria=?, local=?, precio=?, incluye_gc=?, gastos_comunes=?, estado=?, garantia=?, corredor=?, anep=?, contribucion_inmobiliaria=?, comentarios=? WHERE id=?");
+      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios, $edit_id]);
       $message = "Propiedad actualizada correctamente.";
     } else {
-      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,galeria,local,precio,incluye_gc,gastos_comunes,estado,garantia,corredor,anep,contribucion_inmobiliaria,comentarios) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-      $stmt->execute([$nombre, $tipo, $direccion, $galeria_db, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios]);
+      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,galeria,local,precio,incluye_gc,gastos_comunes,estado,garantia,corredor,anep,contribucion_inmobiliaria,comentarios) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios]);
       $message = "Propiedad creada correctamente.";
     }
     header("Location: propiedades.php?msg=" . urlencode($message));
@@ -109,6 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'nombre' => $nombre,
       'tipo' => $tipo,
       'direccion' => $direccion,
+      'galeria' => $galeria,
       'local' => $local,
       'precio' => $precio,
       'incluye_gc' => $incluye_gc,
@@ -119,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'anep' => $anep,
       'contribucion_inmobiliaria' => $contribucion_inmobiliaria,
       'comentarios' => $comentarios,
-      'galeria_arr' => $gallery_images,
+      'imagenes_arr' => $gallery_images,
     ];
     $edit_id = $edit_id;
   }
@@ -130,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute([$edit_id]);
     $edit_data = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($edit_data) {
-      $edit_data['galeria_arr'] = json_decode($edit_data['galeria'], true) ?: [];
+      $edit_data['imagenes_arr'] = json_decode($edit_data['imagenes'], true) ?: [];
     }
   }
 }
@@ -138,9 +140,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 function estado_label($e)
 {
   return match ($e) {
-    'disponible' => 'Disponible',
     'alquilado' => 'Alquilado',
-    'mantenimiento' => 'Mantenimiento',
+    'libre' => 'Libre',
+    'enventa' => 'En venta',
+    'usopropio' => 'Uso propio',
     default => ucfirst($e)
   };
 }
@@ -200,7 +203,7 @@ $propiedades = $stmt->fetchAll();
       <h3><?= $edit_id ? "Editar Propiedad" : "Nueva Propiedad" ?></h3>
       <form method="POST" enctype="multipart/form-data" novalidate>
         <input type="hidden" name="edit_id" value="<?= $edit_id ?: '' ?>" />
-        <input type="hidden" name="existing_images" id="existing_images" value='<?= htmlspecialchars(json_encode($edit_data['galeria_arr'] ?? [])) ?>' />
+        <input type="hidden" name="existing_images" id="existing_images" value='<?= htmlspecialchars(json_encode($edit_data['imagenes_arr'] ?? [])) ?>' />
 
         <div class="mb-3">
           <label for="nombre" class="form-label">Nombre *</label>
@@ -231,6 +234,11 @@ $propiedades = $stmt->fetchAll();
         </div>
 
         <div class="mb-3">
+          <label for="galeria" class="form-label">Galería</label>
+          <input type="text" class="form-control" id="galeria" name="galeria" value="<?= htmlspecialchars($edit_data['galeria'] ?? '') ?>" />
+        </div>
+
+        <div class="mb-3">
           <label for="local" class="form-label">Local</label>
           <input type="text" class="form-control" id="local" name="local" value="<?= htmlspecialchars($edit_data['local'] ?? '') ?>" />
         </div>
@@ -254,7 +262,12 @@ $propiedades = $stmt->fetchAll();
           <label for="estado" class="form-label">Estado *</label>
           <select class="form-select" id="estado" name="estado" required>
             <?php
-            $estados = ['disponible' => 'Disponible', 'alquilado' => 'Alquilado', 'mantenimiento' => 'Mantenimiento'];
+            $estados = [
+              'alquilado' => 'Alquilado',
+              'libre' => 'Libre',
+              'en venta' => 'En venta',
+              'uso propio' => 'Uso propio'
+            ];
             foreach ($estados as $key => $val) {
               $sel = ($edit_data['estado'] ?? '') === $key ? "selected" : "";
               echo "<option value=\"$key\" $sel>$val</option>";
@@ -290,12 +303,12 @@ $propiedades = $stmt->fetchAll();
 
         <div class="mb-3">
           <label class="form-label">Galería de imágenes</label>
-          <input type="file" name="galeria[]" multiple accept="image/*" class="form-control" />
+          <input type="file" name="imagenes[]" multiple accept="image/*" class="form-control" />
         </div>
 
-        <?php if (!empty($edit_data['galeria_arr'])): ?>
+        <?php if (!empty($edit_data['imagenes_arr'])): ?>
           <div class="mb-3" id="image-preview-container">
-            <?php foreach ($edit_data['galeria_arr'] as $img): ?>
+            <?php foreach ($edit_data['imagenes_arr'] as $img): ?>
               <div class="img-preview" data-img="<?= htmlspecialchars($img) ?>">
                 <button type="button" class="btn-remove-image" title="Eliminar imagen" onclick="removeImage('<?= htmlspecialchars($img) ?>')">&times;</button>
                 <img src="uploads/<?= htmlspecialchars($img) ?>" alt="" style="max-height:80px; max-width:100px; border-radius:0.5rem;" />

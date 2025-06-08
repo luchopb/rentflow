@@ -3,17 +3,18 @@ CREATE TABLE propiedades (
     nombre VARCHAR(255) NOT NULL,
     tipo VARCHAR(100),
     direccion VARCHAR(255),
-    galeria TEXT,
+    galeria VARCHAR(255),
     local VARCHAR(100),
-    precio DECIMAL(10, 2),
+    precio DECIMAL(10, 0),
     incluye_gc BOOLEAN,
-    gastos_comunes DECIMAL(10, 2),
-    estado ENUM('disponible', 'alquilado', 'mantenimiento'),
-    garantia DECIMAL(10, 2),
+    gastos_comunes DECIMAL(10, 0),
+    estado ENUM('alquilado', 'libre', 'en venta', 'uso propio'),
+    garantia VARCHAR(100),
     corredor VARCHAR(100),
     anep VARCHAR(100),
-    contribucion_inmobiliaria DECIMAL(10, 2),
-    comentarios TEXT
+    contribucion_inmobiliaria VARCHAR(100),
+    comentarios TEXT,
+    imagenes TEXT,
 );
 
 CREATE TABLE inquilinos (
@@ -26,8 +27,8 @@ CREATE TABLE inquilinos (
 
 CREATE TABLE contratos (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    inquilino_id INT,
     propiedad_id INT,
+    inquilino_id INT,
     fecha_inicio DATE,
     fecha_fin DATE,
     importe DECIMAL(10, 2),
