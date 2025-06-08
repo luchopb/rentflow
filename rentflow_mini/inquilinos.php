@@ -52,13 +52,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $todos_docs = array_merge($doc_ant_arr, $documentos_subidos);
       $docs_json = json_encode($todos_docs);
 
-      $stmt = $pdo->prepare("UPDATE inquilinos SET nombre=?, telefono=?, vehiculo=?, matricula=?, documentos=? WHERE id=?");
-      $stmt->execute([$nombre, $telefono, $vehiculo, $matricula, $docs_json, $edit_id]);
+      $fecha_modificacion = date('Y-m-d H:i:s'); // Fecha y hora actual
+      $stmt = $pdo->prepare("UPDATE inquilinos SET nombre=?, telefono=?, vehiculo=?, matricula=?, documentos=?, fecha_modificacion=? WHERE id=?");
+      $stmt->execute([$nombre, $telefono, $vehiculo, $matricula, $docs_json, $fecha_modificacion, $edit_id]);
       $message = "Inquilino actualizado correctamente.";
     } else {
       $docs_json = json_encode($documentos_subidos);
-      $stmt = $pdo->prepare("INSERT INTO inquilinos (nombre, telefono, vehiculo, matricula, documentos) VALUES (?, ?, ?, ?, ?)");
-      $stmt->execute([$nombre, $telefono, $vehiculo, $matricula, $docs_json]);
+      $usuario_id = $_SESSION['user_id']; // Usuario que crea el inquilino
+      $fecha_creacion = date('Y-m-d H:i:s'); // Fecha y hora actual
+      $stmt = $pdo->prepare("INSERT INTO inquilinos (nombre, telefono, vehiculo, matricula, documentos, usuario_id, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?)");
+      $stmt->execute([$nombre, $telefono, $vehiculo, $matricula, $docs_json, $usuario_id, $fecha_creacion]);
       $message = "Inquilino creado correctamente.";
     }
     header("Location: inquilinos.php?msg=" . urlencode($message));

@@ -62,14 +62,23 @@ CREATE TABLE usuarios (
 -- Agregar columna para almacenar el ID del usuario que creó la propiedad
 ALTER TABLE propiedades
 ADD COLUMN usuario_id INT NOT NULL AFTER comentarios;
-
 -- Agregar columna para almacenar la fecha y hora de creación
 ALTER TABLE propiedades
 ADD COLUMN fecha_creacion DATETIME NULL AFTER usuario_id;
-
 -- Agregar columna para almacenar la fecha y hora de última modificación
 ALTER TABLE propiedades
 ADD COLUMN fecha_modificacion DATETIME NULL AFTER fecha_creacion;
-
 -- Opcional: agregar índice para la columna usuario_id para mejora en consultas
 CREATE INDEX idx_usuario_id ON propiedades (usuario_id);
+
+
+ALTER TABLE `inquilinos` ADD `documentos` TEXT NOT NULL AFTER `matricula`, ADD `usuario_id` INT(11) NOT NULL AFTER `documentos`, ADD `fecha_creacion` DATETIME NULL DEFAULT NULL AFTER `usuario_id`, ADD `fecha_modificacion` DATETIME NULL DEFAULT NULL AFTER `fecha_creacion`;
+
+
+
+ALTER TABLE inquilinos
+ADD COLUMN usuario_id INT NOT NULL AFTER matricula,
+ADD COLUMN fecha_creacion DATETIME NOT NULL AFTER usuario_id,
+ADD COLUMN fecha_modificacion DATETIME NULL AFTER fecha_creacion;
+
+CREATE INDEX idx_usuario_id ON inquilinos (usuario_id);
