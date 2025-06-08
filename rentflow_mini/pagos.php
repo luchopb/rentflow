@@ -1,7 +1,7 @@
 <?php
 require_once 'config.php';
 check_login();
-$page_title = 'Dashboard - Inmobiliaria';
+$page_title = 'Pagos - Inmobiliaria';
 include 'includes/header_nav.php';
 
 $contrato_id = intval($_GET['contrato_id'] ?? 0);
@@ -13,6 +13,7 @@ if (!$contrato_id) {
 $message = '';
 $errors = [];
 
+// Obtener información del contrato
 $stmt = $pdo->prepare("SELECT c.*, i.nombre as inquilino_nombre, p.nombre as propiedad_nombre FROM contratos c JOIN inquilinos i ON c.inquilino_id = i.id JOIN propiedades p ON c.propiedad_id = p.id WHERE c.id = ?");
 $stmt->execute([$contrato_id]);
 $contrato = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -22,24 +23,40 @@ if (!$contrato) {
   exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  // Marcar pago pagado / no pagado
-  foreach ($_POST as $key => $value) {
-    if (strpos($key, 'pago_') === 0) {
-      $pago_id = intval(str_replace('pago_', '', $key));
-      $pagado = $value === '1' ? 1 : 0;
-      $pdo->prepare("UPDATE pagos SET pagado = ? WHERE id = ?")->execute([$pagado, $pago_id]);
+// Manejo de formulario para agregar un nuevo pago
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
+  $fecha_pago = $_POST['fecha_pago'] ?? '';
+  $monto = floatval($_POST['monto'] ?? 0);
+  $comentario = $_POST['comentario'] ?? '';
+  $comprobante = $_FILES['comprobante'] ?? null;
+
+  if (!$fecha_pago) $errors[] = "La fecha es obligatoria.";
+  if ($monto <= 0) $errors[] = "El monto debe ser mayor que cero.";
+
+  // Manejo de archivo de comprobante
+  if ($comprobante && $comprobante['error'] === UPLOAD_ERR_OK) {
+    $upload_dir = __DIR__ . '/uploads/';
+    if (!file_exists($upload_dir)) {
+      mkdir($upload_dir, 0755, true);
+    }
+    $basename = uniqid() . '-' . basename($comprobante['name']);
+    if (!move_uploaded_file($comprobante['tmp_name'], $upload_dir . $basename)) {
+      $errors[] = "Error al subir el comprobante.";
     }
   }
-  $message = "Pagos actualizados correctamente.";
-  header("Location: pagos.php?contrato_id=$contrato_id&msg=" . urlencode($message));
-  exit();
+
+  if (empty($errors)) {
+    // Insertar nuevo pago
+    $stmt = $pdo->prepare("INSERT INTO pagos (contrato_id, fecha, monto, comentario, comprobante) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$contrato_id, $fecha_pago, $monto, $comentario, $basename ?? null]);
+    $message = "Pago registrado correctamente.";
+    header("Location: pagos.php?contrato_id=$contrato_id&msg=" . urlencode($message));
+    exit();
+  }
 }
 
-$msg = $_GET['msg'] ?? '';
-
 // Obtener pagos para este contrato
-$pagos = $pdo->prepare("SELECT * FROM pagos WHERE contrato_id = ? ORDER BY anio DESC, mes DESC");
+$pagos = $pdo->prepare("SELECT * FROM pagos WHERE contrato_id = ? ORDER BY fecha DESC");
 $pagos->execute([$contrato_id]);
 $pagos_list = $pagos->fetchAll();
 
@@ -56,9 +73,43 @@ function month_name($m)
   <h1>Pagos - Contrato #<?= $contrato_id ?></h1>
   <p><strong>Inquilino:</strong> <?= htmlspecialchars($contrato['inquilino_nombre']) ?> &nbsp;&nbsp;&nbsp; <strong>Propiedad:</strong> <?= htmlspecialchars($contrato['propiedad_nombre']) ?></p>
 
-  <?php if ($msg): ?>
-    <div class="alert alert-success"><?= htmlspecialchars($msg) ?></div>
+  <?php if ($message): ?>
+    <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
   <?php endif; ?>
+
+  <?php if (!empty($errors)): ?>
+    <div class="alert alert-danger">
+      <ul><?php foreach ($errors as $e) echo "<li>" . htmlspecialchars($e) . "</li>"; ?></ul>
+    </div>
+  <?php endif; ?>
+
+  <!-- Formulario para agregar un nuevo pago -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5>Registrar Nuevo Pago</h5>
+    </div>
+    <div class="card-body">
+      <form method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label for="fecha_pago" class="form-label">Fecha *</label>
+          <input type="date" class="form-control" id="fecha_pago" name="fecha_pago" required>
+        </div>
+        <div class="mb-3">
+          <label for="monto" class="form-label">Monto *</label>
+          <input type="number" step="0.01" min="0" class="form-control" id="monto" name="monto" required>
+        </div>
+        <div class="mb-3">
+          <label for="comentario" class="form-label">Comentario</label>
+          <textarea class="form-control" id="comentario" name="comentario" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="comprobante" class="form-label">Comprobante</label>
+          <input type="file" class="form-control" id="comprobante" name="comprobante" accept="image/*,application/pdf">
+        </div>
+        <button type="submit" name="nuevo_pago" class="btn btn-primary">Registrar Pago</button>
+      </form>
+    </div>
+  </div>
 
   <?php if (count($pagos_list) === 0): ?>
     <p>No hay pagos registrados para este contrato.</p>
@@ -67,8 +118,10 @@ function month_name($m)
       <table class="table table-striped align-middle">
         <thead>
           <tr>
-            <th>Mes</th>
-            <th>Año</th>
+            <th>Fecha</th>
+            <th>Monto</th>
+            <th>Comentario</th>
+            <th>Comprobante</th>
             <th>Pagar</th>
             <th>Estado</th>
           </tr>
@@ -76,8 +129,16 @@ function month_name($m)
         <tbody>
           <?php foreach ($pagos_list as $pago): ?>
             <tr>
-              <td><?= month_name(intval($pago['mes'])) ?></td>
-              <td><?= $pago['anio'] ?></td>
+              <td><?= htmlspecialchars($pago['fecha']) ?></td>
+              <td>$ <?= number_format($pago['monto'], 2, ",", ".") ?></td>
+              <td><?= htmlspecialchars($pago['comentario']) ?></td>
+              <td>
+                <?php if ($pago['comprobante']): ?>
+                  <a href="uploads/<?= htmlspecialchars($pago['comprobante']) ?>" target="_blank">Ver Comprobante</a>
+                <?php else: ?>
+                  Sin comprobante
+                <?php endif; ?>
+              </td>
               <td>
                 <select class="form-select" name="pago_<?= $pago['id'] ?>">
                   <option value="0" <?= $pago['pagado'] == 0 ? "selected" : "" ?>>Pendiente</option>

@@ -9,8 +9,6 @@ CREATE TABLE propiedades (
     incluye_gc BOOLEAN,
     gastos_comunes DECIMAL(10, 0),
     estado ENUM('alquilado', 'libre', 'en venta', 'uso propio'),
-    garantia VARCHAR(100),
-    corredor VARCHAR(100),
     anep VARCHAR(100),
     contribucion_inmobiliaria VARCHAR(100),
     comentarios TEXT,
@@ -32,9 +30,11 @@ CREATE TABLE contratos (
     fecha_inicio DATE,
     fecha_fin DATE,
     importe DECIMAL(10, 2),
+    garantia VARCHAR(100),
+    corredor VARCHAR(100),
     estado ENUM('activo', 'finalizado'),
-    FOREIGN KEY (inquilino_id) REFERENCES inquilinos(id),
-    FOREIGN KEY (propiedad_id) REFERENCES propiedades(id)
+    -- FOREIGN KEY (inquilino_id) REFERENCES inquilinos(id),
+    -- FOREIGN KEY (propiedad_id) REFERENCES propiedades(id)
 );
 
 CREATE TABLE pagos (
@@ -43,7 +43,11 @@ CREATE TABLE pagos (
     mes INT,
     anio INT,
     pagado BOOLEAN,
-    FOREIGN KEY (contrato_id) REFERENCES contratos(id)
+    fecha DATE NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+    monto DECIMAL(10,0) NOT NULL,
+    comentario VARCHAR(250) NOT NULL, 
+    comprobante TEXT NULL;
+    -- FOREIGN KEY (contrato_id) REFERENCES contratos(id)
 );
 
 CREATE TABLE usuarios (

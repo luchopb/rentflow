@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (!$direccion) {
     $errors[] = "La dirección es obligatoria.";
   }
-  if (!$estado || !in_array($estado, ['alquilado', 'libre', 'uso propio', 'enventa'])) {
+  if (!$estado || !in_array($estado, ['libre', 'alquilado', 'uso propio', 'enventa'])) {
     $estado = 'libre';
   }
 
@@ -116,8 +116,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'incluye_gc' => $incluye_gc,
       'gastos_comunes' => $gastos_comunes,
       'estado' => $estado,
-      'garantia' => $garantia,
-      'corredor' => $corredor,
       'anep' => $anep,
       'contribucion_inmobiliaria' => $contribucion_inmobiliaria,
       'comentarios' => $comentarios,
@@ -140,8 +138,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 function estado_label($e)
 {
   return match ($e) {
-    'alquilado' => 'Alquilado',
     'libre' => 'Libre',
+    'alquilado' => 'Alquilado',
     'enventa' => 'En venta',
     'usopropio' => 'Uso propio',
     default => ucfirst($e)
@@ -263,8 +261,8 @@ $propiedades = $stmt->fetchAll();
           <select class="form-select" id="estado" name="estado" required>
             <?php
             $estados = [
-              'alquilado' => 'Alquilado',
               'libre' => 'Libre',
+              'alquilado' => 'Alquilado',
               'en venta' => 'En venta',
               'uso propio' => 'Uso propio'
             ];
@@ -274,16 +272,6 @@ $propiedades = $stmt->fetchAll();
             }
             ?>
           </select>
-        </div>
-
-        <div class="mb-3">
-          <label for="garantia" class="form-label">Garantía</label>
-          <input type="number" class="form-control" step="0.01" id="garantia" name="garantia" value="<?= htmlspecialchars($edit_data['garantia'] ?? '') ?>" />
-        </div>
-
-        <div class="mb-3">
-          <label for="corredor" class="form-label">Corredor</label>
-          <input type="text" class="form-control" id="corredor" name="corredor" value="<?= htmlspecialchars($edit_data['corredor'] ?? '') ?>" />
         </div>
 
         <div class="mb-3">

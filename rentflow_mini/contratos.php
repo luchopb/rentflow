@@ -42,6 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $fecha_inicio = $_POST['fecha_inicio'] ?? '';
   $fecha_fin = $_POST['fecha_fin'] ?? '';
   $importe = floatval($_POST['importe'] ?? 0);
+  $garantia = floatval($_POST['garantia'] ?? 0);
+  $corredor = floatval($_POST['corredor'] ?? 0);
   $estado = $_POST['estado'] ?? 'activo';
   $edit_id = intval($_POST['edit_id'] ?? 0);
 
@@ -58,13 +60,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (empty($errors)) {
     if ($edit_id > 0) {
       // Actualizar contrato
-      $stmt = $pdo->prepare("UPDATE contratos SET inquilino_id=?, propiedad_id=?, fecha_inicio=?, fecha_fin=?, importe=?, estado=? WHERE id=?");
-      $stmt->execute([$inquilino_id, $propiedad_id, $fecha_inicio, $fecha_fin, $importe, $estado, $edit_id]);
+      $stmt = $pdo->prepare("UPDATE contratos SET inquilino_id=?, propiedad_id=?, fecha_inicio=?, fecha_fin=?, importe=?, garantia=?, corredor=?, estado=? WHERE id=?");
+      $stmt->execute([$inquilino_id, $propiedad_id, $fecha_inicio, $fecha_fin, $importe, $garantia, $corredor, $estado, $edit_id]);
       $message = "Contrato actualizado correctamente.";
     } else {
       // Insertar nuevo contrato
-      $stmt = $pdo->prepare("INSERT INTO contratos (inquilino_id, propiedad_id, fecha_inicio, fecha_fin, importe, estado) VALUES (?, ?, ?, ?, ?, ?)");
-      $stmt->execute([$inquilino_id, $propiedad_id, $fecha_inicio, $fecha_fin, $importe, $estado]);
+      $stmt = $pdo->prepare("INSERT INTO contratos (inquilino_id, propiedad_id, fecha_inicio, fecha_fin, importe, garantia, corredor, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+      $stmt->execute([$inquilino_id, $propiedad_id, $fecha_inicio, $fecha_fin, $importe, $garantia, $corredor, $estado]);
       $new_id = $pdo->lastInsertId();
 
       // Generar pagos mensuales durante duración del contrato
@@ -94,6 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'fecha_inicio' => $fecha_inicio,
       'fecha_fin' => $fecha_fin,
       'importe' => $importe,
+      'garantia' => $garantia,
+      'corredor' => $corredor,
       'estado' => $estado,
     ];
   }
@@ -165,7 +169,7 @@ $contratos = $pdo->query("SELECT
             <option value="">Seleccione...</option>
             <?php foreach ($inquilinos as $i): ?>
               <option value="<?= $i['id'] ?>" <?= (($edit_data['inquilino_id'] ?? '') == $i['id']) ? 'selected' : '' ?>>
-                <?= htmlspecialchars($i['nombre']) ?>
+                <?= htmlspecialchars($i['nombre']) . " - " . $i['id'] . "" ?>
               </option>
             <?php endforeach; ?>
           </select>
@@ -184,6 +188,16 @@ $contratos = $pdo->query("SELECT
         <div class="mb-3">
           <label for="importe" class="form-label">Importe *</label>
           <input type="number" step="0.01" min="0" class="form-control" id="importe" name="importe" required value="<?= htmlspecialchars($edit_data['importe'] ?? '') ?>">
+        </div>
+
+        <div class="mb-3">
+          <label for="garantia" class="form-label">Garantía</label>
+          <input type="text" class="form-control" id="garantia" name="garantia" value="<?= htmlspecialchars($edit_data['garantia'] ?? '') ?>" />
+        </div>
+
+        <div class="mb-3">
+          <label for="corredor" class="form-label">Corredor</label>
+          <input type="text" class="form-control" id="corredor" name="corredor" value="<?= htmlspecialchars($edit_data['corredor'] ?? '') ?>" />
         </div>
 
         <div class="mb-3">
