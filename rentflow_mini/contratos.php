@@ -112,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $msg = $_GET['msg'] ?? '';
 
 $inquilinos = $pdo->query("SELECT id, nombre FROM inquilinos ORDER BY nombre ASC")->fetchAll();
-$propiedades = $pdo->query("SELECT id, nombre, estado, precio FROM propiedades WHERE estado IN ('disponible','alquilado') ORDER BY nombre ASC")->fetchAll();
+$propiedades = $pdo->query("SELECT id, nombre, estado, precio FROM propiedades WHERE estado IN ('libre','alquilado') ORDER BY nombre ASC")->fetchAll();
 
 $contratos = $pdo->query("SELECT 
   c.*, i.nombre as inquilino_nombre, p.nombre as propiedad_nombre 

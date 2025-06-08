@@ -88,8 +88,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (!$direccion) {
     $errors[] = "La dirección es obligatoria.";
   }
-  if (!$estado || !in_array($estado, ['disponible', 'alquilado', 'mantenimiento'])) {
-    $estado = 'disponible';
+  if (!$estado || !in_array($estado, ['alquilado', 'libre', 'uso propio', 'enventa'])) {
+    $estado = 'libre';
   }
 
   if (empty($errors)) {
@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios, $edit_id]);
       $message = "Propiedad actualizada correctamente.";
     } else {
-      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,galeria,local,precio,incluye_gc,gastos_comunes,estado,garantia,corredor,anep,contribucion_inmobiliaria,comentarios) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,galeria,local,precio,incluye_gc,gastos_comunes,estado,garantia,corredor,anep,contribucion_inmobiliaria,comentarios) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
       $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios]);
       $message = "Propiedad creada correctamente.";
     }
