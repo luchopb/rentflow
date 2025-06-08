@@ -155,7 +155,7 @@ $sql = "SELECT p.*, c.id AS contrato_id, i.nombre AS inquilino_nombre
           AND CURDATE() BETWEEN c.fecha_inicio AND c.fecha_fin 
         LEFT JOIN inquilinos i ON c.inquilino_id = i.id";
 if ($search) {
-  $sql .= " WHERE p.nombre LIKE ? OR p.direccion LIKE ? OR p.local LIKE ? OR i.nombre LIKE ? ";
+  $sql .= " WHERE p.nombre LIKE ? OR p.direccion LIKE ? OR p.local LIKE ? OR i.nombre LIKE ?";
   $like_search = '%' . $search . '%';
   $params = [$like_search, $like_search, $like_search, $like_search];
 }
@@ -339,13 +339,11 @@ $propiedades = $stmt->fetchAll();
                 <td>$ <?= number_format($p['precio'], 2, ",", ".") ?></td>
                 <td><?= estado_label($p['estado']) ?></td>
                 <td>
-                  <?php
-                  if ($p['contrato_id'] && $p['inquilino_nombre']) {
-                    echo htmlspecialchars($p['inquilino_nombre']);
-                  } else {
-                    echo "-";
-                  }
-                  ?>
+                  <?php if ($p['contrato_id'] && $p['inquilino_nombre']): ?>
+                    <?= htmlspecialchars($p['inquilino_nombre']) ?>
+                  <?php else: ?>
+                    <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-success" style="white-space: nowrap;">Crear contrato</a>
+                  <?php endif; ?>
                 </td>
                 <td>
                   <a href="propiedades.php?edit=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-primary me-1">Editar</a>

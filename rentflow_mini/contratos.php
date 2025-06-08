@@ -1,7 +1,7 @@
 <?php
 require_once 'config.php';
 check_login();
-$page_title = 'Dashboard - Inmobiliaria';
+$page_title = 'Contratos - Inmobiliaria';
 include 'includes/header_nav.php';
 
 $edit_id = intval($_GET['edit'] ?? 0);
@@ -9,12 +9,14 @@ $delete_id = intval($_GET['delete'] ?? 0);
 $message = '';
 $errors = [];
 
+// Manejo de eliminación de contrato
 if ($delete_id) {
   $pdo->prepare("DELETE FROM pagos WHERE contrato_id = ?")->execute([$delete_id]);
   $pdo->prepare("DELETE FROM contratos WHERE id = ?")->execute([$delete_id]);
   $message = "Contrato eliminado correctamente.";
 }
 
+// Manejo de creación y edición de contrato
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $inquilino_id = intval($_POST['inquilino_id'] ?? 0);
   $propiedad_id = intval($_POST['propiedad_id'] ?? 0);
@@ -84,11 +86,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $edit_data = null;
 }
 
-$msg = $_GET['msg'] ?? '';
-
+// Obtener inquilinos y propiedades
 $inquilinos = $pdo->query("SELECT id, nombre FROM inquilinos ORDER BY nombre ASC")->fetchAll();
 $propiedades = $pdo->query("SELECT id, nombre, estado FROM propiedades WHERE estado IN ('disponible','alquilado') ORDER BY nombre ASC")->fetchAll();
 
+// Obtener contratos
 $contratos = $pdo->query("SELECT 
   c.*, i.nombre as inquilino_nombre, p.nombre as propiedad_nombre 
   FROM contratos c 
@@ -96,13 +98,20 @@ $contratos = $pdo->query("SELECT
   JOIN propiedades p ON c.propiedad_id = p.id
   ORDER BY c.id DESC")->fetchAll();
 
+// Verificar si se recibe propiedad_id como parámetro
+$propiedad_id_param = intval($_GET['propiedad_id'] ?? 0);
+if ($propiedad_id_param > 0) {
+  $edit_data['propiedad_id'] = $propiedad_id_param; // Preseleccionar propiedad
+  $edit_data['edit_id'] = 0; // Asegurarse de que no se esté editando un contrato existente
+}
+
 ?>
 
 <main class="container container-main py-4">
   <h1>Contratos</h1>
 
-  <?php if ($msg): ?>
-    <div class="alert alert-success"><?= htmlspecialchars($msg) ?></div>
+  <?php if ($message): ?>
+    <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
   <?php endif; ?>
   <?php if ($errors): ?>
     <div class="alert alert-danger">
@@ -114,26 +123,26 @@ $contratos = $pdo->query("SELECT
     <?= $edit_id || !empty($errors) ? 'Ocultar' : 'Agregar Nuevo Contrato' ?>
   </button>
 
-  <div class="collapse <?= $edit_id || !empty($errors) ? 'show' : '' ?>" id="formContratoCollapse">
+  <div class="collapse <?= $edit_id || !empty($errors) || $propiedad_id_param ? 'show' : '' ?>" id="formContratoCollapse">
     <div class="card p-4 mb-4 mt-3">
       <h3><?= $edit_id ? "Editar Contrato" : "Nuevo Contrato" ?></h3>
       <form method="POST" novalidate>
         <input type="hidden" name="edit_id" value="<?= $edit_id ?: '' ?>" />
-        <div class="mb-3">
-          <label for="inquilino_id" class="form-label">Inquilino *</label>
-          <select name="inquilino_id" id="inquilino_id" class="form-select" required>
-            <option value="">Seleccione...</option>
-            <?php foreach ($inquilinos as $i): ?>
-              <option value="<?= $i['id'] ?>" <?= ($edit_data['inquilino_id'] ?? '') == $i['id'] ? 'selected' : '' ?>><?= htmlspecialchars($i['nombre']) ?></option>
-            <?php endforeach; ?>
-          </select>
-        </div>
         <div class="mb-3">
           <label for="propiedad_id" class="form-label">Propiedad *</label>
           <select name="propiedad_id" id="propiedad_id" class="form-select" required>
             <option value="">Seleccione...</option>
             <?php foreach ($propiedades as $p): ?>
               <option value="<?= $p['id'] ?>" <?= ($edit_data['propiedad_id'] ?? '') == $p['id'] ? 'selected' : '' ?>><?= htmlspecialchars($p['nombre']) ?> (<?= $p['estado'] ?>)</option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="inquilino_id" class="form-label">Inquilino *</label>
+          <select name="inquilino_id" id="inquilino_id" class="form-select" required>
+            <option value="">Seleccione...</option>
+            <?php foreach ($inquilinos as $i): ?>
+              <option value="<?= $i['id'] ?>" <?= ($edit_data['inquilino_id'] ?? '') == $i['id'] ? 'selected' : '' ?>><?= htmlspecialchars($i['nombre']) ?></option>
             <?php endforeach; ?>
           </select>
         </div>
