@@ -56,3 +56,20 @@ CREATE TABLE usuarios (
     password VARCHAR(255) NOT NULL,
     rol ENUM('admin', 'usuario_normal')
 );
+
+
+
+-- Agregar columna para almacenar el ID del usuario que creó la propiedad
+ALTER TABLE propiedades
+ADD COLUMN usuario_id INT NOT NULL AFTER comentarios;
+
+-- Agregar columna para almacenar la fecha y hora de creación
+ALTER TABLE propiedades
+ADD COLUMN fecha_creacion DATETIME NULL AFTER usuario_id;
+
+-- Agregar columna para almacenar la fecha y hora de última modificación
+ALTER TABLE propiedades
+ADD COLUMN fecha_modificacion DATETIME NULL AFTER fecha_creacion;
+
+-- Opcional: agregar índice para la columna usuario_id para mejora en consultas
+CREATE INDEX idx_usuario_id ON propiedades (usuario_id);

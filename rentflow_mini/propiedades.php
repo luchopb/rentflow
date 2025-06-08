@@ -10,6 +10,7 @@ $search = clean_input($_GET['search'] ?? '');
 // Manejo eliminación propiedad
 $delete_id = intval($_GET['delete'] ?? 0);
 $message = '';
+$errors = [];
 if ($delete_id) {
   // Borrar imágenes asociadas
   $upload_dir = __DIR__ . '/uploads/';
@@ -59,7 +60,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
   if (!empty($_FILES['imagenes']['name'][0])) {
     $upload_dir = __DIR__ . '/uploads/';
-    if (!file_exists($upload_dir)) mkdir($upload_dir, 0755, true);
+    if (!file_exists($upload_dir)) {
+      mkdir($upload_dir, 0755, true);
+    }
     foreach ($_FILES['imagenes']['name'] as $k => $name) {
       $tmp_name = $_FILES['imagenes']['tmp_name'][$k];
       $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
@@ -84,13 +87,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   if (empty($errors)) {
     $imagenes_db = json_encode($gallery_images);
+    $usuario_id = $_SESSION['user_id']; // Usuario que crea o edita la propiedad
+    $fecha_hora = date('Y-m-d H:i:s'); // Fecha y hora actual
+
     if ($edit_id > 0) {
-      $stmt = $pdo->prepare("UPDATE propiedades SET nombre=?, tipo=?, direccion=?, imagenes=?, galeria=?, local=?, precio=?, incluye_gc=?, gastos_comunes=?, estado=?, garantia=?, corredor=?, anep=?, contribucion_inmobiliaria=?, comentarios=? WHERE id=?");
-      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios, $edit_id]);
+      // Actualizar propiedad incluyendo usuario y fecha actual
+      $stmt = $pdo->prepare("UPDATE propiedades SET nombre=?, tipo=?, direccion=?, imagenes=?, galeria=?, local=?, precio=?, incluye_gc=?, gastos_comunes=?, estado=?, garantia=?, corredor=?, anep=?, contribucion_inmobiliaria=?, comentarios=?, usuario_id=?, fecha_modificacion=? WHERE id=?");
+      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios, $usuario_id, $fecha_hora, $edit_id]);
       $message = "Propiedad actualizada correctamente.";
     } else {
-      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,galeria,local,precio,incluye_gc,gastos_comunes,estado,garantia,corredor,anep,contribucion_inmobiliaria,comentarios) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios]);
+      // Insertar propiedad incluyendo usuario y fecha creación
+      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,galeria,local,precio,incluye_gc,gastos_comunes,estado,garantia,corredor,anep,contribucion_inmobiliaria,comentarios,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios, $usuario_id, $fecha_hora]);
       $message = "Propiedad creada correctamente.";
     }
     header("Location: propiedades.php?msg=" . urlencode($message));
@@ -125,6 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 }
 
+// Añadimos función estado_label con badges coloreados
 function estado_label($e)
 {
   switch ($e) {
@@ -162,7 +171,6 @@ $propiedades = $stmt->fetchAll();
 ?>
 
 <main class="container container-main py-4">
-
   <h1>Propiedades</h1>
 
   <?php if ($message): ?>
@@ -178,9 +186,7 @@ $propiedades = $stmt->fetchAll();
         placeholder="Buscar por nombre, dirección, local o inquilino"
         value="<?= htmlspecialchars($search) ?>"
         aria-label="Buscar propiedades" autocomplete="off" />
-      <button class="btn btn-primary" type="submit" aria-label="Buscar">
-        Buscar
-      </button>
+      <button class="btn btn-primary" type="submit" aria-label="Buscar">Buscar</button>
       <?php if ($search): ?>
         <a href="propiedades.php" class="btn btn-outline-secondary" aria-label="Limpiar búsqueda">Limpiar</a>
       <?php endif; ?>
