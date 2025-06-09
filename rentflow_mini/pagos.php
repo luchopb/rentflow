@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
 }
 
 // Obtener pagos para este contrato
-$pagos = $pdo->prepare("SELECT * FROM pagos WHERE contrato_id = ? ORDER BY fecha_programada DESC");
+$pagos = $pdo->prepare("SELECT * FROM pagos WHERE contrato_id = ? ORDER BY periodo ASC");
 $pagos->execute([$contrato_id]);
 $pagos_list = $pagos->fetchAll();
 
