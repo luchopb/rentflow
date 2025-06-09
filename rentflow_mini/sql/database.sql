@@ -94,3 +94,9 @@ ADD COLUMN fecha_modificacion DATETIME NULL AFTER fecha_creacion;
 
 ALTER TABLE pagos
 ADD COLUMN periodo VARCHAR(7) NOT NULL AFTER contrato_id;
+
+ALTER TABLE pagos
+ADD COLUMN concepto VARCHAR(50) NOT NULL AFTER fecha_recibido;
+
+ALTER TABLE pagos
+ADD COLUMN fecha DATE NOT NULL AFTER periodo;
