@@ -100,3 +100,4 @@ ADD COLUMN concepto VARCHAR(50) NOT NULL AFTER fecha_recibido;
 
 ALTER TABLE pagos
 ADD COLUMN fecha DATE NOT NULL AFTER periodo;
+

@@ -131,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $anio = intval($dt->format('Y'));
         $periodo = $dt->format('Y-m'); // Formato AÑO-MES
         $fecha_programada = $dt->format('Y-m-01'); // Siempre primer día del mes
-        $pdo->prepare("INSERT INTO pagos (contrato_id, fecha_programada, mes, anio, periodo, importe, pagado) VALUES (?, ?, ?, ?, ?, ?, 0)")
+        $pdo->prepare("INSERT INTO pagos (contrato_id, fecha_programada, mes, anio, periodo, importe, pagado, concepto) VALUES (?, ?, ?, ?, ?, ?, 0, 'Debe')")
           ->execute([$new_id, $fecha_programada, $mes, $anio, $periodo, -$importe]);
       }
 
@@ -228,15 +228,16 @@ $contratos = $pdo->query("SELECT
             <?php endforeach; ?>
           </select>
         </div>
-
         <div class="mb-3">
           <label for="fecha_inicio" class="form-label">Fecha de Inicio *</label>
-          <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required value="<?= htmlspecialchars($edit_data['fecha_inicio'] ?? '') ?>">
+          <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required 
+            value="<?= htmlspecialchars($edit_data['fecha_inicio'] ?? date('Y-m-d')) ?>">
         </div>
 
         <div class="mb-3">
           <label for="fecha_fin" class="form-label">Fecha de Fin *</label>
-          <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required value="<?= htmlspecialchars($edit_data['fecha_fin'] ?? '') ?>">
+          <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required 
+            value="<?= htmlspecialchars($edit_data['fecha_fin'] ?? date('Y-m-d', strtotime('+1 year'))) ?>">
         </div>
 
         <div class="mb-3">

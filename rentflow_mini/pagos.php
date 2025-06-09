@@ -101,13 +101,13 @@ for ($i = -3; $i <= 3; $i++) {
           <label for="periodo" class="form-label">Período *</label>
           <select name="periodo" id="periodo" class="form-select" required>
             <?php foreach ($periodos as $periodo): ?>
-              <option value="<?= $periodo ?>"><?= $periodo ?></option>
+              <option value="<?= $periodo ?>" <?= $periodo === $fecha_actual->format('Y-m') ? 'selected' : '' ?>><?= $periodo ?></option>
             <?php endforeach; ?>
           </select>
         </div>
         <div class="mb-3">
           <label for="fecha_pago" class="form-label">Fecha *</label>
-          <input type="date" class="form-control" id="fecha_pago" name="fecha_pago" required>
+          <input type="date" class="form-control" id="fecha_pago" name="fecha_pago" value="<?= date('Y-m-d') ?>" required>
         </div>
         <div class="mb-3">
           <label for="concepto" class="form-label">Concepto *</label>
@@ -162,8 +162,6 @@ for ($i = -3; $i <= 3; $i++) {
               <td>
                 <?php if ($pago['comprobante']): ?>
                   <a href="uploads/<?= htmlspecialchars($pago['comprobante']) ?>" target="_blank">Ver Comprobante</a>
-                <?php else: ?>
-                  Sin comprobante
                 <?php endif; ?>
               </td>
               <td>
