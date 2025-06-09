@@ -44,7 +44,7 @@ CREATE TABLE pagos (
     anio INT,
     pagado BOOLEAN,
     fecha DATE NOT NULL DEFAULT CURRENT_TIMESTAMP, 
-    monto DECIMAL(10,0) NOT NULL,
+    importe DECIMAL(10,0) NOT NULL,
     comentario VARCHAR(250) NOT NULL, 
     comprobante TEXT NULL;
     -- FOREIGN KEY (contrato_id) REFERENCES contratos(id)
@@ -78,7 +78,19 @@ ALTER TABLE `inquilinos` ADD `documentos` TEXT NOT NULL AFTER `matricula`, ADD `
 
 ALTER TABLE inquilinos
 ADD COLUMN usuario_id INT NOT NULL AFTER matricula,
-ADD COLUMN fecha_creacion DATETIME NOT NULL AFTER usuario_id,
+ADD COLUMN fecha_creacion DATETIME NULL AFTER usuario_id,
 ADD COLUMN fecha_modificacion DATETIME NULL AFTER fecha_creacion;
 
 CREATE INDEX idx_usuario_id ON inquilinos (usuario_id);
+
+
+ALTER TABLE contratos
+ADD COLUMN documentos TEXT NULL AFTER estado;
+
+ALTER TABLE contratos
+ADD COLUMN usuario_id INT NOT NULL AFTER documentos,
+ADD COLUMN fecha_creacion DATETIME NULL AFTER usuario_id,
+ADD COLUMN fecha_modificacion DATETIME NULL AFTER fecha_creacion;
+
+ALTER TABLE pagos
+ADD COLUMN periodo VARCHAR(7) NOT NULL AFTER contrato_id;

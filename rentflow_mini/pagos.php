@@ -25,13 +25,15 @@ if (!$contrato) {
 
 // Manejo de formulario para agregar un nuevo pago
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
+  $periodo = $_POST['periodo'] ?? '';
   $fecha_pago = $_POST['fecha_pago'] ?? '';
-  $monto = floatval($_POST['monto'] ?? 0);
+  $importe = floatval($_POST['importe'] ?? 0);
   $comentario = $_POST['comentario'] ?? '';
   $comprobante = $_FILES['comprobante'] ?? null;
 
+  if (!$periodo) $errors[] = "El período es obligatorio.";
   if (!$fecha_pago) $errors[] = "La fecha es obligatoria.";
-  if ($monto <= 0) $errors[] = "El monto debe ser mayor que cero.";
+  if ($importe <= 0) $errors[] = "El importe debe ser mayor que cero.";
 
   // Manejo de archivo de comprobante
   if ($comprobante && $comprobante['error'] === UPLOAD_ERR_OK) {
@@ -46,9 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
   }
 
   if (empty($errors)) {
-    // Insertar nuevo pago
-    $stmt = $pdo->prepare("INSERT INTO pagos (contrato_id, fecha, monto, comentario, comprobante) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$contrato_id, $fecha_pago, $monto, $comentario, $basename ?? null]);
+    // Insert new payment
+    $stmt = $pdo->prepare("INSERT INTO pagos (contrato_id, periodo, fecha_pago, importe, comentario, comprobante) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$contrato_id, $periodo, $fecha_pago, $importe, $comentario, $basename ?? null]);
     $message = "Pago registrado correctamente.";
     header("Location: pagos.php?contrato_id=$contrato_id&msg=" . urlencode($message));
     exit();
@@ -56,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
 }
 
 // Obtener pagos para este contrato
-$pagos = $pdo->prepare("SELECT * FROM pagos WHERE contrato_id = ? ORDER BY fecha DESC");
+$pagos = $pdo->prepare("SELECT * FROM pagos WHERE contrato_id = ? ORDER BY fecha_pago DESC");
 $pagos->execute([$contrato_id]);
 $pagos_list = $pagos->fetchAll();
 
@@ -64,6 +66,15 @@ function month_name($m)
 {
   $months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
   return $months[$m - 1] ?? "";
+}
+
+// Obtener períodos para el desplegable
+$fecha_actual = new DateTime();
+$periodos = [];
+for ($i = -3; $i <= 3; $i++) {
+  $fecha = clone $fecha_actual;
+  $fecha->modify($i . ' month');
+  $periodos[] = $fecha->format('Y-m');
 }
 
 ?>
@@ -91,12 +102,20 @@ function month_name($m)
     <div class="card-body">
       <form method="POST" enctype="multipart/form-data">
         <div class="mb-3">
+          <label for="periodo" class="form-label">Período *</label>
+          <select name="periodo" id="periodo" class="form-select" required>
+            <?php foreach ($periodos as $periodo): ?>
+              <option value="<?= $periodo ?>"><?= $periodo ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <div class="mb-3">
           <label for="fecha_pago" class="form-label">Fecha *</label>
           <input type="date" class="form-control" id="fecha_pago" name="fecha_pago" required>
         </div>
         <div class="mb-3">
-          <label for="monto" class="form-label">Monto *</label>
-          <input type="number" step="0.01" min="0" class="form-control" id="monto" name="monto" required>
+          <label for="importe" class="form-label">Importe *</label>
+          <input type="number" step="0.01" min="0" class="form-control" id="importe" name="importe" required>
         </div>
         <div class="mb-3">
           <label for="comentario" class="form-label">Comentario</label>
@@ -118,8 +137,10 @@ function month_name($m)
       <table class="table table-striped align-middle">
         <thead>
           <tr>
-            <th>Fecha</th>
-            <th>Monto</th>
+            <th>Período</th>
+            <th>Fecha Programada</th>
+            <th>Fecha Recibido</th>
+            <th>Importe</th>
             <th>Comentario</th>
             <th>Comprobante</th>
             <th>Pagar</th>
@@ -129,8 +150,10 @@ function month_name($m)
         <tbody>
           <?php foreach ($pagos_list as $pago): ?>
             <tr>
-              <td><?= htmlspecialchars($pago['fecha']) ?></td>
-              <td>$ <?= number_format($pago['monto'], 2, ",", ".") ?></td>
+              <td><?= htmlspecialchars($pago['periodo']) ?></td>
+              <td><?= htmlspecialchars($pago['fecha_pago']) ?></td>
+              <td><?= htmlspecialchars($pago['fecha_pago']) ?></td>
+              <td>$ <?= number_format($pago['importe'], 2, ",", ".") ?></td>
               <td><?= htmlspecialchars($pago['comentario']) ?></td>
               <td>
                 <?php if ($pago['comprobante']): ?>

@@ -138,9 +138,9 @@ function estado_label($e)
 {
   switch ($e) {
     case 'libre':
-      return '<span class="badge bg-danger">Libre</span>';
+      return '<span class="badge bg-success">Libre</span>';
     case 'alquilado':
-      return '<span class="badge bg-success">Alquilado</span>';
+      return '<span class="badge bg-danger">Alquilado</span>';
     case 'uso propio':
       return '<span class="badge bg-warning text-dark">Uso Propio</span>';
     case 'en venta':

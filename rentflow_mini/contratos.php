@@ -27,7 +27,6 @@ $garantia = 0;
 $corredor = 0;
 $estado = 'activo';
 
-// Si se recibe propiedad_id por parámetro, obtener precio para autocompletar importe al cargar
 $documentos_subidos = [];
 $documentos_guardados = [];
 
@@ -107,15 +106,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $stmt->execute([$inquilino_id, $propiedad_id, $fecha_inicio, $fecha_fin, $importe, $garantia, $corredor, $estado, $docs_json]);
       $new_id = $pdo->lastInsertId();
 
+      // Programar pagos durante la duración del contrato
       $start = new DateTime($fecha_inicio);
       $end = new DateTime($fecha_fin);
-      $end->modify('first day of next month');
+      // Empezar el primer día del mes actual
+      $start->modify('first day of this month');
+      // Crear períodos hasta la fecha de fin
       $interval = new DateInterval('P1M');
       $period = new DatePeriod($start, $interval, $end);
       foreach ($period as $dt) {
         $mes = intval($dt->format('m'));
         $anio = intval($dt->format('Y'));
-        $pdo->prepare("INSERT INTO pagos (contrato_id, mes, anio, pagado) VALUES (?, ?, ?, 0)")->execute([$new_id, $mes, $anio]);
+        $periodo = $dt->format('Y-m'); // Formato AÑO-MES
+        $fecha_programada = $dt->format('Y-m-01'); // Siempre primer día del mes
+        $pdo->prepare("INSERT INTO pagos (contrato_id, fecha_programada, mes, anio, periodo, importe, pagado) VALUES (?, ?, ?, ?, ?, ?, 0)")
+          ->execute([$new_id, $fecha_programada, $mes, $anio, $periodo, -$importe]);
       }
 
       // Actualizar estado propiedad a "alquilado"
@@ -153,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $msg = $_GET['msg'] ?? '';
 
 $inquilinos = $pdo->query("SELECT id, nombre FROM inquilinos ORDER BY nombre ASC")->fetchAll();
-$propiedades = $pdo->query("SELECT id, nombre, estado, precio FROM propiedades WHERE estado IN ('libre','alquilado') ORDER BY nombre ASC")->fetchAll();
+$propiedades = $pdo->query("SELECT id, nombre, estado, precio FROM propiedades WHERE estado IN ('libre','en venta','uso propio') ORDER BY nombre ASC")->fetchAll();
 
 $contratos = $pdo->query("SELECT 
   c.*, i.nombre as inquilino_nombre, p.nombre as propiedad_nombre 
@@ -320,7 +325,6 @@ $contratos = $pdo->query("SELECT
   collapseContrato.addEventListener('show.bs.collapse', () => toggleBtnContrato.textContent = 'Ocultar');
   collapseContrato.addEventListener('hide.bs.collapse', () => toggleBtnContrato.textContent = 'Agregar Nuevo Contrato');
 
-  // Actualizar importe al cambiar propiedad
   document.getElementById('propiedad_id').addEventListener('change', function() {
     const selectedOption = this.options[this.selectedIndex];
     const precio = selectedOption.getAttribute('data-precio');
