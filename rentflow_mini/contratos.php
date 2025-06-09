@@ -178,6 +178,19 @@ $contratos = $pdo->query("SELECT
   JOIN inquilinos i ON c.inquilino_id = i.id 
   JOIN propiedades p ON c.propiedad_id = p.id
   ORDER BY c.id DESC")->fetchAll();
+
+
+// Add property filter to include the property being edited
+if ($edit_id > 0) {
+  $stmt = $pdo->prepare("SELECT id, nombre, estado, precio FROM propiedades WHERE id = ?");
+  $stmt->execute([$edit_data['propiedad_id']]);
+  $propiedad_edit = $stmt->fetch();
+  if ($propiedad_edit) {
+    $propiedades[] = $propiedad_edit;
+  }
+}
+
+
 ?>
 
 <main class="container container-main py-4">
