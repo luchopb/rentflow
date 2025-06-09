@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
 
   if (empty($errors)) {
     // Insert new payment
-    $stmt = $pdo->prepare("INSERT INTO pagos (contrato_id, periodo, fecha_pago, importe, comentario, comprobante) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt = $pdo->prepare("INSERT INTO pagos (contrato_id, periodo, fecha_recibido, importe, comentario, comprobante) VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->execute([$contrato_id, $periodo, $fecha_pago, $importe, $comentario, $basename ?? null]);
     $message = "Pago registrado correctamente.";
     header("Location: pagos.php?contrato_id=$contrato_id&msg=" . urlencode($message));
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
 }
 
 // Obtener pagos para este contrato
-$pagos = $pdo->prepare("SELECT * FROM pagos WHERE contrato_id = ? ORDER BY fecha_pago DESC");
+$pagos = $pdo->prepare("SELECT * FROM pagos WHERE contrato_id = ? ORDER BY fecha_programada DESC");
 $pagos->execute([$contrato_id]);
 $pagos_list = $pagos->fetchAll();
 
@@ -151,8 +151,8 @@ for ($i = -3; $i <= 3; $i++) {
           <?php foreach ($pagos_list as $pago): ?>
             <tr>
               <td><?= htmlspecialchars($pago['periodo']) ?></td>
-              <td><?= htmlspecialchars($pago['fecha_pago']) ?></td>
-              <td><?= htmlspecialchars($pago['fecha_pago']) ?></td>
+              <td><?= htmlspecialchars($pago['fecha_programada']) ?></td>
+              <td><?= htmlspecialchars($pago['fecha_recibido']) ?></td>
               <td>$ <?= number_format($pago['importe'], 2, ",", ".") ?></td>
               <td><?= htmlspecialchars($pago['comentario']) ?></td>
               <td>

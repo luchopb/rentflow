@@ -12,8 +12,20 @@ $propiedad_id_param = intval($_GET['propiedad_id'] ?? 0);
 
 // Manejo eliminación contrato
 if ($delete_id) {
+  // Obtener el ID de la propiedad asociada al contrato
+  $stmt = $pdo->prepare("SELECT propiedad_id FROM contratos WHERE id = ?");
+  $stmt->execute([$delete_id]);
+  $propiedad_id = $stmt->fetchColumn();
+
+  // Eliminar pagos y contrato
   $pdo->prepare("DELETE FROM pagos WHERE contrato_id = ?")->execute([$delete_id]);
   $pdo->prepare("DELETE FROM contratos WHERE id = ?")->execute([$delete_id]);
+
+  // Marcar la propiedad como libre
+  if ($propiedad_id) {
+    $pdo->prepare("UPDATE propiedades SET estado = 'libre' WHERE id = ?")->execute([$propiedad_id]);
+  }
+
   $message = "Contrato eliminado correctamente.";
 }
 
