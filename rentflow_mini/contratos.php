@@ -23,9 +23,14 @@ $propiedad_id = $propiedad_id_param ?: null;
 $fecha_inicio = '';
 $fecha_fin = '';
 $importe = '';
+$garantia = 0;
+$corredor = 0;
 $estado = 'activo';
 
 // Si se recibe propiedad_id por parámetro, obtener precio para autocompletar importe al cargar
+$documentos_subidos = [];
+$documentos_guardados = [];
+
 if ($propiedad_id) {
   $stmt_precio = $pdo->prepare("SELECT precio FROM propiedades WHERE id = ?");
   $stmt_precio->execute([$propiedad_id]);
@@ -47,6 +52,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $estado = $_POST['estado'] ?? 'activo';
   $edit_id = intval($_POST['edit_id'] ?? 0);
 
+  // Leer documentos previos si editando
+  if ($edit_id > 0) {
+    $stmt_docs = $pdo->prepare("SELECT documentos FROM contratos WHERE id = ?");
+    $stmt_docs->execute([$edit_id]);
+    $doc_previos = $stmt_docs->fetchColumn();
+    if ($doc_previos) {
+      $documentos_guardados = json_decode($doc_previos, true);
+      if (!is_array($documentos_guardados)) {
+        $documentos_guardados = [];
+      }
+    }
+  }
+
+  // Manejo archivos adjuntos documentos
+  if (!empty($_FILES['documentos']['name'][0])) {
+    $upload_dir = __DIR__ . '/uploads/';
+    if (!file_exists($upload_dir)) {
+      mkdir($upload_dir, 0755, true);
+    }
+    foreach ($_FILES['documentos']['name'] as $k => $name) {
+      $tmp_name = $_FILES['documentos']['tmp_name'][$k];
+      $basename = uniqid() . '-' . basename($name);
+      if (move_uploaded_file($tmp_name, $upload_dir . $basename)) {
+        $documentos_subidos[] = $basename;
+      } else {
+        $errors[] = "Error al subir el documento: $name";
+      }
+    }
+  }
+
+  $todos_documentos = array_merge($documentos_guardados, $documentos_subidos);
+
   if (!$inquilino_id) $errors[] = "Debe seleccionar un inquilino.";
   if (!$propiedad_id) $errors[] = "Debe seleccionar una propiedad.";
   if (!$fecha_inicio) $errors[] = "Debe seleccionar fecha de inicio.";
@@ -58,18 +95,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   if (empty($errors)) {
+    $docs_json = json_encode($todos_documentos);
     if ($edit_id > 0) {
-      // Actualizar contrato
-      $stmt = $pdo->prepare("UPDATE contratos SET inquilino_id=?, propiedad_id=?, fecha_inicio=?, fecha_fin=?, importe=?, garantia=?, corredor=?, estado=? WHERE id=?");
-      $stmt->execute([$inquilino_id, $propiedad_id, $fecha_inicio, $fecha_fin, $importe, $garantia, $corredor, $estado, $edit_id]);
+      // Actualizar contrato con documentos
+      $stmt = $pdo->prepare("UPDATE contratos SET inquilino_id=?, propiedad_id=?, fecha_inicio=?, fecha_fin=?, importe=?, garantia=?, corredor=?, estado=?, documentos=? WHERE id=?");
+      $stmt->execute([$inquilino_id, $propiedad_id, $fecha_inicio, $fecha_fin, $importe, $garantia, $corredor, $estado, $docs_json, $edit_id]);
       $message = "Contrato actualizado correctamente.";
     } else {
-      // Insertar nuevo contrato
-      $stmt = $pdo->prepare("INSERT INTO contratos (inquilino_id, propiedad_id, fecha_inicio, fecha_fin, importe, garantia, corredor, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-      $stmt->execute([$inquilino_id, $propiedad_id, $fecha_inicio, $fecha_fin, $importe, $garantia, $corredor, $estado]);
+      // Insertar nuevo contrato con documentos
+      $stmt = $pdo->prepare("INSERT INTO contratos (inquilino_id, propiedad_id, fecha_inicio, fecha_fin, importe, garantia, corredor, estado, documentos) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+      $stmt->execute([$inquilino_id, $propiedad_id, $fecha_inicio, $fecha_fin, $importe, $garantia, $corredor, $estado, $docs_json]);
       $new_id = $pdo->lastInsertId();
 
-      // Generar pagos mensuales durante duración del contrato
       $start = new DateTime($fecha_inicio);
       $end = new DateTime($fecha_fin);
       $end->modify('first day of next month');
@@ -89,7 +126,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header("Location: contratos.php?msg=" . urlencode($message));
     exit();
   } else {
-    // Mantener datos para mostrar en formulario si hay errores
     $edit_data = [
       'inquilino_id' => $inquilino_id,
       'propiedad_id' => $propiedad_id,
@@ -99,6 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'garantia' => $garantia,
       'corredor' => $corredor,
       'estado' => $estado,
+      'documentos' => $docs_json,
     ];
   }
 } elseif ($edit_id > 0) {
@@ -146,7 +183,7 @@ $contratos = $pdo->query("SELECT
   <div class="collapse <?= ($edit_id || !empty($errors) || $propiedad_id_param) ? 'show' : '' ?>" id="formContratoCollapse">
     <div class="card p-4 mb-4 mt-3">
       <h3><?= $edit_id ? "Editar Contrato" : "Nuevo Contrato" ?></h3>
-      <form method="POST" novalidate id="formContrato">
+      <form method="POST" enctype="multipart/form-data" novalidate id="formContrato">
         <input type="hidden" name="edit_id" value="<?= $edit_id ?: '' ?>" />
 
         <div class="mb-3">
@@ -169,7 +206,7 @@ $contratos = $pdo->query("SELECT
             <option value="">Seleccione...</option>
             <?php foreach ($inquilinos as $i): ?>
               <option value="<?= $i['id'] ?>" <?= (($edit_data['inquilino_id'] ?? '') == $i['id']) ? 'selected' : '' ?>>
-                <?= htmlspecialchars($i['nombre']) . " - " . $i['id'] . "" ?>
+                <?= htmlspecialchars($i['nombre']) . " - " . $i['id'] ?>
               </option>
             <?php endforeach; ?>
           </select>
@@ -207,6 +244,26 @@ $contratos = $pdo->query("SELECT
             <option value="finalizado" <?= ($edit_data['estado'] ?? '') === 'finalizado' ? 'selected' : '' ?>>Finalizado</option>
           </select>
         </div>
+
+        <div class="mb-3">
+          <label for="documentos" class="form-label">Adjuntar Documentos</label>
+          <input type="file" name="documentos[]" multiple class="form-control" />
+        </div>
+
+        <?php if (!empty($edit_data['documentos'])):
+          $documentos = json_decode($edit_data['documentos'], true);
+          if (is_array($documentos) && count($documentos) > 0):
+        ?>
+            <div class="mb-3">
+              <label class="form-label">Documentos Adjuntos:</label>
+              <ul>
+                <?php foreach ($documentos as $doc): ?>
+                  <li><a href="uploads/<?= htmlspecialchars($doc) ?>" target="_blank"><?= htmlspecialchars($doc) ?></a></li>
+                <?php endforeach; ?>
+              </ul>
+            </div>
+        <?php endif;
+        endif; ?>
 
         <button type="submit" class="btn btn-primary fw-semibold"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
         <?php if ($edit_id): ?>
