@@ -337,21 +337,23 @@ include 'includes/header_nav.php';
                 <td>
                   <b><?= htmlspecialchars($p['nombre']) ?></b> (<?= htmlspecialchars($p['tipo']) ?>)<br>
                   <?= htmlspecialchars($p['direccion']) ?><br>
-                  <?= estado_label($p['estado']) ?>
+                  <?= estado_label($p['estado']) ?> <small><nobr>$ <?= number_format($p['precio'], 2, ",", ".") ?></nobr></small>
                 </td>
                 <td>
-                  <small><nobr>$ <?= number_format($p['precio'], 2, ",", ".") ?></nobr></small><br>
                   <?php if ($p['contrato_id'] && $p['inquilino_nombre']): ?>
                     <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-dark">
-                      <?= "Ver ". htmlspecialchars($p['inquilino_nombre']) ?>
+                      # <?= htmlspecialchars($p['contrato_id']) ?> <?= htmlspecialchars($p['inquilino_nombre']) ?>
+                    </a><br>
+                    <a href="pagos.php?contrato_id=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-success">
+                      Ver Pagos
                     </a>
                   <?php else: ?>
-                    <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-success" style="white-space: nowrap;">Crear contrato</a>
+                    <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-success btn-sm" style="white-space: nowrap;">Crear contrato</a>
                   <?php endif; ?>
                 </td>
                 <td>
                   <a href="propiedades.php?edit=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-primary me-1">Editar</a>
-                  <a href="propiedades.php?delete=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar esta propiedad?')">Eliminar</a>
+                  <!--a href="propiedades.php?delete=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar esta propiedad?')">Eliminar</a-->
                 </td>
               </tr>
             <?php endforeach; ?>

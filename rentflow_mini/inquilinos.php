@@ -18,6 +18,7 @@ if ($delete_id) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $nombre = clean_input($_POST['nombre'] ?? '');
+  $cedula = clean_input($_POST['cedula'] ?? '');
   $telefono = clean_input($_POST['telefono'] ?? '');
   $vehiculo = clean_input($_POST['vehiculo'] ?? '');
   $matricula = clean_input($_POST['matricula'] ?? '');
@@ -41,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   if (!$nombre) $errors[] = "El nombre es obligatorio.";
+  if (!$cedula) $errors[] = "La cédula de identidad es obligatoria.";
 
   if (empty($errors)) {
     if (isset($_POST['edit_id']) && intval($_POST['edit_id']) > 0) {
@@ -55,15 +57,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $docs_json = json_encode($todos_docs);
 
       $fecha_modificacion = date('Y-m-d H:i:s'); // Fecha y hora actual
-      $stmt = $pdo->prepare("UPDATE inquilinos SET nombre=?, telefono=?, vehiculo=?, matricula=?, documentos=?, fecha_modificacion=? WHERE id=?");
-      $stmt->execute([$nombre, $telefono, $vehiculo, $matricula, $docs_json, $fecha_modificacion, $edit_id]);
+      $stmt = $pdo->prepare("UPDATE inquilinos SET nombre=?, cedula=?, telefono=?, vehiculo=?, matricula=?, documentos=?, fecha_modificacion=? WHERE id=?");
+      $stmt->execute([$nombre, $cedula, $telefono, $vehiculo, $matricula, $docs_json, $fecha_modificacion, $edit_id]);
       $message = "Inquilino actualizado correctamente.";
     } else {
       $docs_json = json_encode($documentos_subidos);
       $usuario_id = $_SESSION['user_id']; // Usuario que crea el inquilino
       $fecha_creacion = date('Y-m-d H:i:s'); // Fecha y hora actual
-      $stmt = $pdo->prepare("INSERT INTO inquilinos (nombre, telefono, vehiculo, matricula, documentos, usuario_id, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?)");
-      $stmt->execute([$nombre, $telefono, $vehiculo, $matricula, $docs_json, $usuario_id, $fecha_creacion]);
+      $stmt = $pdo->prepare("INSERT INTO inquilinos (nombre, cedula, telefono, vehiculo, matricula, documentos, usuario_id, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+      $stmt->execute([$nombre, $cedula, $telefono, $vehiculo, $matricula, $docs_json, $usuario_id, $fecha_creacion]);
       $message = "Inquilino creado correctamente.";
       $inquilino_id = $pdo->lastInsertId(); // Obtener el ID del nuevo inquilino
     }
@@ -72,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   } else {
     $edit_data = [
       'nombre' => $nombre,
+      'cedula' => $cedula,
       'telefono' => $telefono,
       'vehiculo' => $vehiculo,
       'matricula' => $matricula,
@@ -110,7 +113,7 @@ include 'includes/header_nav.php';
   <?php if ($msg): ?>
     <div class="alert alert-success"><?= htmlspecialchars($msg) ?></div>
     <?php if ($inquilino_id > 0): ?>
-      <a href="contratos.php?inquilino_id=<?= $inquilino_id ?>" class="btn btn-primary">Crear Contrato</a>
+      <a href="contratos.php?inquilino_id=<?= $inquilino_id ?>" class="btn btn-success mb-3">Crear Contrato</a>
     <?php endif; ?>
   <?php endif; ?>
   <?php if ($errors): ?>
@@ -132,6 +135,10 @@ include 'includes/header_nav.php';
         <div class="mb-3">
           <label for="nombre" class="form-label">Nombre *</label>
           <input type="text" class="form-control" id="nombre" name="nombre" required value="<?= htmlspecialchars($edit_data['nombre'] ?? '') ?>" />
+        </div>
+        <div class="mb-3">
+          <label for="cedula" class="form-label">Cédula de Identidad *</label>
+          <input type="number" class="form-control" id="cedula" name="cedula" required value="<?= htmlspecialchars($edit_data['cedula'] ?? '') ?>" />
         </div>
         <div class="mb-3">
           <label for="telefono" class="form-label">Teléfono</label>
@@ -183,6 +190,7 @@ include 'includes/header_nav.php';
         <table class="table align-middle table-striped">
           <thead>
             <tr>
+              <th>ID</th>
               <th>Nombre</th>
               <th>Vehículo</th>
               <th>Acciones</th>
@@ -191,11 +199,12 @@ include 'includes/header_nav.php';
           <tbody>
             <?php foreach ($inquilinos as $i): ?>
               <tr>
+                <td><?= htmlspecialchars($i['id']) ?></td>
                 <td><b><?= htmlspecialchars($i['nombre']) ?></b> <?= htmlspecialchars($i['telefono']) ?></td>
                 <td><?= htmlspecialchars($i['vehiculo']) ?> <?= htmlspecialchars($i['matricula']) ?></td>
                 <td style="min-width:120px;">
                   <a href="inquilinos.php?edit=<?= intval($i['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
-                  <a href="inquilinos.php?delete=<?= intval($i['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este inquilino?')">Eliminar</a>
+                  <!--a href="inquilinos.php?delete=<?= intval($i['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este inquilino?')">Eliminar</a-->
                 </td>
               </tr>
             <?php endforeach; ?>

@@ -8,6 +8,7 @@ include 'includes/header_nav.php';
 $mes_actual = date('m');
 $anio_actual = date('Y');
 $periodo = date('Y-m');
+$search = clean_input($_GET['search'] ?? '');
 
 // Obtener propiedades y sus inquilinos actuales
 $stmt = $pdo->prepare("
@@ -33,23 +34,28 @@ $pagos_mes_actual = $stmt_pagos->fetchAll(PDO::FETCH_COLUMN, 0); // Obtener solo
 <main class="container container-main">
   <h1>Bienvenido, <?= htmlspecialchars($_SESSION['user_name']) ?></h1>
 
+  <form action="propiedades.php" method="GET" class="mb-4" role="search" aria-label="Buscar propiedades">
+    <div class="input-group" style="max-width:480px;">
+      <input
+        type="search"
+        name="search"
+        class="form-control"
+        placeholder="Buscar por nombre, dirección, local o inquilino"
+        value="<?= htmlspecialchars($search) ?>"
+        aria-label="Buscar propiedades" autocomplete="off" />
+      <button class="btn btn-primary" type="submit" aria-label="Buscar">Buscar</button>
+      <?php if ($search): ?>
+        <a href="dashboard.php" class="btn btn-outline-secondary" aria-label="Limpiar búsqueda">Limpiar</a>
+      <?php endif; ?>
+    </div>
+  </form>
+
+
   <section class="mt-2">
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-      <div class="col">
-        <div class="card shadow-sm rounded-3 p-3">
-          <a href="propiedades.php" class="btn btn-outline-dark">Propiedades</a>
-        </div>
-      </div>
-      <div class="col">
-        <div class="card shadow-sm rounded-3 p-3">
-          <a href="inquilinos.php" class="btn btn-outline-dark">Inquilinos</a>
-        </div>
-      </div>
-      <div class="col">
-        <div class="card shadow-sm rounded-3 p-3">
-          <a href="contratos.php" class="btn btn-outline-dark">Contratos</a>
-        </div>
-      </div>
+    <div class="d-flex gap-3">
+      <a href="propiedades.php" class="btn btn-primary flex-fill">Propiedades</a>
+      <a href="inquilinos.php" class="btn btn-primary flex-fill">Inquilinos</a>
+      <a href="contratos.php" class="btn btn-primary flex-fill">Contratos</a>
     </div>
   </section>
 

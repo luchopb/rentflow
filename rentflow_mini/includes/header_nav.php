@@ -1,5 +1,6 @@
 <?php
 // header_nav.php: Centraliza el <head> y navbar para inclusión en páginas
+$search = clean_input($_GET['search'] ?? '');
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -97,6 +98,7 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
+
         <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link <?= ($_SERVER['SCRIPT_NAME'] ?? '') === '/dashboard.php' ? 'active' : '' ?>" href="dashboard.php">Dashboard</a></li>
           <li class="nav-item"><a class="nav-link <?= ($_SERVER['SCRIPT_NAME'] ?? '') === '/propiedades.php' ? 'active' : '' ?>" href="propiedades.php">Propiedades</a></li>
@@ -105,6 +107,23 @@
           <li class="nav-item"><a class="nav-link <?= ($_SERVER['SCRIPT_NAME'] ?? '') === '/pagos.php' ? 'active' : '' ?>" href="pagos.php">Pagos</a></li>
           <li class="nav-item"><a class="nav-link" href="logout.php">Cerrar sesión</a></li>
         </ul>
+
+        <form action="propiedades.php" method="GET" class="" role="search" aria-label="Buscar propiedades">
+          <div class="input-group">
+            <input
+              type="search"
+              name="search"
+              class="form-control"
+              placeholder="Buscar por nombre, dirección, local o inquilino"
+              value="<?= htmlspecialchars($search) ?>"
+              aria-label="Buscar propiedades" autocomplete="off" />
+            <?php if ($search): ?>
+              <a href="propiedades.php" class="btn btn-outline-light" aria-label="Limpiar búsqueda">Limpiar</a>
+            <?php endif; ?>
+            <button class="btn btn-outline-light" type="submit" aria-label="Buscar">Buscar</button>
+          </div>
+        </form>
+
       </div>
     </div>
   </nav>

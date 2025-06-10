@@ -318,10 +318,10 @@ include 'includes/header_nav.php';
         <?php endif;
         endif; ?>
 
-        <button type="submit" class="btn btn-primary fw-semibold"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
+        <button type="submit" class="btn btn-primary fw-semibold mt-3"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
         <?php if ($edit_id): ?>
-          <a href="contratos.php" class="btn btn-outline-secondary ms-2">Cancelar</a>
-          <a href="pagos.php?contrato_id=<?= intval($edit_id) ?>" class="btn btn-success ms-2">Registrar Pagos</a>
+          <a href="contratos.php" class="btn btn-outline-secondary ms-2 mt-3">Cancelar</a>
+          <a href="pagos.php?contrato_id=<?= intval($edit_id) ?>" class="btn btn-success float-end mt-3">Registrar Pagos</a>
         <?php endif; ?>
       </form>
     </div>
@@ -354,7 +354,7 @@ include 'includes/header_nav.php';
                 </td>
                 <td style="min-width:130px;">
                   <a href="contratos.php?edit=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
-                  <a href="contratos.php?delete=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este contrato y sus pagos?')">Eliminar</a>
+                  <!--a href="contratos.php?delete=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este contrato y sus pagos?')">Eliminar</a-->
                 </td>
               </tr>
             <?php endforeach; ?>
