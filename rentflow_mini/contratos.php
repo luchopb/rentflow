@@ -2,7 +2,6 @@
 require_once 'config.php';
 check_login();
 $page_title = 'Contratos - Inmobiliaria';
-include 'includes/header_nav.php';
 
 $edit_id = intval($_GET['edit'] ?? 0);
 $delete_id = intval($_GET['delete'] ?? 0);
@@ -204,6 +203,8 @@ function estado_label($e)
   }
 }
 
+include 'includes/header_nav.php';
+
 ?>
 
 <main class="container container-main py-4">
@@ -312,6 +313,7 @@ function estado_label($e)
         <button type="submit" class="btn btn-primary fw-semibold"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
         <?php if ($edit_id): ?>
           <a href="contratos.php" class="btn btn-outline-secondary ms-2">Cancelar</a>
+          <a href="pagos.php?contrato_id=<?= intval($edit_id) ?>" class="btn btn-success ms-2">Registrar Pagos</a>
         <?php endif; ?>
       </form>
     </div>

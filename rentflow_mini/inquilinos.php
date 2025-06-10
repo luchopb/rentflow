@@ -2,7 +2,6 @@
 require_once 'config.php';
 check_login();
 $page_title = 'Inquilinos - Inmobiliaria';
-include 'includes/header_nav.php';
 
 $edit_id = intval($_GET['edit'] ?? 0);
 $delete_id = intval($_GET['delete'] ?? 0);
@@ -91,7 +90,10 @@ $msg = $_GET['msg'] ?? '';
 
 $inquilinos = $pdo->query("SELECT * FROM inquilinos ORDER BY id DESC")->fetchAll();
 
+include 'includes/header_nav.php';
+
 ?>
+
 <main class="container container-main py-4">
 
   <h1>Inquilinos</h1>

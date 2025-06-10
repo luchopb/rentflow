@@ -22,7 +22,10 @@ if (!$contrato) {
   exit();
 }
 
-include 'includes/header_nav.php';
+$msg = $_GET['msg'] ?? '';
+if ($msg) {
+  $message = $msg;
+}
 
 // Manejo de formulario para agregar un nuevo pago
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
@@ -73,6 +76,8 @@ for ($i = -3; $i <= 3; $i++) {
   $fecha->modify($i . ' month');
   $periodos[] = $fecha->format('Y-m');
 }
+
+include 'includes/header_nav.php';
 
 ?>
 

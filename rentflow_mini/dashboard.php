@@ -67,8 +67,17 @@ $pagos_mes_actual = $stmt_pagos->fetchAll(PDO::FETCH_COLUMN, 0); // Obtener solo
         <tr>
           <th>Contrato</th>
           <th>Pago <?php 
-            setlocale(LC_TIME, 'es_ES.UTF-8', 'Spanish_Spain.1252');
-            echo ucfirst(strftime('%B %Y', mktime(0, 0, 0, $mes_actual, 1, $anio_actual)));
+              // Crea un objeto DateTime con el año y mes deseados
+              $fecha = new DateTime("$anio_actual-$mes_actual-01");
+              // Obtiene el nombre del mes en español
+              $meses = [
+                  1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+                  5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+                  9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+              ];
+              $nombre_mes = $meses[(int)$fecha->format('n')]; // Obtiene el número del mes y lo convierte a nombre
+              // Muestra el mes y el año
+              echo ucfirst($nombre_mes) . ' ' . $anio_actual;
           ?></th>
         </tr>
       </thead>
