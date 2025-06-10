@@ -345,7 +345,7 @@ include 'includes/header_nav.php';
             <?php foreach ($contratos as $c): ?>
               <tr>
                 <td>
-                  <b><?= htmlspecialchars($c['inquilino_nombre']) ?> <?= htmlspecialchars($c['propiedad_nombre']) ?></b><br>
+                  #<?= htmlspecialchars($c['id']) ?> <b><?= htmlspecialchars($c['propiedad_nombre']) ?></b> <?= htmlspecialchars($c['inquilino_nombre']) ?><br>
                   <?= estado_label($c['estado']) ?>
                   <small><nobr>$ <?= number_format($c['importe'], 2, ",", ".") ?></nobr></small><br>
                 </td>

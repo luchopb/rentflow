@@ -12,7 +12,7 @@
   <style>
     /* Estilos generales siguiendo inspiración minimal y elegante */
     body {
-      font-family: Verdana, 'Poppins', sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
       background: #ffffff;
       color: #374151;
       padding-top: 5.5rem;
@@ -93,7 +93,7 @@
 </head>
 
 <body>
-  <nav class="navbar navbar-expand-lg fixed-top bg-white">
+  <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
     <div class="container container-main d-flex justify-content-between align-items-center py-2">
       <a href="dashboard.php" class="navbar-brand fw-bold fs-4 text-dark">Inmobiliaria</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"

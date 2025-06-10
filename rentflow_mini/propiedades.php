@@ -336,17 +336,17 @@ include 'includes/header_nav.php';
               <tr>
                 <td>
                   <b><?= htmlspecialchars($p['nombre']) ?></b> (<?= htmlspecialchars($p['tipo']) ?>)<br>
-                  <?= htmlspecialchars($p['direccion']) ?>
+                  <?= htmlspecialchars($p['direccion']) ?><br>
+                  <?= estado_label($p['estado']) ?>
                 </td>
                 <td>
-                  <?= estado_label($p['estado']) ?><br>
                   <small><nobr>$ <?= number_format($p['precio'], 2, ",", ".") ?></nobr></small><br>
                   <?php if ($p['contrato_id'] && $p['inquilino_nombre']): ?>
-                    <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="btn btn-outline-dark btn-sm">
-                      <?= "Contrato ". htmlspecialchars($p['inquilino_nombre']) ?>
+                    <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="btn btn-outline-dark">
+                      <?= "Ver ". htmlspecialchars($p['inquilino_nombre']) ?>
                     </a>
                   <?php else: ?>
-                    <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-sm btn-success" style="white-space: nowrap;">Crear contrato</a>
+                    <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-success" style="white-space: nowrap;">Crear contrato</a>
                   <?php endif; ?>
                 </td>
                 <td>
