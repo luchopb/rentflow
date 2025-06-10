@@ -260,7 +260,7 @@ include 'includes/header_nav.php';
         </div>
 
         <div class="mb-3">
-          <a href="inquilinos.php?add=true" class="btn btn-outline-primary ms-2">Nuevo Inquilino</a>
+          <a href="inquilinos.php?add=true" class="btn btn-primary btn-sm">Agregar Nuevo Inquilino</a>
         </div>
 
         <div class="mb-3">

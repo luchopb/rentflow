@@ -84,7 +84,8 @@ include 'includes/header_nav.php';
 <main class="container container-main py-4">
 
   <h1>Pagos - Contrato #<?= $contrato_id ?></h1>
-  <p><strong>Inquilino:</strong> <?= htmlspecialchars($contrato['inquilino_nombre']) ?> &nbsp;&nbsp;&nbsp; <strong>Propiedad:</strong> <?= htmlspecialchars($contrato['propiedad_nombre']) ?></p>
+  <p>Inquilino: <strong><?= htmlspecialchars($contrato['inquilino_nombre']) ?></strong><br>
+    Propiedad: <strong><?= htmlspecialchars($contrato['propiedad_nombre']) ?></strong></p>
 
   <?php if ($message): ?>
     <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
