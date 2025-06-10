@@ -33,8 +33,6 @@
     }
 
     h1 {
-      font-weight: 700;
-      font-size: 2.5rem;
       /* Ajustado para ser consistente */
       margin-bottom: 1.5rem;
       color: #111827;
@@ -51,20 +49,18 @@
     }
 
     a.nav-link {
-      color: #374151;
-      font-weight: 600;
       transition: color 0.25s ease;
     }
 
     a.nav-link:hover,
     a.nav-link:focus {
-      color: #000;
+      color: #FFFFFF;
       text-decoration: none;
     }
 
     a.nav-link.active {
-      color: #000;
-      border-bottom: 2px solid #000;
+      color: #FFFFFF;
+      border-bottom: 2px solid #FFFFFF;
     }
 
     .btn-remove-image {
@@ -95,19 +91,19 @@
 <body>
   <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
     <div class="container container-main d-flex justify-content-between align-items-center py-2">
-      <a href="dashboard.php" class="navbar-brand fw-bold fs-4 text-dark">Inmobiliaria</a>
+      <a href="dashboard.php" class="navbar-brand fw-bold fs-4">Inmobiliaria</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
         aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto gap-3">
+        <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link <?= ($_SERVER['SCRIPT_NAME'] ?? '') === '/dashboard.php' ? 'active' : '' ?>" href="dashboard.php">Dashboard</a></li>
           <li class="nav-item"><a class="nav-link <?= ($_SERVER['SCRIPT_NAME'] ?? '') === '/propiedades.php' ? 'active' : '' ?>" href="propiedades.php">Propiedades</a></li>
           <li class="nav-item"><a class="nav-link <?= ($_SERVER['SCRIPT_NAME'] ?? '') === '/inquilinos.php' ? 'active' : '' ?>" href="inquilinos.php">Inquilinos</a></li>
           <li class="nav-item"><a class="nav-link <?= ($_SERVER['SCRIPT_NAME'] ?? '') === '/contratos.php' ? 'active' : '' ?>" href="contratos.php">Contratos</a></li>
           <li class="nav-item"><a class="nav-link <?= ($_SERVER['SCRIPT_NAME'] ?? '') === '/pagos.php' ? 'active' : '' ?>" href="pagos.php">Pagos</a></li>
-          <li class="nav-item"><a class="nav-link text-danger" href="logout.php">Cerrar sesión</a></li>
+          <li class="nav-item"><a class="nav-link" href="logout.php">Cerrar sesión</a></li>
         </ul>
       </div>
     </div>
