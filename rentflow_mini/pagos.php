@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
 
   if (empty($errors)) {
     // Insert new payment
-    $stmt = $pdo->prepare("INSERT INTO pagos (contrato_id, periodo, fecha_recibido, importe, comentario, comprobante, concepto) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt = $pdo->prepare("INSERT INTO pagos (contrato_id, periodo, fecha, importe, comentario, comprobante, concepto) VALUES (?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([$contrato_id, $periodo, $fecha_pago, $importe, $comentario, $basename ?? null, $concepto]);
     $message = "Pago registrado correctamente.";
     header("Location: pagos.php?contrato_id=$contrato_id&msg=" . urlencode($message));
@@ -148,27 +148,22 @@ include 'includes/header_nav.php';
       <table class="table table-striped align-middle">
         <thead>
           <tr>
-            <th>Período</th>
             <th>Fecha</th>
             <th>Concepto</th>
-            <th>Importe</th>
-            <th>Comentario</th>
-            <th>Comprobante</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           <?php foreach ($pagos_list as $pago): ?>
             <tr>
-              <td><?= htmlspecialchars($pago['periodo']) ?></td>
-              <td><?= htmlspecialchars($pago['fecha']) ?></td>
-              <td><?= htmlspecialchars($pago['concepto']) ?></td>
-              <td>$ <?= number_format($pago['importe'], 2, ",", ".") ?></td>
-              <td><?= htmlspecialchars($pago['comentario']) ?></td>
+              <td><b><?= htmlspecialchars($pago['periodo']) ?></b> <br> <small><nobr><?= htmlspecialchars($pago['fecha']) ?></nobr></small></td>
               <td>
+                <?= htmlspecialchars($pago['concepto']) ?> <br> $<?= number_format($pago['importe'], 2, ",", ".") ?><br>
+                <small><?= htmlspecialchars($pago['comentario']) ?><br>
                 <?php if ($pago['comprobante']): ?>
                   <a href="uploads/<?= htmlspecialchars($pago['comprobante']) ?>" target="_blank">Ver Comprobante</a>
                 <?php endif; ?>
+                </small>
               </td>
               <td>
                 <a href="pagos.php?delete=<?= intval($pago['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este pago?')">Eliminar</a>

@@ -87,7 +87,7 @@ $pagos_mes_actual = $stmt_pagos->fetchAll(PDO::FETCH_COLUMN, 0); // Obtener solo
             <td><b><?= htmlspecialchars($row['propiedad_nombre']) ?></b><br><?= htmlspecialchars($row['inquilino_nombre'] ?? 'N/A') ?></td>
             <td>
               <?php if (in_array($row['id'], $pagos_mes_actual)): ?>
-                <a href="pagos.php?contrato_id=<?= $row['id'] ?>" class="btn btn-success btn-sm">Pago</a>
+                <a href="pagos.php?contrato_id=<?= $row['id'] ?>" class="btn btn-success btn-sm">Pago recibido</a>
               <?php else: ?>
                 <a href="pagos.php?contrato_id=<?= $row['id'] ?>" class="btn btn-outline-success btn-sm">Registrar pago</a>
               <?php endif; ?>
