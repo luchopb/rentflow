@@ -255,6 +255,11 @@ include 'includes/header_nav.php';
             <?php endforeach; ?>
           </select>
         </div>
+
+        <div class="mb-3">
+          <a href="inquilinos.php?add=true" class="btn btn-outline-primary ms-2">Nuevo Inquilino</a>
+        </div>
+
         <div class="mb-3">
           <label for="fecha_inicio" class="form-label">Fecha de Inicio *</label>
           <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required 

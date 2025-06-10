@@ -2,7 +2,6 @@
 require_once 'config.php';
 check_login();
 $page_title = 'Propiedades - Inmobiliaria';
-include 'includes/header_nav.php';
 
 $edit_id = intval($_GET['edit'] ?? 0);
 $search = clean_input($_GET['search'] ?? '');
@@ -168,6 +167,10 @@ $sql .= " ORDER BY p.id DESC";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $propiedades = $stmt->fetchAll();
+
+
+include 'includes/header_nav.php';
+
 ?>
 
 <main class="container container-main py-4">

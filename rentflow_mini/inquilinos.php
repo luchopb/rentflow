@@ -8,6 +8,9 @@ $delete_id = intval($_GET['delete'] ?? 0);
 $message = '';
 $errors = [];
 
+// Verificar si se debe mostrar el formulario de nuevo inquilino
+$show_form = isset($_GET['add']) && $_GET['add'] === 'true';
+
 if ($delete_id) {
   $pdo->prepare("DELETE FROM inquilinos WHERE id = ?")->execute([$delete_id]);
   $message = "Inquilino eliminado correctamente.";
@@ -107,11 +110,11 @@ include 'includes/header_nav.php';
     </div>
   <?php endif; ?>
 
-  <button class="btn btn-outline-dark mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formInquilinoCollapse" aria-expanded="<?= $edit_id || !empty($errors) ? 'true' : 'false' ?>" aria-controls="formInquilinoCollapse" style="font-weight:600;">
-    <?= $edit_id || !empty($errors) ? 'Ocultar' : 'Agregar Nuevo Inquilino' ?>
+  <button class="btn btn-outline-dark mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formInquilinoCollapse" aria-expanded="<?= $show_form || $edit_id || !empty($errors) ? 'true' : 'false' ?>" aria-controls="formInquilinoCollapse" style="font-weight:600;">
+    <?= $show_form || $edit_id || !empty($errors) ? 'Ocultar' : 'Agregar Nuevo Inquilino' ?>
   </button>
 
-  <div class="collapse <?= $edit_id || !empty($errors) ? 'show' : '' ?>" id="formInquilinoCollapse">
+  <div class="collapse <?= $show_form || $edit_id || !empty($errors) ? 'show' : '' ?>" id="formInquilinoCollapse">
     <div class="card p-4 mb-4 mt-3">
       <h3><?= $edit_id ? "Editar Inquilino" : "Nuevo Inquilino" ?></h3>
       <form method="POST" enctype="multipart/form-data" novalidate>
