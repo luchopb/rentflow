@@ -10,6 +10,14 @@ $anio_actual = date('Y');
 $periodo = date('Y-m');
 $search = clean_input($_GET['search'] ?? '');
 
+// Get total properties count
+$stmt_properties = $pdo->query("SELECT COUNT(*) FROM propiedades");
+$total_properties = $stmt_properties->fetchColumn();
+
+// Get total tenants count
+$stmt_tenants = $pdo->query("SELECT COUNT(*) FROM inquilinos");
+$total_tenants = $stmt_tenants->fetchColumn();
+
 // Obtener propiedades y sus inquilinos actuales
 $stmt = $pdo->prepare("
     SELECT c.id AS id, p.nombre AS propiedad_nombre, i.nombre AS inquilino_nombre, c.fecha_fin 
@@ -27,13 +35,54 @@ $stmt_pagos = $pdo->prepare("
     WHERE periodo = ? AND concepto = 'Pago mensual'
 ");
 $stmt_pagos->execute([$periodo]);
-$pagos_mes_actual = $stmt_pagos->fetchAll(PDO::FETCH_COLUMN, 0); // Obtener solo los contrato_id
+$pagos_mes_actual = $stmt_pagos->fetchAll(PDO::FETCH_COLUMN, 0);
+
+// Calculate payments ratio
+$total_contratos = count($propiedades_inquilinos);
+$pagos_recibidos = count($pagos_mes_actual);
+$pagos_pendientes = $total_contratos - $pagos_recibidos;
+$payment_ratio = $total_contratos > 0 ? round(($pagos_recibidos / $total_contratos) * 100) : 0;
 
 ?>
 
 <main class="container container-main">
   <h1>Bienvenido, <?= htmlspecialchars($_SESSION['user_name']) ?></h1>
-
+  <!-- Dashboard Cards -->
+  <div class="row mb-4">
+    <div class="col-md-4 h-100">
+      <a href="propiedades.php" class="text-decoration-none">
+        <div class="card text-bg-primary h-100 mb-3">
+          <div class="card-body d-flex flex-column justify-content-between">
+            <h5 class="card-title">Propiedades</h5>
+            <p class="card-text display-4 mb-0"><?= $total_properties ?></p>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-4 h-100">
+      <a href="inquilinos.php" class="text-decoration-none">
+        <div class="card text-bg-success h-100 mb-3">
+          <div class="card-body d-flex flex-column justify-content-between">
+            <h5 class="card-title">Inquilinos</h5>
+            <p class="card-text display-4 mb-0"><?= $total_tenants ?></p>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-4 h-100">
+      <a href="contratos.php" class="text-decoration-none">
+        <div class="card text-bg-info h-100 mb-3">
+          <div class="card-body d-flex flex-column justify-content-between">
+            <h5 class="card-title">Pagos del Mes</h5>
+            <p class="card-text display-4"><?= $pagos_recibidos ?>/<?= $total_contratos ?></p>
+            <div class="progress" role="progressbar" aria-label="Payment progress">
+              <div class="progress-bar" style="width: <?= $payment_ratio ?>%"><?= $payment_ratio ?>%</div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
   <form action="propiedades.php" method="GET" class="mb-4" role="search" aria-label="Buscar propiedades">
     <div class="input-group" style="max-width:480px;">
       <input
@@ -50,15 +99,6 @@ $pagos_mes_actual = $stmt_pagos->fetchAll(PDO::FETCH_COLUMN, 0); // Obtener solo
     </div>
   </form>
 
-
-  <section class="mt-2">
-    <div class="d-flex gap-3">
-      <a href="propiedades.php" class="btn btn-primary flex-fill">Propiedades</a>
-      <a href="inquilinos.php" class="btn btn-primary flex-fill">Inquilinos</a>
-      <a href="contratos.php" class="btn btn-primary flex-fill">Contratos</a>
-    </div>
-  </section>
-
   <section class="mt-5">
     <h2 class="fw-semibold">Pagos Mensuales</h2>
     <table class="table table-striped">
@@ -66,16 +106,13 @@ $pagos_mes_actual = $stmt_pagos->fetchAll(PDO::FETCH_COLUMN, 0); // Obtener solo
         <tr>
           <th>Contrato</th>
           <th>Pago <?php 
-              // Crea un objeto DateTime con el año y mes deseados
               $fecha = new DateTime("$anio_actual-$mes_actual-01");
-              // Obtiene el nombre del mes en español
               $meses = [
                   1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
                   5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
                   9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
               ];
-              $nombre_mes = $meses[(int)$fecha->format('n')]; // Obtiene el número del mes y lo convierte a nombre
-              // Muestra el mes y el año
+              $nombre_mes = $meses[(int)$fecha->format('n')];
               echo ucfirst($nombre_mes) . ' ' . $anio_actual;
           ?></th>
         </tr>
@@ -96,7 +133,6 @@ $pagos_mes_actual = $stmt_pagos->fetchAll(PDO::FETCH_COLUMN, 0); // Obtener solo
       </tbody>
     </table>
   </section>
-
 </main>
 
 <?php
