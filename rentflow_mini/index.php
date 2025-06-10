@@ -1,13 +1,16 @@
 <?php
 require_once 'config.php';
 
+// encripto el pass
+// echo "hash: " . password_hash("viviana", PASSWORD_DEFAULT) . "<br>\n";
+// echo "hash: " . password_hash("raul", PASSWORD_DEFAULT) . "<br>\n";
+// echo "hash: " . password_hash("raulpadre", PASSWORD_DEFAULT) . "<br>\n";
+// exit;
+
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = clean_input($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-
-    // encripto el pass
-    // echo "hash: " . password_hash($_POST['password'], PASSWORD_DEFAULT)."\n";
 
     if ($username && $password) {
         // Consultar usuario

@@ -137,13 +137,13 @@ function estado_label($e)
 {
   switch ($e) {
     case 'libre':
-      return '<span class="badge bg-success">Libre</span>';
+      return '<span class="badge bg-danger">Libre</span>';
     case 'alquilado':
-      return '<span class="badge bg-danger">Alquilado</span>';
+      return '<span class="badge bg-success">Alquilado</span>';
     case 'uso propio':
-      return '<span class="badge bg-warning text-dark">Uso Propio</span>';
+      return '<span class="badge bg-info">Uso Propio</span>';
     case 'en venta':
-      return '<span class="badge bg-warning">En Venta</span>';
+      return '<span class="badge bg-warning text-dark">En Venta</span>';
     default:
       return ucfirst($e);
   }
@@ -342,7 +342,7 @@ include 'includes/header_nav.php';
                 <td>
                   <small><nobr>$ <?= number_format($p['precio'], 2, ",", ".") ?></nobr></small><br>
                   <?php if ($p['contrato_id'] && $p['inquilino_nombre']): ?>
-                    <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="btn btn-outline-dark">
+                    <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-dark">
                       <?= "Ver ". htmlspecialchars($p['inquilino_nombre']) ?>
                     </a>
                   <?php else: ?>
