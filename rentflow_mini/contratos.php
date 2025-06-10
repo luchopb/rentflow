@@ -130,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $anio = intval($dt->format('Y'));
         $periodo = $dt->format('Y-m'); // Formato AÑO-MES
         $fecha_programada = $dt->format('Y-m-01'); // Siempre primer día del mes
-        $pdo->prepare("INSERT INTO pagos (contrato_id, fecha_programada, mes, anio, periodo, importe, pagado, concepto) VALUES (?, ?, ?, ?, ?, ?, 0, 'Debe')")
+        $pdo->prepare("INSERT INTO pagos (contrato_id, fecha, mes, anio, periodo, importe, pagado, concepto) VALUES (?, ?, ?, ?, ?, ?, 0, 'Debe')")
           ->execute([$new_id, $fecha_programada, $mes, $anio, $periodo, -$importe]);
       }
 

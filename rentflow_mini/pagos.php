@@ -161,7 +161,7 @@ include 'includes/header_nav.php';
           <?php foreach ($pagos_list as $pago): ?>
             <tr>
               <td><?= htmlspecialchars($pago['periodo']) ?></td>
-              <td><?= htmlspecialchars($pago['fecha_recibido']) ?></td>
+              <td><?= htmlspecialchars($pago['fecha']) ?></td>
               <td><?= htmlspecialchars($pago['concepto']) ?></td>
               <td>$ <?= number_format($pago['importe'], 2, ",", ".") ?></td>
               <td><?= htmlspecialchars($pago['comentario']) ?></td>
