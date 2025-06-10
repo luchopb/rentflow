@@ -2,7 +2,6 @@
 require_once 'config.php';
 check_login();
 $page_title = 'Pagos - Inmobiliaria';
-include 'includes/header_nav.php';
 
 $contrato_id = intval($_GET['contrato_id'] ?? 0);
 if (!$contrato_id) {
@@ -22,6 +21,8 @@ if (!$contrato) {
   header("Location: contratos.php");
   exit();
 }
+
+include 'includes/header_nav.php';
 
 // Manejo de formulario para agregar un nuevo pago
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {

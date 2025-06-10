@@ -170,19 +170,15 @@ $inquilinos = $pdo->query("SELECT * FROM inquilinos ORDER BY id DESC")->fetchAll
           <thead>
             <tr>
               <th>Nombre</th>
-              <th>Teléfono</th>
               <th>Vehículo</th>
-              <th>Matrícula</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             <?php foreach ($inquilinos as $i): ?>
               <tr>
-                <td><?= htmlspecialchars($i['nombre']) ?></td>
-                <td><?= htmlspecialchars($i['telefono']) ?></td>
-                <td><?= htmlspecialchars($i['vehiculo']) ?></td>
-                <td><?= htmlspecialchars($i['matricula']) ?></td>
+                <td><b><?= htmlspecialchars($i['nombre']) ?></b> <?= htmlspecialchars($i['telefono']) ?></td>
+                <td><?= htmlspecialchars($i['vehiculo']) ?> <?= htmlspecialchars($i['matricula']) ?></td>
                 <td style="min-width:120px;">
                   <a href="inquilinos.php?edit=<?= intval($i['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
                   <a href="inquilinos.php?delete=<?= intval($i['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este inquilino?')">Eliminar</a>
@@ -202,8 +198,6 @@ $inquilinos = $pdo->query("SELECT * FROM inquilinos ORDER BY id DESC")->fetchAll
   collapseInquilino.addEventListener('show.bs.collapse', () => toggleBtnInquilino.textContent = 'Ocultar');
   collapseInquilino.addEventListener('hide.bs.collapse', () => toggleBtnInquilino.textContent = 'Agregar Nuevo Inquilino');
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <?php
 include 'includes/footer.php';

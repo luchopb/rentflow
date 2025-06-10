@@ -191,6 +191,19 @@ if ($edit_id > 0) {
 }
 
 
+// Añadimos función estado_label con badges coloreados
+function estado_label($e)
+{
+  switch ($e) {
+    case 'activo':
+      return '<span class="badge bg-success">Activo</span>';
+    case 'finalizado':
+      return '<span class="badge bg-danger">Finalizado</span>';
+    default:
+      return ucfirst($e);
+  }
+}
+
 ?>
 
 <main class="container container-main py-4">
@@ -313,28 +326,25 @@ if ($edit_id > 0) {
         <table class="table align-middle table-striped">
           <thead>
             <tr>
-              <th>Inquilino</th>
-              <th>Propiedad</th>
-              <th>Fecha Inicio</th>
-              <th>Fecha Fin</th>
-              <th>Importe</th>
-              <th>Estado</th>
+              <th>Contrato</th>
+              <th>Pagos</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             <?php foreach ($contratos as $c): ?>
               <tr>
-                <td><?= htmlspecialchars($c['inquilino_nombre']) ?></td>
-                <td><?= htmlspecialchars($c['propiedad_nombre']) ?></td>
-                <td><?= htmlspecialchars($c['fecha_inicio']) ?></td>
-                <td><?= htmlspecialchars($c['fecha_fin']) ?></td>
-                <td>$ <?= number_format($c['importe'], 2, ",", ".") ?></td>
-                <td><?= ucfirst(htmlspecialchars($c['estado'])) ?></td>
+                <td>
+                  <b><?= htmlspecialchars($c['inquilino_nombre']) ?> <?= htmlspecialchars($c['propiedad_nombre']) ?></b><br>
+                  <?= estado_label($c['estado']) ?>
+                  <small><nobr>$ <?= number_format($c['importe'], 2, ",", ".") ?></nobr></small><br>
+                </td>
+                <td>
+                  <a href="pagos.php?contrato_id=<?= intval($c['id']) ?>" class="btn btn-sm btn-success">Pagos</a>
+                </td>
                 <td style="min-width:130px;">
                   <a href="contratos.php?edit=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
                   <a href="contratos.php?delete=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este contrato y sus pagos?')">Eliminar</a>
-                  <a href="pagos.php?contrato_id=<?= intval($c['id']) ?>" class="btn btn-sm btn-success">Pagos</a>
                 </td>
               </tr>
             <?php endforeach; ?>
@@ -361,8 +371,6 @@ if ($edit_id > 0) {
     }
   });
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <?php
 include 'includes/footer.php';

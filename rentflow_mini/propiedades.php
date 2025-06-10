@@ -323,11 +323,7 @@ $propiedades = $stmt->fetchAll();
         <table class="table align-middle table-striped">
           <thead>
             <tr>
-              <th>Nombre</th>
-              <th>Tipo</th>
-              <th>Dirección</th>
-              <th>Precio</th>
-              <th>Estado</th>
+              <th>Propiedad</th>
               <th>Contrato</th>
               <th>Acciones</th>
             </tr>
@@ -335,15 +331,16 @@ $propiedades = $stmt->fetchAll();
           <tbody>
             <?php foreach ($propiedades as $p): ?>
               <tr>
-                <td><?= htmlspecialchars($p['nombre']) ?></td>
-                <td><?= htmlspecialchars($p['tipo']) ?></td>
-                <td><?= htmlspecialchars($p['direccion']) ?></td>
-                <td>$ <?= number_format($p['precio'], 2, ",", ".") ?></td>
-                <td><?= estado_label($p['estado']) ?></td>
                 <td>
+                  <b><?= htmlspecialchars($p['nombre']) ?></b> (<?= htmlspecialchars($p['tipo']) ?>)<br>
+                  <?= htmlspecialchars($p['direccion']) ?><br>
+                  <?= estado_label($p['estado']) ?>
+                </td>
+                <td>
+                  <small><nobr>$ <?= number_format($p['precio'], 2, ",", ".") ?></nobr></small><br>
                   <?php if ($p['contrato_id'] && $p['inquilino_nombre']): ?>
-                    <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="text-decoration-none">
-                      <?= htmlspecialchars($p['inquilino_nombre']) ?>
+                    <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-success">
+                      <?= "#" . $p['contrato_id'] ." ". htmlspecialchars($p['inquilino_nombre']) ?>
                     </a>
                   <?php else: ?>
                     <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-sm btn-success" style="white-space: nowrap;">Crear contrato</a>
@@ -378,7 +375,6 @@ $propiedades = $stmt->fetchAll();
   collapseEl.addEventListener('show.bs.collapse', () => toggleBtn.textContent = 'Ocultar');
   collapseEl.addEventListener('hide.bs.collapse', () => toggleBtn.textContent = 'Agregar Nueva Propiedad');
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <?php
 include 'includes/footer.php';
