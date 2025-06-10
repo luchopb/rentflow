@@ -65,8 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $stmt = $pdo->prepare("INSERT INTO inquilinos (nombre, telefono, vehiculo, matricula, documentos, usuario_id, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?)");
       $stmt->execute([$nombre, $telefono, $vehiculo, $matricula, $docs_json, $usuario_id, $fecha_creacion]);
       $message = "Inquilino creado correctamente.";
+      $inquilino_id = $pdo->lastInsertId(); // Obtener el ID del nuevo inquilino
     }
-    header("Location: inquilinos.php?msg=" . urlencode($message));
+    header("Location: inquilinos.php?msg=" . urlencode($message) . "&inquilino_id=" . $inquilino_id);
     exit();
   } else {
     $edit_data = [
@@ -90,6 +91,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $msg = $_GET['msg'] ?? '';
+if ($msg) {
+  $message = $msg;
+}
+
+$inquilino_id = intval($_GET['inquilino_id'] ?? 0);
 
 $inquilinos = $pdo->query("SELECT * FROM inquilinos ORDER BY id DESC")->fetchAll();
 
@@ -103,6 +109,9 @@ include 'includes/header_nav.php';
 
   <?php if ($msg): ?>
     <div class="alert alert-success"><?= htmlspecialchars($msg) ?></div>
+    <?php if ($inquilino_id > 0): ?>
+      <a href="contratos.php?inquilino_id=<?= $inquilino_id ?>" class="btn btn-primary">Crear Contrato</a>
+    <?php endif; ?>
   <?php endif; ?>
   <?php if ($errors): ?>
     <div class="alert alert-danger">

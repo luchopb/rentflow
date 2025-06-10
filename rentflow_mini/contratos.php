@@ -167,6 +167,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $msg = $_GET['msg'] ?? '';
+if ($msg) {
+  $message = $msg;
+}
 
 $inquilinos = $pdo->query("SELECT id, nombre FROM inquilinos ORDER BY nombre ASC")->fetchAll();
 $propiedades = $pdo->query("SELECT id, nombre, estado, precio FROM propiedades WHERE estado IN ('libre','en venta','uso propio') ORDER BY nombre ASC")->fetchAll();
