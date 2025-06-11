@@ -14,9 +14,9 @@ $search = clean_input($_GET['search'] ?? '');
 $stmt_properties = $pdo->query("SELECT COUNT(*) FROM propiedades");
 $total_properties = $stmt_properties->fetchColumn();
 
-// Get total tenants count
-$stmt_tenants = $pdo->query("SELECT COUNT(*) FROM inquilinos");
-$total_tenants = $stmt_tenants->fetchColumn();
+// Get total active contracts count
+$stmt_contracts = $pdo->query("SELECT COUNT(*) FROM contratos WHERE estado = 'activo'");
+$total_active_contracts = $stmt_contracts->fetchColumn();
 
 // Obtener propiedades y sus inquilinos actuales
 $stmt = $pdo->prepare("
@@ -60,11 +60,11 @@ $payment_ratio = $total_contratos > 0 ? round(($pagos_recibidos / $total_contrat
       </a>
     </div>
     <div class="col-md-4 h-100">
-      <a href="inquilinos.php" class="text-decoration-none">
+      <a href="contratos.php" class="text-decoration-none">
         <div class="card text-bg-success h-100 mb-3">
           <div class="card-body d-flex flex-column justify-content-between">
-            <h5 class="card-title">Inquilinos</h5>
-            <p class="card-text display-4 mb-0"><?= $total_tenants ?></p>
+            <h5 class="card-title">Contratos Activos</h5>
+            <p class="card-text display-4 mb-0"><?= $total_active_contracts ?></p>
           </div>
         </div>
       </a>
