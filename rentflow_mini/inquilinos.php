@@ -7,6 +7,7 @@ $edit_id = intval($_GET['edit'] ?? 0);
 $delete_id = intval($_GET['delete'] ?? 0);
 $message = '';
 $errors = [];
+$inquilino_id = 0; // Initialize inquilino_id at the start
 
 // Verificar si se debe mostrar el formulario de nuevo inquilino
 $show_form = isset($_GET['add']) && $_GET['add'] === 'true';
@@ -60,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $stmt = $pdo->prepare("UPDATE inquilinos SET nombre=?, cedula=?, telefono=?, vehiculo=?, matricula=?, documentos=?, fecha_modificacion=? WHERE id=?");
       $stmt->execute([$nombre, $cedula, $telefono, $vehiculo, $matricula, $docs_json, $fecha_modificacion, $edit_id]);
       $message = "Inquilino actualizado correctamente.";
+      $inquilino_id = $edit_id; // Set inquilino_id to the edited ID
     } else {
       $docs_json = json_encode($documentos_subidos);
       $usuario_id = $_SESSION['user_id']; // Usuario que crea el inquilino
@@ -69,6 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $message = "Inquilino creado correctamente.";
       $inquilino_id = $pdo->lastInsertId(); // Obtener el ID del nuevo inquilino
     }
+    
+    // Redirect before any output
     header("Location: inquilinos.php?msg=" . urlencode($message) . "&inquilino_id=" . $inquilino_id);
     exit();
   } else {
@@ -103,7 +107,6 @@ $inquilino_id = intval($_GET['inquilino_id'] ?? 0);
 $inquilinos = $pdo->query("SELECT * FROM inquilinos ORDER BY id DESC")->fetchAll();
 
 include 'includes/header_nav.php';
-
 ?>
 
 <main class="container container-main py-4">
