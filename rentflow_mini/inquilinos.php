@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $message = "Inquilino creado correctamente.";
       $inquilino_id = $pdo->lastInsertId(); // Obtener el ID del nuevo inquilino
     }
-    
+
     // Redirect before any output
     header("Location: inquilinos.php?msg=" . urlencode($message) . "&inquilino_id=" . $inquilino_id);
     exit();
@@ -197,20 +197,23 @@ include 'includes/header_nav.php';
             <tr>
               <th>ID</th>
               <th>Nombre</th>
-              <th>Vehículo</th>
-              <th>Acciones</th>
+              <th>Datos</th>
             </tr>
           </thead>
           <tbody>
             <?php foreach ($inquilinos as $i): ?>
               <tr>
                 <td><?= htmlspecialchars($i['id']) ?></td>
-                <td><b><?= htmlspecialchars($i['nombre']) ?></b> <?= htmlspecialchars($i['telefono']) ?></td>
-                <td><?= htmlspecialchars($i['vehiculo']) ?> <?= htmlspecialchars($i['matricula']) ?></td>
-                <td style="min-width:120px;">
-                  <a href="inquilinos.php?edit=<?= intval($i['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
-                  <!--a href="inquilinos.php?delete=<?= intval($i['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este inquilino?')">Eliminar</a-->
+                <td><a href="inquilinos.php?edit=<?= intval($i['id']) ?>" class="text-decoration-none text-dark"><b><?= htmlspecialchars($i['nombre']) ?></b><br> <?= htmlspecialchars($i['cedula']) ?></a></td>
+                <td>
+                  <?= htmlspecialchars($i['telefono']) ?><br>
+                  <?= htmlspecialchars($i['vehiculo']) ?>
+                  <?= htmlspecialchars($i['matricula']) ?>
                 </td>
+                <!--<td style="min-width:120px;">
+                  <a href="inquilinos.php?edit=<?= intval($i['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
+                  <a href="inquilinos.php?delete=<?= intval($i['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este inquilino?')">Eliminar</a>
+                </td>-->
               </tr>
             <?php endforeach; ?>
           </tbody>
