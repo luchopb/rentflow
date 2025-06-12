@@ -248,6 +248,13 @@ include 'includes/header_nav.php';
         </div>
 
         <div class="mb-3">
+          <a href="propiedades.php?add=true" class="btn btn-primary btn-sm">Agregar Propiedad Nueva</a>
+          <?php if ($edit_id > 0): ?>
+            <a href="propiedades.php?edit=<?= htmlspecialchars($edit_data['propiedad_id'] ?? '') ?>" class="btn btn-secondary btn-sm">Editar Propiedad</a>
+          <?php endif; ?>
+        </div>
+
+        <div class="mb-3">
           <label for="inquilino_id" class="form-label">Inquilino *</label>
           <select name="inquilino_id" id="inquilino_id" class="form-select" required>
             <option value="">Seleccione...</option>

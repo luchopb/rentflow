@@ -81,10 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach ($_FILES['documentos']['name'] as $k => $name) {
       $tmp_name = $_FILES['documentos']['tmp_name'][$k];
       $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-      /*if (!in_array($ext, ['pdf', 'doc', 'docx', 'xls', 'xlsx'])) {
-        $errors[] = "Solo se permiten documentos PDF, DOC, DOCX, XLS o XLSX.";
-        break;
-      }*/
       $basename = uniqid('doc_') . '.' . $ext;
       if (move_uploaded_file($tmp_name, $upload_dir . $basename)) {
         $attached_docs[] = $basename;
@@ -154,7 +150,7 @@ function estado_label($e)
 // Consulta con búsqueda
 $search = clean_input($_GET['search'] ?? '');
 $params = [];
-$sql = "SELECT p.*, c.id AS contrato_id, i.nombre AS inquilino_nombre 
+$sql = "SELECT p.*, c.id AS contrato_id, i.nombre AS inquilino_nombre, i.id AS inquilino_id
         FROM propiedades p 
         LEFT JOIN contratos c ON c.propiedad_id = p.id 
           AND c.estado = 'activo' 
@@ -369,11 +365,14 @@ include 'includes/header_nav.php';
                 </td>
                 <td>
                   <?php if ($p['contrato_id'] && $p['inquilino_nombre']): ?>
-                    <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="text-decoration-none text-dark">
+                    <a href="inquilinos.php?edit=<?= intval($p['inquilino_id']) ?>" class="text-decoration-none text-dark">
                       <b><?= htmlspecialchars($p['inquilino_nombre']) ?></b>
                     </a><br>
                     <a href="pagos.php?contrato_id=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-success">
-                      Ver Pagos
+                      Pagos
+                    </a>
+                    <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-success">
+                      Contrato
                     </a>
                   <?php else: ?>
                     <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-success btn-sm" style="white-space: nowrap;">Crear contrato</a>

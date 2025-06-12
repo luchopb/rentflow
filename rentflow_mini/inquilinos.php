@@ -159,7 +159,7 @@ include 'includes/header_nav.php';
 
         <div class="mb-3">
           <label for="documentos" class="form-label">Adjuntar Documentos</label>
-          <input type="file" name="documentos[]" multiple class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx" />
+          <input type="file" name="documentos[]" multiple class="form-control" />
         </div>
 
         <?php if (!empty($edit_data['documentos_arr'])): ?>

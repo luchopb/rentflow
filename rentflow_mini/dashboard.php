@@ -20,10 +20,11 @@ $total_active_contracts = $stmt_contracts->fetchColumn();
 
 // Obtener propiedades y sus inquilinos actuales
 $stmt = $pdo->prepare("
-    SELECT c.id AS id, p.nombre AS propiedad_nombre, i.nombre AS inquilino_nombre, c.fecha_fin 
+    SELECT c.id AS id, p.nombre AS propiedad_nombre, i.nombre AS inquilino_nombre, i.id AS inquilino_id, c.fecha_fin 
     FROM propiedades p
     INNER JOIN contratos c ON p.id = c.propiedad_id AND c.estado = 'activo'
     LEFT JOIN inquilinos i ON c.inquilino_id = i.id
+    ORDER BY c.id DESC
 ");
 $stmt->execute();
 $propiedades_inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -104,6 +105,7 @@ $payment_ratio = $total_contratos > 0 ? round(($pagos_recibidos / $total_contrat
     <table class="table table-striped">
       <thead>
         <tr>
+          <th>ID</th>
           <th>Contrato</th>
           <th>Pago <?php 
               $fecha = new DateTime("$anio_actual-$mes_actual-01");
@@ -120,7 +122,14 @@ $payment_ratio = $total_contratos > 0 ? round(($pagos_recibidos / $total_contrat
       <tbody>
         <?php foreach ($propiedades_inquilinos as $row): ?>
           <tr>
-            <td><b><?= htmlspecialchars($row['propiedad_nombre']) ?></b><br><?= htmlspecialchars($row['inquilino_nombre'] ?? 'N/A') ?></td>
+            <td><?= htmlspecialchars($row['id']) ?></td>
+            <td>
+              <a href="contratos.php?edit=<?= $row['id'] ?>" class="text-decoration-none text-dark">
+                <b><?= htmlspecialchars($row['propiedad_nombre']) ?></b></a><br>
+              <a href="inquilinos.php?edit=<?= $row['inquilino_id'] ?>" class="text-decoration-none text-dark">
+                <?= htmlspecialchars($row['inquilino_nombre'] ?? 'N/A') ?>
+              </a>
+            </td>
             <td>
               <?php if (in_array($row['id'], $pagos_mes_actual)): ?>
                 <a href="pagos.php?contrato_id=<?= $row['id'] ?>" class="btn btn-success btn-sm">Pago recibido</a>
