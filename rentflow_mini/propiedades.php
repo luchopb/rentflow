@@ -81,10 +81,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach ($_FILES['documentos']['name'] as $k => $name) {
       $tmp_name = $_FILES['documentos']['tmp_name'][$k];
       $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-      if (!in_array($ext, ['pdf', 'doc', 'docx', 'xls', 'xlsx'])) {
+      /*if (!in_array($ext, ['pdf', 'doc', 'docx', 'xls', 'xlsx'])) {
         $errors[] = "Solo se permiten documentos PDF, DOC, DOCX, XLS o XLSX.";
         break;
-      }
+      }*/
       $basename = uniqid('doc_') . '.' . $ext;
       if (move_uploaded_file($tmp_name, $upload_dir . $basename)) {
         $attached_docs[] = $basename;
@@ -314,7 +314,7 @@ include 'includes/header_nav.php';
         <div class="mb-3">
           <label class="form-label">Documentos adjuntos</label>
           <input type="hidden" name="existing_docs" id="existing_docs" value='<?= htmlspecialchars(json_encode($edit_data['documentos_arr'] ?? [])) ?>' />
-          <input type="file" name="documentos[]" multiple class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx" />
+          <input type="file" name="documentos[]" multiple class="form-control" />
         </div>
 
         <?php if (!empty($edit_data['documentos_arr'])): ?>
