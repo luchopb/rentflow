@@ -265,13 +265,13 @@ include 'includes/header_nav.php';
 
         <div class="mb-3">
           <label for="fecha_inicio" class="form-label">Fecha de Inicio *</label>
-          <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required 
+          <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required
             value="<?= htmlspecialchars($edit_data['fecha_inicio'] ?? date('Y-m-d')) ?>">
         </div>
 
         <div class="mb-3">
           <label for="fecha_fin" class="form-label">Fecha de Fin *</label>
-          <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required 
+          <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required
             value="<?= htmlspecialchars($edit_data['fecha_fin'] ?? date('Y-m-d', strtotime('+1 year'))) ?>">
         </div>
 
@@ -336,26 +336,30 @@ include 'includes/header_nav.php';
         <table class="table align-middle table-striped">
           <thead>
             <tr>
+              <th>ID</th>
               <th>Contrato</th>
               <th>Pagos</th>
-              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             <?php foreach ($contratos as $c): ?>
               <tr>
+                <td><?= htmlspecialchars($c['id'])?></td>
                 <td>
-                  #<?= htmlspecialchars($c['id']) ?> <b><?= htmlspecialchars($c['propiedad_nombre']) ?></b> <?= htmlspecialchars($c['inquilino_nombre']) ?><br>
-                  <?= estado_label($c['estado']) ?>
-                  <small><nobr>$ <?= number_format($c['importe'], 2, ",", ".") ?></nobr></small><br>
+                  <a href="contratos.php?edit=<?= intval($c['id']) ?>" class="text-decoration-none text-dark"><b><?= htmlspecialchars($c['propiedad_nombre']) ?></b> <?= htmlspecialchars($c['inquilino_nombre']) ?><br>
+                    <?= estado_label($c['estado']) ?>
+                    <small>
+                      <nobr>$ <?= number_format($c['importe'], 2, ",", ".") ?></nobr>
+                    </small><br>
+                  </a>
                 </td>
                 <td>
                   <a href="pagos.php?contrato_id=<?= intval($c['id']) ?>" class="btn btn-sm btn-success">Pagos</a>
                 </td>
-                <td style="min-width:130px;">
+                <!--<td style="min-width:130px;">
                   <a href="contratos.php?edit=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
-                  <!--a href="contratos.php?delete=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este contrato y sus pagos?')">Eliminar</a-->
-                </td>
+                  <a href="contratos.php?delete=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este contrato y sus pagos?')">Eliminar</a>
+                </td>-->
               </tr>
             <?php endforeach; ?>
           </tbody>

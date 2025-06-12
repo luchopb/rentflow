@@ -350,6 +350,7 @@ include 'includes/header_nav.php';
         <table class="table align-middle table-striped">
           <thead>
             <tr>
+              <td>ID</td>
               <th>Propiedad</th>
               <th>Contrato</th>
             </tr>
@@ -357,6 +358,7 @@ include 'includes/header_nav.php';
           <tbody>
             <?php foreach ($propiedades as $p): ?>
               <tr>
+                <td><?= intval($p['id'])?></td>
                 <td>
                   <b><a href="propiedades.php?edit=<?= intval($p['id']) ?>" class="text-decoration-none text-dark">
                       <?= htmlspecialchars($p['nombre']) ?></b> (<?= htmlspecialchars($p['tipo']) ?>)</a><br>
