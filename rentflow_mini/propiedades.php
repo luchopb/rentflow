@@ -6,25 +6,25 @@ $page_title = 'Propiedades - Inmobiliaria';
 $edit_id = intval($_GET['edit'] ?? 0);
 $search = clean_input($_GET['search'] ?? '');
 
-// Manejo eliminación propiedad
 $delete_id = intval($_GET['delete'] ?? 0);
 $message = '';
 $errors = [];
 if ($delete_id) {
-  // Borrar imágenes asociadas
   $upload_dir = __DIR__ . '/uploads/';
-  $stmt = $pdo->prepare("SELECT imagenes FROM propiedades WHERE id = ?");
+  $stmt = $pdo->prepare("SELECT imagenes, documentos FROM propiedades WHERE id = ?");
   $stmt->execute([$delete_id]);
   $row = $stmt->fetch();
   if ($row) {
     $images = json_decode($row['imagenes'], true);
-    if (is_array($images)) {
-      foreach ($images as $img) {
-        $file = $upload_dir . basename($img);
-        if (is_file($file)) unlink($file);
+    $docs = json_decode($row['documentos'], true);
+    foreach ([$images, $docs] as $files) {
+      if (is_array($files)) {
+        foreach ($files as $file) {
+          $path = $upload_dir . basename($file);
+          if (is_file($path)) unlink($path);
+        }
       }
     }
-    // Borrar propiedad
     $pdo->prepare("DELETE FROM propiedades WHERE id = ?")->execute([$delete_id]);
     $message = "Propiedad eliminada correctamente.";
   }
@@ -52,16 +52,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $contribucion_inmobiliaria = floatval($_POST['contribucion_inmobiliaria'] ?? 0);
   $comentarios = clean_input($_POST['comentarios'] ?? '');
 
-  $gallery_images = [];
-  if (isset($_POST['existing_images'])) {
-    $gallery_images = json_decode($_POST['existing_images'], true);
-    if (!is_array($gallery_images)) $gallery_images = [];
+  $gallery_images = json_decode($_POST['existing_images'] ?? '[]', true) ?: [];
+  $attached_docs = json_decode($_POST['existing_docs'] ?? '[]', true) ?: [];
+
+  $upload_dir = __DIR__ . '/uploads/';
+  if (!file_exists($upload_dir)) {
+    mkdir($upload_dir, 0755, true);
   }
+
   if (!empty($_FILES['imagenes']['name'][0])) {
-    $upload_dir = __DIR__ . '/uploads/';
-    if (!file_exists($upload_dir)) {
-      mkdir($upload_dir, 0755, true);
-    }
     foreach ($_FILES['imagenes']['name'] as $k => $name) {
       $tmp_name = $_FILES['imagenes']['tmp_name'][$k];
       $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
@@ -78,7 +77,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   }
 
-  $errors = [];
+  if (!empty($_FILES['documentos']['name'][0])) {
+    foreach ($_FILES['documentos']['name'] as $k => $name) {
+      $tmp_name = $_FILES['documentos']['tmp_name'][$k];
+      $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+      if (!in_array($ext, ['pdf', 'doc', 'docx', 'xls', 'xlsx'])) {
+        $errors[] = "Solo se permiten documentos PDF, DOC, DOCX, XLS o XLSX.";
+        break;
+      }
+      $basename = uniqid('doc_') . '.' . $ext;
+      if (move_uploaded_file($tmp_name, $upload_dir . $basename)) {
+        $attached_docs[] = $basename;
+      } else {
+        $errors[] = "Error al subir el documento: $name";
+      }
+    }
+  }
+
   if (!$nombre) $errors[] = "El nombre es obligatorio.";
   if (!$tipo) $errors[] = "El tipo es obligatorio.";
   if (!$direccion) $errors[] = "La dirección es obligatoria.";
@@ -86,39 +101,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   if (empty($errors)) {
     $imagenes_db = json_encode($gallery_images);
-    $usuario_id = $_SESSION['user_id']; // Usuario que crea o edita la propiedad
-    $fecha_hora = date('Y-m-d H:i:s'); // Fecha y hora actual
+    $documentos_db = json_encode($attached_docs);
+    $usuario_id = $_SESSION['user_id'];
+    $fecha_hora = date('Y-m-d H:i:s');
 
     if ($edit_id > 0) {
-      // Actualizar propiedad incluyendo usuario y fecha actual
-      $stmt = $pdo->prepare("UPDATE propiedades SET nombre=?, tipo=?, direccion=?, imagenes=?, galeria=?, local=?, precio=?, incluye_gc=?, gastos_comunes=?, estado=?, garantia=?, corredor=?, anep=?, contribucion_inmobiliaria=?, comentarios=?, usuario_id=?, fecha_modificacion=? WHERE id=?");
-      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios, $usuario_id, $fecha_hora, $edit_id]);
+      $stmt = $pdo->prepare("UPDATE propiedades SET nombre=?, tipo=?, direccion=?, imagenes=?, documentos=?, galeria=?, local=?, precio=?, incluye_gc=?, gastos_comunes=?, estado=?, garantia=?, corredor=?, anep=?, contribucion_inmobiliaria=?, comentarios=?, usuario_id=?, fecha_modificacion=? WHERE id=?");
+      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios, $usuario_id, $fecha_hora, $edit_id]);
       $message = "Propiedad actualizada correctamente.";
     } else {
-      // Insertar propiedad incluyendo usuario y fecha creación
-      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,galeria,local,precio,incluye_gc,gastos_comunes,estado,garantia,corredor,anep,contribucion_inmobiliaria,comentarios,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios, $usuario_id, $fecha_hora]);
+      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,documentos,galeria,local,precio,incluye_gc,gastos_comunes,estado,garantia,corredor,anep,contribucion_inmobiliaria,comentarios,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios, $usuario_id, $fecha_hora]);
       $message = "Propiedad creada correctamente.";
     }
     header("Location: propiedades.php?msg=" . urlencode($message));
     exit();
   } else {
-    $edit_data = [
-      'nombre' => $nombre,
-      'tipo' => $tipo,
-      'direccion' => $direccion,
-      'galeria' => $galeria,
-      'local' => $local,
-      'precio' => $precio,
-      'incluye_gc' => $incluye_gc,
-      'gastos_comunes' => $gastos_comunes,
-      'estado' => $estado,
-      'anep' => $anep,
-      'contribucion_inmobiliaria' => $contribucion_inmobiliaria,
-      'comentarios' => $comentarios,
-      'imagenes_arr' => $gallery_images,
-    ];
-    $edit_id = $edit_id;
+    $edit_data = compact('nombre', 'tipo', 'direccion', 'galeria', 'local', 'precio', 'incluye_gc', 'gastos_comunes', 'estado', 'garantia', 'corredor', 'anep', 'contribucion_inmobiliaria', 'comentarios');
+    $edit_data['imagenes_arr'] = $gallery_images;
+    $edit_data['documentos_arr'] = $attached_docs;
   }
 } else {
   $edit_data = null;
@@ -128,6 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $edit_data = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($edit_data) {
       $edit_data['imagenes_arr'] = json_decode($edit_data['imagenes'], true) ?: [];
+      $edit_data['documentos_arr'] = json_decode($edit_data['documentos'], true) ?: [];
     }
   }
 }
@@ -309,6 +311,23 @@ include 'includes/header_nav.php';
           </div>
         <?php endif; ?>
 
+        <div class="mb-3">
+          <label class="form-label">Documentos adjuntos</label>
+          <input type="hidden" name="existing_docs" id="existing_docs" value='<?= htmlspecialchars(json_encode($edit_data['documentos_arr'] ?? [])) ?>' />
+          <input type="file" name="documentos[]" multiple class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx" />
+        </div>
+
+        <?php if (!empty($edit_data['documentos_arr'])):?>
+          <div class="mb-3">
+            <label class="form-label">Documentos Adjuntos:</label>
+            <ul>
+              <?php foreach ($edit_data['documentos_arr'] as $doc):?>
+                <li><a href="uploads/<?= htmlspecialchars($doc)?>" target="_blank"><?= htmlspecialchars($doc)?></a></li>
+              <?php endforeach;?>
+            </ul>
+          </div>
+        <?php endif;?>
+
         <button type="submit" class="btn btn-primary fw-semibold"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
         <?php if ($edit_id): ?>
           <a href="propiedades.php" class="btn btn-outline-secondary ms-2">Cancelar</a>
@@ -337,7 +356,9 @@ include 'includes/header_nav.php';
                 <td>
                   <b><?= htmlspecialchars($p['nombre']) ?></b> (<?= htmlspecialchars($p['tipo']) ?>)<br>
                   <?= htmlspecialchars($p['direccion']) ?><br>
-                  <?= estado_label($p['estado']) ?> <small><nobr>$ <?= number_format($p['precio'], 2, ",", ".") ?></nobr></small>
+                  <?= estado_label($p['estado']) ?> <small>
+                    <nobr>$ <?= number_format($p['precio'], 2, ",", ".") ?></nobr>
+                  </small>
                 </td>
                 <td>
                   <?php if ($p['contrato_id'] && $p['inquilino_nombre']): ?>
