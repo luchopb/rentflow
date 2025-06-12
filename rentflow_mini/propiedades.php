@@ -359,16 +359,16 @@ include 'includes/header_nav.php';
               <tr>
                 <td>
                   <b><a href="propiedades.php?edit=<?= intval($p['id']) ?>" class="text-decoration-none text-dark">
-                    <?= htmlspecialchars($p['nombre']) ?></b> (<?= htmlspecialchars($p['tipo']) ?>)</a><br>
-                    <?= htmlspecialchars($p['direccion']) ?><br>
-                    <?= estado_label($p['estado']) ?> <small>
+                      <?= htmlspecialchars($p['nombre']) ?></b> (<?= htmlspecialchars($p['tipo']) ?>)</a><br>
+                  <?= htmlspecialchars($p['direccion']) ?><br>
+                  <?= estado_label($p['estado']) ?> <small>
                     <nobr>$ <?= number_format($p['precio'], 2, ",", ".") ?></nobr>
                   </small>
                 </td>
                 <td>
                   <?php if ($p['contrato_id'] && $p['inquilino_nombre']): ?>
-                    <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-dark">
-                      # <?= htmlspecialchars($p['contrato_id']) ?> <?= htmlspecialchars($p['inquilino_nombre']) ?>
+                    <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="text-decoration-none text-dark">
+                      <b><?= htmlspecialchars($p['inquilino_nombre']) ?></b>
                     </a><br>
                     <a href="pagos.php?contrato_id=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-success">
                       Ver Pagos
