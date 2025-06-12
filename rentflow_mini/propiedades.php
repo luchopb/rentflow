@@ -317,16 +317,21 @@ include 'includes/header_nav.php';
           <input type="file" name="documentos[]" multiple class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx" />
         </div>
 
-        <?php if (!empty($edit_data['documentos_arr'])):?>
-          <div class="mb-3">
-            <label class="form-label">Documentos Adjuntos:</label>
-            <ul>
-              <?php foreach ($edit_data['documentos_arr'] as $doc):?>
-                <li><a href="uploads/<?= htmlspecialchars($doc)?>" target="_blank"><?= htmlspecialchars($doc)?></a></li>
-              <?php endforeach;?>
+        <?php if (!empty($edit_data['documentos_arr'])): ?>
+          <div class="mb-3" id="doc-preview-container">
+            <label class="form-label">Documentos adjuntos</label>
+            <ul class="list-group">
+              <?php foreach ($edit_data['documentos_arr'] as $doc): ?>
+                <li class="list-group-item d-flex justify-content-between align-items-center" data-doc="<?= htmlspecialchars($doc) ?>">
+                  <a href="uploads/<?= htmlspecialchars($doc) ?>" target="_blank">
+                    <?= htmlspecialchars($doc) ?>
+                  </a>
+                  <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar documento" onclick="removeDoc('<?= htmlspecialchars($doc) ?>')">&times;</button>
+                </li>
+              <?php endforeach; ?>
             </ul>
           </div>
-        <?php endif;?>
+        <?php endif; ?>
 
         <button type="submit" class="btn btn-primary fw-semibold"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
         <?php if ($edit_id): ?>
@@ -347,16 +352,16 @@ include 'includes/header_nav.php';
             <tr>
               <th>Propiedad</th>
               <th>Contrato</th>
-              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             <?php foreach ($propiedades as $p): ?>
               <tr>
                 <td>
-                  <b><?= htmlspecialchars($p['nombre']) ?></b> (<?= htmlspecialchars($p['tipo']) ?>)<br>
-                  <?= htmlspecialchars($p['direccion']) ?><br>
-                  <?= estado_label($p['estado']) ?> <small>
+                  <b><a href="propiedades.php?edit=<?= intval($p['id']) ?>" class="text-decoration-none text-dark">
+                    <?= htmlspecialchars($p['nombre']) ?></b> (<?= htmlspecialchars($p['tipo']) ?>)</a><br>
+                    <?= htmlspecialchars($p['direccion']) ?><br>
+                    <?= estado_label($p['estado']) ?> <small>
                     <nobr>$ <?= number_format($p['precio'], 2, ",", ".") ?></nobr>
                   </small>
                 </td>
@@ -372,10 +377,10 @@ include 'includes/header_nav.php';
                     <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-success btn-sm" style="white-space: nowrap;">Crear contrato</a>
                   <?php endif; ?>
                 </td>
-                <td>
+                <!--<td>
                   <a href="propiedades.php?edit=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-primary me-1">Editar</a>
-                  <!--a href="propiedades.php?delete=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar esta propiedad?')">Eliminar</a-->
-                </td>
+                  <a href="propiedades.php?delete=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar esta propiedad?')">Eliminar</a>
+                </td>-->
               </tr>
             <?php endforeach; ?>
           </tbody>
@@ -393,6 +398,15 @@ include 'includes/header_nav.php';
     imgsValue = imgsValue.filter(i => i !== img);
     document.getElementById('existing_images').value = JSON.stringify(imgsValue);
     let elem = container.querySelector('[data-img="' + img + '"]');
+    if (elem) elem.remove();
+  }
+
+  function removeDoc(doc) {
+    let container = document.getElementById('doc-preview-container');
+    let docsValue = JSON.parse(document.getElementById('existing_docs').value);
+    docsValue = docsValue.filter(i => i !== doc);
+    document.getElementById('existing_docs').value = JSON.stringify(docsValue);
+    let elem = container.querySelector('[data-doc="' + doc + '"]');
     if (elem) elem.remove();
   }
 
