@@ -25,6 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $matricula = clean_input($_POST['matricula'] ?? '');
   $documentos_subidos = [];
 
+  // Documentos anteriores
+  $documentos_anteriores = json_decode($_POST['existing_docs'] ?? '[]', true);
+  if (!is_array($documentos_anteriores)) $documentos_anteriores = [];
+
   // Manejo archivos adjuntos documentos
   if (!empty($_FILES['documentos']['name'][0])) {
     $upload_dir = __DIR__ . '/uploads/';
@@ -46,26 +50,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (!$cedula) $errors[] = "La cédula de identidad es obligatoria.";
 
   if (empty($errors)) {
+    $todos_docs = array_merge($documentos_anteriores, $documentos_subidos);
+    $docs_json = json_encode($todos_docs);
+
     if (isset($_POST['edit_id']) && intval($_POST['edit_id']) > 0) {
       $edit_id = intval($_POST['edit_id']);
-      // Leer documentos anteriores para conservarlos y agregar nuevos
-      $stmt = $pdo->prepare("SELECT documentos FROM inquilinos WHERE id = ?");
-      $stmt->execute([$edit_id]);
-      $doc_ant = $stmt->fetchColumn();
-      $doc_ant_arr = json_decode($doc_ant, true);
-      if (!is_array($doc_ant_arr)) $doc_ant_arr = [];
-      $todos_docs = array_merge($doc_ant_arr, $documentos_subidos);
-      $docs_json = json_encode($todos_docs);
-
       $fecha_modificacion = date('Y-m-d H:i:s'); // Fecha y hora actual
       $stmt = $pdo->prepare("UPDATE inquilinos SET nombre=?, cedula=?, telefono=?, vehiculo=?, matricula=?, documentos=?, fecha_modificacion=? WHERE id=?");
       $stmt->execute([$nombre, $cedula, $telefono, $vehiculo, $matricula, $docs_json, $fecha_modificacion, $edit_id]);
       $message = "Inquilino actualizado correctamente.";
       $inquilino_id = $edit_id; // Set inquilino_id to the edited ID
     } else {
-      $docs_json = json_encode($documentos_subidos);
-      $usuario_id = $_SESSION['user_id']; // Usuario que crea el inquilino
-      $fecha_creacion = date('Y-m-d H:i:s'); // Fecha y hora actual
+      $usuario_id = $_SESSION['user_id'];
+      $fecha_creacion = date('Y-m-d H:i:s');
       $stmt = $pdo->prepare("INSERT INTO inquilinos (nombre, cedula, telefono, vehiculo, matricula, documentos, usuario_id, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
       $stmt->execute([$nombre, $cedula, $telefono, $vehiculo, $matricula, $docs_json, $usuario_id, $fecha_creacion]);
       $message = "Inquilino creado correctamente.";
@@ -82,6 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'telefono' => $telefono,
       'vehiculo' => $vehiculo,
       'matricula' => $matricula,
+      'documentos_arr' => array_merge($documentos_anteriores, $documentos_subidos)
     ];
     $edit_id = intval($_POST['edit_id'] ?? 0);
   }
@@ -89,7 +87,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $stmt = $pdo->prepare("SELECT * FROM inquilinos WHERE id = ?");
   $stmt->execute([$edit_id]);
   $edit_data = $stmt->fetch(PDO::FETCH_ASSOC);
-  if (!$edit_data) {
+  if ($edit_data) {
+    $edit_data['documentos_arr'] = json_decode($edit_data['documentos'], true) ?: [];
+  } else {
     $edit_id = 0;
     $edit_data = null;
   }
@@ -134,6 +134,7 @@ include 'includes/header_nav.php';
       <h3><?= $edit_id ? "Editar Inquilino" : "Nuevo Inquilino" ?></h3>
       <form method="POST" enctype="multipart/form-data" novalidate>
         <input type="hidden" name="edit_id" value="<?= $edit_id ?: '' ?>" />
+        <input type="hidden" name="existing_docs" id="existing_docs" value='<?= htmlspecialchars(json_encode($edit_data['documentos_arr'] ?? [])) ?>' />
 
         <div class="mb-3">
           <label for="nombre" class="form-label">Nombre *</label>
@@ -158,23 +159,24 @@ include 'includes/header_nav.php';
 
         <div class="mb-3">
           <label for="documentos" class="form-label">Adjuntar Documentos</label>
-          <input type="file" name="documentos[]" multiple class="form-control" />
+          <input type="file" name="documentos[]" multiple class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx" />
         </div>
 
-        <?php if (!empty($edit_data['documentos'])):
-          $documentos = json_decode($edit_data['documentos'], true);
-          if (is_array($documentos) && count($documentos) > 0):
-        ?>
-            <div class="mb-3">
-              <label class="form-label">Documentos Adjuntos:</label>
-              <ul>
-                <?php foreach ($documentos as $doc): ?>
-                  <li><a href="uploads/<?= htmlspecialchars($doc) ?>" target="_blank"><?= htmlspecialchars($doc) ?></a></li>
-                <?php endforeach; ?>
-              </ul>
-            </div>
-        <?php endif;
-        endif; ?>
+        <?php if (!empty($edit_data['documentos_arr'])): ?>
+          <div class="mb-3" id="doc-preview-container">
+            <label class="form-label">Documentos adjuntos</label>
+            <ul class="list-group">
+              <?php foreach ($edit_data['documentos_arr'] as $doc): ?>
+                <li class="list-group-item d-flex justify-content-between align-items-center" data-doc="<?= htmlspecialchars($doc) ?>">
+                  <a href="uploads/<?= htmlspecialchars($doc) ?>" target="_blank">
+                    <?= htmlspecialchars($doc) ?>
+                  </a>
+                  <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar documento" onclick="removeDoc('<?= htmlspecialchars($doc) ?>')">&times;</button>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+          </div>
+        <?php endif; ?>
 
         <button type="submit" class="btn btn-primary fw-semibold"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
         <?php if ($edit_id): ?>
@@ -223,6 +225,15 @@ include 'includes/header_nav.php';
   const toggleBtnInquilino = document.querySelector('button[data-bs-target="#formInquilinoCollapse"]');
   collapseInquilino.addEventListener('show.bs.collapse', () => toggleBtnInquilino.textContent = 'Ocultar');
   collapseInquilino.addEventListener('hide.bs.collapse', () => toggleBtnInquilino.textContent = 'Agregar Nuevo Inquilino');
+
+  function removeDoc(doc) {
+    let container = document.getElementById('doc-preview-container');
+    let docsValue = JSON.parse(document.getElementById('existing_docs').value);
+    docsValue = docsValue.filter(i => i !== doc);
+    document.getElementById('existing_docs').value = JSON.stringify(docsValue);
+    let elem = container.querySelector('[data-doc="' + doc + '"]');
+    if (elem) elem.remove();
+  }
 </script>
 
 <?php
