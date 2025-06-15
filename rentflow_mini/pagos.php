@@ -85,9 +85,9 @@ include 'includes/header_nav.php';
 
   <h1>Pagos</h1>
   <p>
-    Contrato: <a href="contratos.php?edit=<?= $row['id'] ?>" class="text-decoration-none text-dark"><strong>#<?= $contrato_id?></strong></a><br>
-    Inquilino: <a href="inquilinos.php?edit=<?= intval($p['inquilino_id']) ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['inquilino_nombre']) ?></strong></a><br>
-    Propiedad: <a href="propiedades.php?edit=<?= htmlspecialchars($edit_data['propiedad_id'] ?? '') ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['propiedad_nombre']) ?></strong></a>
+    Contrato: <a href="contratos.php?edit=<?= $contrato['id'] ?>" class="text-decoration-none text-dark"><strong>#<?= $contrato_id?></strong></a><br>
+    Inquilino: <a href="inquilinos.php?edit=<?= intval($contrato['inquilino_id']) ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['inquilino_nombre']) ?></strong></a><br>
+    Propiedad: <a href="propiedades.php?edit=<?= htmlspecialchars($contrato['propiedad_id'] ?? '') ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['propiedad_nombre']) ?></strong></a>
   </p>
 
   <?php if ($message): ?>
