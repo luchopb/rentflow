@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost:3306
--- Tiempo de generación: 11-06-2025 a las 13:53:57
+-- Tiempo de generación: 15-06-2025 a las 15:55:05
 -- Versión del servidor: 5.7.23-23
 -- Versión de PHP: 8.1.32
 
@@ -51,14 +51,14 @@ CREATE TABLE IF NOT EXISTS `contratos` (
 --
 
 INSERT INTO `contratos` (`id`, `inquilino_id`, `propiedad_id`, `fecha_inicio`, `fecha_fin`, `importe`, `garantia`, `corredor`, `estado`, `documentos`, `usuario_id`, `fecha_creacion`, `fecha_modificacion`) VALUES
-(1, 1, 1, '2025-01-01', '2026-02-01', 9000.00, NULL, NULL, 'activo', NULL, 0, NULL, NULL),
+(1, 1, 1, '2025-01-01', '2026-02-01', 9000.00, '0', '0', 'activo', '[\"684e1726ae786-Local10Sol Documentos P\\u00f3liza GA091654.pdf\"]', 0, NULL, NULL),
 (2, 2, 2, '2025-01-01', '2026-02-01', 7500.00, NULL, NULL, 'activo', NULL, 0, NULL, NULL),
 (3, 3, 3, '2025-01-01', '2026-02-01', 7500.00, NULL, NULL, 'activo', NULL, 0, NULL, NULL),
 (4, 4, 4, '2024-08-15', '2025-08-14', 12100.00, '0', '0', 'activo', '[\"68490635634b3-POLIZA CONTRATO LOCAL 21 DEL SOL SOFIA GARCIA.pdf\"]', 0, NULL, NULL),
 (5, 6, 6, '2025-01-01', '2026-02-01', 9500.00, NULL, NULL, 'activo', NULL, 0, NULL, NULL),
 (6, 7, 7, '2025-01-01', '2026-02-01', 7500.00, NULL, NULL, 'activo', NULL, 0, NULL, NULL),
 (7, 8, 8, '2025-01-01', '2026-02-01', 8000.00, NULL, NULL, 'activo', NULL, 0, NULL, NULL),
-(8, 10, 10, '2025-01-01', '2026-02-01', 9000.00, NULL, NULL, 'activo', NULL, 0, NULL, NULL),
+(8, 10, 10, '2025-01-01', '2026-02-01', 9000.00, '0', '0', 'activo', '[\"6849e3efc1d83-Local 35 Gal Americas Sub Contrato Alqui.pdf\"]', 0, NULL, NULL),
 (9, 11, 11, '2025-01-01', '2026-02-01', 11000.00, NULL, NULL, 'activo', NULL, 0, NULL, NULL),
 (10, 12, 12, '2025-01-01', '2026-02-01', 6500.00, NULL, NULL, 'activo', NULL, 0, NULL, NULL),
 (11, 13, 13, '2025-01-01', '2026-02-01', 7862.00, NULL, NULL, 'activo', NULL, 0, NULL, NULL),
@@ -157,7 +157,7 @@ INSERT INTO `inquilinos` (`id`, `nombre`, `cedula`, `telefono`, `vehiculo`, `mat
 (44, 'Cristina', '', '094106036', 'Suzuki', '', '', 0, NULL, NULL),
 (47, 'Camila (inquilino lucho)', '', '', '', '', '[]', 1, '2025-06-09 19:55:22', '2025-06-09 19:57:58'),
 (48, 'Guerrero A Alexis Joel', '', '', '', '', '[]', 1, '2025-06-10 07:54:11', NULL),
-(49, 'Magela Mendioroz', '12383159', '099609630', '', '', '[\"6848ff672b302-CEDULA MAGELA DORSO.jpg\",\"6848ff672b4e0-CEDULA MAGELA FRENTE.jpg\",\"6848ff672b5e5-RECIBO DE SUELDO 04-2025.jpg\",\"6848ff672b745-RECIBOS DE SUELDO 1.jpg\",\"6848ff672b87e-RECIBOS DE SUELDO 05-2025.jpg\",\"6848ffa92fcf1-CEDULA MAGELA DORSO.jpg\",\"6848ffa92ff31-CEDULA MAGELA FRENTE.jpg\",\"6848ffa9300be-RECIBO DE SUELDO 04-2025.jpg\",\"6848ffa930217-RECIBOS DE SUELDO 1.jpg\",\"6848ffa93035a-RECIBOS DE SUELDO 05-2025.jpg\"]', 2, '2025-06-10 23:00:01', '2025-06-10 23:01:45'),
+(49, 'Magela Mendioroz', '12383159', '099609630', '', '', '[\"6848ff672b302-CEDULA MAGELA DORSO.jpg\",\"6848ff672b4e0-CEDULA MAGELA FRENTE.jpg\",\"6848ff672b5e5-RECIBO DE SUELDO 04-2025.jpg\",\"6848ff672b745-RECIBOS DE SUELDO 1.jpg\",\"6848ff672b87e-RECIBOS DE SUELDO 05-2025.jpg\",\"6848ffa92fcf1-CEDULA MAGELA DORSO.jpg\",\"6848ffa92ff31-CEDULA MAGELA FRENTE.jpg\",\"6848ffa9300be-RECIBO DE SUELDO 04-2025.jpg\",\"6848ffa930217-RECIBOS DE SUELDO 1.jpg\",\"6848ffa93035a-RECIBOS DE SUELDO 05-2025.jpg\"]', 2, '2025-06-10 23:00:01', '2025-06-11 14:12:09'),
 (50, 'Maria Viviana Perez Bandera', '38284692', '094477007', '', '', '[]', 2, '2025-06-11 00:05:35', NULL);
 
 -- --------------------------------------------------------
@@ -181,7 +181,7 @@ CREATE TABLE IF NOT EXISTS `pagos` (
   `comprobante` text COLLATE utf8_unicode_ci,
   `pagado` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=81 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=84 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- Volcado de datos para la tabla `pagos`
@@ -267,7 +267,10 @@ INSERT INTO `pagos` (`id`, `contrato_id`, `periodo`, `mes`, `anio`, `fecha`, `fe
 (77, 50, '2026-04', 4, 2026, '2026-04-01', NULL, NULL, 'Debe', -18000, '', NULL, 0),
 (78, 50, '2026-05', 5, 2026, '2026-05-01', NULL, NULL, 'Debe', -18000, '', NULL, 0),
 (79, 50, '2026-06', 6, 2026, '2026-06-01', NULL, NULL, 'Debe', -18000, '', NULL, 0),
-(80, 50, '2025-05', NULL, NULL, '2025-06-11', NULL, NULL, 'Pago mensual', 32154, '$ 18 Abril + $ 18 Mayo - $ 3.846 Contribucion Inmobiliaria = $ 32.154.- para quedar al dia', '68490f58e6cf6-PAGO ALQUILER ABRIL Y MAYO 2025 IMPRENTA.jpg', NULL);
+(80, 50, '2025-05', NULL, NULL, '2025-06-11', NULL, NULL, 'Pago mensual', 32154, '$ 18 Abril + $ 18 Mayo - $ 3.846 Contribucion Inmobiliaria = $ 32.154.- para quedar al dia', '68490f58e6cf6-PAGO ALQUILER ABRIL Y MAYO 2025 IMPRENTA.jpg', NULL),
+(81, 8, '2025-05', NULL, NULL, '2025-06-11', NULL, NULL, 'Pago mensual', 9000, 'Sub contrato nuevo inquilino', '6849e3976dae7-Local 35 Gal Americas Sub Contrato Alqui.pdf', NULL),
+(82, 19, '2025-06', NULL, NULL, '2025-06-14', NULL, NULL, 'Pago mensual', 3600, 'Raúl avisa por wpp ', '684e14365a2aa-IMG_1737.jpeg', NULL),
+(83, 36, '2025-06', NULL, NULL, '2025-06-15', NULL, NULL, 'Pago mensual', 2500, 'Avisa Raúl por wpp', '684ee64835229-IMG_1742.jpeg', NULL);
 
 -- --------------------------------------------------------
 
@@ -295,6 +298,7 @@ CREATE TABLE IF NOT EXISTS `propiedades` (
   `fecha_creacion` datetime DEFAULT NULL,
   `fecha_modificacion` datetime DEFAULT NULL,
   `imagenes` text COLLATE utf8_unicode_ci NOT NULL,
+  `documentos` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_usuario_id` (`usuario_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -303,55 +307,55 @@ CREATE TABLE IF NOT EXISTS `propiedades` (
 -- Volcado de datos para la tabla `propiedades`
 --
 
-INSERT INTO `propiedades` (`id`, `nombre`, `tipo`, `direccion`, `galeria`, `local`, `precio`, `incluye_gc`, `gastos_comunes`, `estado`, `garantia`, `corredor`, `anep`, `contribucion_inmobiliaria`, `comentarios`, `usuario_id`, `fecha_creacion`, `fecha_modificacion`, `imagenes`) VALUES
-(1, 'Galeria del Sol Local 10', 'Local', 'Galeria del Sol', 'Galeria del Sol', 'Local 10', 9000.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado a \"Patricia\" en $9000', 0, NULL, NULL, ''),
-(2, 'Galeria del Sol Local 13', 'Local', 'Galeria del Sol', 'Galeria del Sol', 'Local 13', 7500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'solo dice &quot;Carolina&quot; $7500 mas gastos comunes. por otro lado aprovecho para comentarte lo siguiente: yo estuve comentándole a Raul que la empresa no tuvo andamiento, por lo tanto no estoy yendo al local, se me esta dificultando poder pagar el alquiler, hay alguna forma de poder rescindir el contrato aunque sea pagando multa?\r\ntambien podria ser traspaso del alquiler, pero yo no consigo alguien que quiera alquilar, si ustedes saben de alguien o si lo publican y esto les lleva gastos de comision o los que sea yo me hago cargo de los mismos. Te agradezco tu ayuda. Saludos. Carolina.', 1, NULL, '2025-06-10 10:57:03', '[]'),
-(3, 'Galeria del Sol Local 18', 'Local', 'Galeria del Sol', 'Galeria del Sol', 'Local 18', 7500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'Local \"Libre\" $7500 mas gastos comunes', 0, NULL, NULL, ''),
-(4, 'Galeria del Sol Local 21', 'Local', 'Galeria del Sol', 'Galeria del Sol', 'Local 21', 12100.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'Alquilado a \"Sofia\" en $12100 gastos comunes incluidos', 0, NULL, NULL, ''),
-(5, 'Galeria del Sol Local 23', 'Local', 'Galeria del Sol', 'Galeria del Sol', 'Local 23', 9000.00, 0, 0.00, 'libre', 0.00, '', '', 0.00, 'Local \"Libre\" $9000 mas gastos comunes tiene agua e instalacion de peluqueria ', 0, NULL, NULL, ''),
-(6, 'Galeria del Sol Local 27', 'Local', 'Galeria del Sol', 'Galeria del Sol', 'Local 27', 9500.00, 0, 4110.00, 'alquilado', 0.00, '', '', 0.00, 'Alquilado a \"Marcia\" , garantia de porto $9500 mas $4110 de gastos counes  mas impuestos', 0, NULL, NULL, ''),
-(7, 'Galeria de las Americas Local 5', 'Local', 'Galeria de las Americas', 'Galeria de las Americas', 'Local 5', 7500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado juan polvora ( el tatuador) alquiler $7500 lo paga efectivo en mi local a mes vencido mas gastos comunes', 0, NULL, NULL, ''),
-(8, 'Galeria de las Americas Local 10', 'Local', 'Galeria de las Americas', 'Galeria de las Americas', 'Local 10', 8000.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alqulado EXAFIX sin garantia contrato de palabra con raulito alquiler $8000 paga efectivo en mi local paga a mes corriente , mas gastos comunes e impuestos', 0, NULL, NULL, ''),
-(9, 'Galeria de las Americas Local 31B ', 'Local', 'Galeria de las Americas', 'Galeria de las Americas', 'Local 31B ', 6500.00, 0, 0.00, 'libre', 0.00, '', '', 0.00, 'esta libre , es un local chiquito que papa dividio su oficina y lo alquila $6500 luz y gastos comunes incluidos', 0, NULL, NULL, ''),
-(10, 'Galeria de las Americas Local 35', 'Local', 'Galeria de las Americas', 'Galeria de las Americas', 'Local 35', 9000.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado a Yasmani y Sheylan alquiler $9000 mas gastos comunes e impuestos', 0, NULL, NULL, ''),
-(11, 'Galeria de las Americas Local 103', 'Local', 'Galeria de las Americas', 'Galeria de las Americas', 'Local 103', 11000.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado a \"Claudia\" $11000 mas gastos comunes e impuestos garantia ANDA y anda deposita en cta brou de papa', 0, NULL, NULL, ''),
-(12, 'Galeria de las Americas Local 105', 'Local', 'Galeria de las Americas', 'Galeria de las Americas', 'Local 105', 6500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado a Elvis en $6500 mas gastos comunes ,deposita a papa en BROU', 0, NULL, NULL, ''),
-(13, 'Galeria de las Americas Local 106', 'Local', 'Galeria de las Americas', 'Galeria de las Americas', 'Local 106', 7862.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado a Juan Carlos Petit tel 099244504 en $7862', 0, NULL, NULL, ''),
-(14, 'Torre Maldonado Local 030', 'Local', 'Torre Maldonado', 'Torre Maldonado', 'Local 030', 5500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado a \"Mariana\" 094511313 , garantia de porto $5500 gastos comunes inlcuidos pq son muy baratos paga en brou a papa', 0, NULL, NULL, ''),
-(15, 'Galeria Cristal Local 39', 'Local', 'Galeria Cristal', 'Galeria Cristal', 'Local 39', 7000.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado a \"Elsa\" 094800635 $7000', 0, NULL, NULL, ''),
-(16, 'Local Figueroa Local 6', 'Local', 'Local Figueroa', '', 'Local 6', 0.00, 0, 0.00, 'libre', 0.00, '', '', 0.00, 'es el local 6 esta vacio', 0, NULL, NULL, ''),
-(17, 'Galeria Entrevero Local 7 / 8', 'Local', 'Galeria Entrevero', 'Galeria Entrevero', 'Local 7 / 8', 10000.00, 0, 4400.00, 'alquilado', 0.00, '', '', 0.00, '', 2, NULL, '2025-06-10 23:11:06', '[\"684901da10d77.jpeg\",\"684901da1100e.jpeg\",\"684901da11198.jpeg\",\"684901da112d2.jpeg\",\"684901da113e1.jpeg\",\"684901da115c2.jpeg\"]'),
-(18, 'Galeria Entrevero Local 41', 'Local', 'Galeria Entrevero', 'Galeria Entrevero', 'Local 41', 9100.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado a \"nails\" ', 0, NULL, NULL, ''),
-(19, 'Local Rondeau ', 'Local', 'Local Rondeau ', '', 'Local Rondeau ', 0.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'Local a medias C/ R Jr , el inquilino paga $40.000 a cta a medias', 0, NULL, NULL, ''),
-(20, 'Villa Serrana', 'Apto', 'Villa Serrana', '', 'Villa Serrana', 0.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'casa a medias c/R Jr actualmente alquilada a punto de terminar contrato paga $12000 deposita en cuenta a medias', 0, NULL, NULL, ''),
-(21, 'Apto 116B PDE', 'Apto', 'Apto 116B PDE', '', 'Apto 116B PDE', 0.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'local a medias c/ R Jr actualmente alquilado a \"porte?o\"\" tiene una deuda congelada q paga el titulas y el alquiler lo paga el \"inquilino\" mes a mes', 0, NULL, NULL, ''),
-(22, 'Apto Galeria Caracol', 'Apto', 'Apto Galeria Caracol', 'Galeria Caracol', 'Apto Galeria Caracol', 0.00, 0, 0.00, 'en venta', 0.00, '', '', 0.00, ' es de uso propio ', 0, NULL, NULL, ''),
-(23, 'Bolo 01', 'Cochera', 'Bolo', '', '', 0.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, ''),
-(24, 'Bolo 02', 'Cochera', 'Bolo', '', '', 3600.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, ''),
-(25, 'Bolo 03', 'Cochera', 'Bolo', '', '', 3400.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, ''),
-(26, 'Bolo 04', 'Cochera', 'Bolo', '', '', 3200.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, ''),
-(27, 'Bolo 05', 'Cochera', 'Bolo', '', '', 3400.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, ''),
-(28, 'Bolo 06', 'Cochera', 'Bolo', '', '', 4300.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, ''),
-(29, 'Bolo 07', 'Cochera', 'Bolo', '', '', 3600.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, ''),
-(30, 'Bolo 08', 'Cochera', 'Bolo', '', '', 2500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, ''),
-(31, 'Bolo 09', 'Cochera', 'Bolo', '', '', 4200.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, ''),
-(32, 'Bolo 10', 'Cochera', 'Bolo', '', '', 3600.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, ''),
-(33, 'Bolo Apto', 'Apto', 'Bolo', '', 'Apartamento', 0.00, 0, 0.00, 'libre', 0.00, '', '', 0.00, '', 0, NULL, NULL, ''),
-(34, 'Bolo Moto', 'Cochera', 'Bolo', '', '', 1500.00, 0, 0.00, 'alquilado', 0.00, '', '7/5 brou', 0.00, '', 0, NULL, NULL, ''),
-(35, 'Deposito GA', 'Deposito', 'Galeria de las Americas', 'Galeria de las Americas', 'D1', 6200.00, 0, 0.00, 'alquilado', 0.00, '', '2/5 brou', 0.00, '', 0, NULL, NULL, ''),
-(36, 'Tmal', 'Local', 'Terminal', 'Terminal', 'Local 030', 5500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, ''),
-(37, 'dc2', 'Cochera', 'Dionisio Coronel', '', '', 2400.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, ''),
-(38, 'dc3', 'Cochera', 'Dionisio Coronel', '', '', 2500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, ''),
-(39, 'dc4', 'Cochera', 'Dionisio Coronel', '', '', 2500.00, 0, 0.00, 'alquilado', 0.00, '13/5 sob', '13/5 sob', 0.00, '', 0, NULL, NULL, ''),
-(40, 'dc5', 'Cochera', 'Dionisio Coronel', '', '', 0.00, 0, 0.00, 'libre', 0.00, '', '', 0.00, '', 0, NULL, NULL, ''),
-(41, 'dc6', 'Cochera', 'Dionisio Coronel', '', '', 2600.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, ''),
-(42, 'dc7', 'Cochera', 'Dionisio Coronel', '', '', 2500.00, 0, 0.00, 'alquilado', 0.00, '', '7/5 sob', 0.00, '', 0, NULL, NULL, ''),
-(43, 'dc9', 'Cochera', 'Dionisio Coronel', '', '', 0.00, 0, 0.00, 'uso propio', 0.00, '', '', 0.00, '', 0, NULL, NULL, ''),
-(44, 'dc10', 'Cochera', 'Dionisio Coronel', '', '', 2500.00, 0, 0.00, 'alquilado', 0.00, '', '13/5 sob', 0.00, '', 0, NULL, NULL, ''),
-(48, 'Elysee local 11 Lucho', 'Local', 'Elysee', 'Elysee', '11', 6500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 1, '2025-06-09 19:35:42', '2025-06-10 09:40:40', '[]'),
-(49, 'Ruperto Pérez Martínez', 'Apartamento', 'Ruperto perez martinez 547', '', '', 32705.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 1, '2025-06-10 07:53:27', NULL, '[]'),
-(50, 'Bolognese Local Completo', 'Cochera', 'Bolognese', '', '', 31110.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 1, '2025-06-10 11:04:11', '2025-06-10 11:23:19', '[]'),
-(51, 'Imprenta', 'Local', 'Cerrito 564', '', '', 18000.00, 1, 0.00, 'alquilado', 0.00, '', '6373802', 228933.00, 'DEL PRECIO DEL ALQUILER SE DESCUENTA ANEP Y CONTRIBUCION.\r\nPADRÓN N° 3350', 2, '2025-06-11 00:04:37', '2025-06-11 00:07:18', '[]');
+INSERT INTO `propiedades` (`id`, `nombre`, `tipo`, `direccion`, `galeria`, `local`, `precio`, `incluye_gc`, `gastos_comunes`, `estado`, `garantia`, `corredor`, `anep`, `contribucion_inmobiliaria`, `comentarios`, `usuario_id`, `fecha_creacion`, `fecha_modificacion`, `imagenes`, `documentos`) VALUES
+(1, 'Galeria del Sol Local 10', 'Local', 'Galeria del Sol', 'Galeria del Sol', 'Local 10', 9000.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado a \"Patricia\" en $9000', 0, NULL, NULL, '', ''),
+(2, 'Galeria del Sol Local 13', 'Local', 'Galeria del Sol', 'Galeria del Sol', 'Local 13', 7500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'solo dice &quot;Carolina&quot; $7500 mas gastos comunes. por otro lado aprovecho para comentarte lo siguiente: yo estuve comentándole a Raul que la empresa no tuvo andamiento, por lo tanto no estoy yendo al local, se me esta dificultando poder pagar el alquiler, hay alguna forma de poder rescindir el contrato aunque sea pagando multa?\r\ntambien podria ser traspaso del alquiler, pero yo no consigo alguien que quiera alquilar, si ustedes saben de alguien o si lo publican y esto les lleva gastos de comision o los que sea yo me hago cargo de los mismos. Te agradezco tu ayuda. Saludos. Carolina.', 1, NULL, '2025-06-10 10:57:03', '[]', ''),
+(3, 'Galeria del Sol Local 18', 'Local', 'Galeria del Sol', 'Galeria del Sol', 'Local 18', 7500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'Local \"Libre\" $7500 mas gastos comunes', 0, NULL, NULL, '', ''),
+(4, 'Galeria del Sol Local 21', 'Local', 'Galeria del Sol', 'Galeria del Sol', 'Local 21', 12100.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'Alquilado a \"Sofia\" en $12100 gastos comunes incluidos', 0, NULL, NULL, '', ''),
+(5, 'Galeria del Sol Local 23', 'Local', 'Galeria del Sol', 'Galeria del Sol', 'Local 23', 9000.00, 0, 0.00, 'libre', 0.00, '', '', 0.00, 'Local \"Libre\" $9000 mas gastos comunes tiene agua e instalacion de peluqueria ', 0, NULL, NULL, '', ''),
+(6, 'Galeria del Sol Local 27', 'Local', 'Galeria del Sol', 'Galeria del Sol', 'Local 27', 9500.00, 0, 4110.00, 'alquilado', 0.00, '', '', 0.00, 'Alquilado a \"Marcia\" , garantia de porto $9500 mas $4110 de gastos counes  mas impuestos', 0, NULL, NULL, '', ''),
+(7, 'Galeria de las Americas Local 5', 'Local', 'Galeria de las Americas', 'Galeria de las Americas', 'Local 5', 7500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado juan polvora ( el tatuador) alquiler $7500 lo paga efectivo en mi local a mes vencido mas gastos comunes', 0, NULL, NULL, '', ''),
+(8, 'Galeria de las Americas Local 10', 'Local', 'Galeria de las Americas', 'Galeria de las Americas', 'Local 10', 8000.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alqulado EXAFIX sin garantia contrato de palabra con raulito alquiler $8000 paga efectivo en mi local paga a mes corriente , mas gastos comunes e impuestos', 0, NULL, NULL, '', ''),
+(9, 'Galeria de las Americas Local 31B ', 'Local', 'Galeria de las Americas', 'Galeria de las Americas', 'Local 31B ', 6500.00, 0, 0.00, 'libre', 0.00, '', '', 0.00, 'esta libre , es un local chiquito que papa dividio su oficina y lo alquila $6500 luz y gastos comunes incluidos', 0, NULL, NULL, '', ''),
+(10, 'Galeria de las Americas Local 35', 'Local', 'Galeria de las Americas', 'Galeria de las Americas', 'Local 35', 9000.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado a Yasmani y Sheylan alquiler $9000 mas gastos comunes e impuestos', 1, NULL, '2025-06-11 15:21:02', '[\"6849e52e875cf.png\"]', ''),
+(11, 'Galeria de las Americas Local 103', 'Local', 'Galeria de las Americas', 'Galeria de las Americas', 'Local 103', 11000.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado a \"Claudia\" $11000 mas gastos comunes e impuestos garantia ANDA y anda deposita en cta brou de papa', 0, NULL, NULL, '', ''),
+(12, 'Galeria de las Americas Local 105', 'Local', 'Galeria de las Americas', 'Galeria de las Americas', 'Local 105', 6500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado a Elvis en $6500 mas gastos comunes ,deposita a papa en BROU', 0, NULL, NULL, '', ''),
+(13, 'Galeria de las Americas Local 106', 'Local', 'Galeria de las Americas', 'Galeria de las Americas', 'Local 106', 7862.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado a Juan Carlos Petit tel 099244504 en $7862', 0, NULL, NULL, '', ''),
+(14, 'Torre Maldonado Local 030', 'Local', 'Torre Maldonado', 'Torre Maldonado', 'Local 030', 5500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado a \"Mariana\" 094511313 , garantia de porto $5500 gastos comunes inlcuidos pq son muy baratos paga en brou a papa', 0, NULL, NULL, '', ''),
+(15, 'Galeria Cristal Local 39', 'Local', 'Galeria Cristal', 'Galeria Cristal', 'Local 39', 7000.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado a \"Elsa\" 094800635 $7000', 0, NULL, NULL, '', ''),
+(16, 'Local Figueroa Local 6', 'Local', 'Local Figueroa', '', 'Local 6', 0.00, 0, 0.00, 'libre', 0.00, '', '', 0.00, 'es el local 6 esta vacio', 0, NULL, NULL, '', ''),
+(17, 'Galeria Entrevero Local 7 / 8', 'Local', 'Galeria Entrevero', 'Galeria Entrevero', 'Local 7 / 8', 10000.00, 0, 4400.00, 'alquilado', 0.00, '', '', 0.00, '', 2, NULL, '2025-06-10 23:11:06', '[\"684901da10d77.jpeg\",\"684901da1100e.jpeg\",\"684901da11198.jpeg\",\"684901da112d2.jpeg\",\"684901da113e1.jpeg\",\"684901da115c2.jpeg\"]', ''),
+(18, 'Galeria Entrevero Local 41', 'Local', 'Galeria Entrevero', 'Galeria Entrevero', 'Local 41', 9100.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'alquilado a \"nails\" ', 0, NULL, NULL, '', ''),
+(19, 'Local Rondeau ', 'Local', 'Local Rondeau ', '', 'Local Rondeau ', 0.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'Local a medias C/ R Jr , el inquilino paga $40.000 a cta a medias', 0, NULL, NULL, '', ''),
+(20, 'Villa Serrana', 'Apto', 'Villa Serrana', '', 'Villa Serrana', 0.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'casa a medias c/R Jr actualmente alquilada a punto de terminar contrato paga $12000 deposita en cuenta a medias', 0, NULL, NULL, '', ''),
+(21, 'Apto 116B PDE', 'Apto', 'Apto 116B PDE', '', 'Apto 116B PDE', 0.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'local a medias c/ R Jr actualmente alquilado a \"porte?o\"\" tiene una deuda congelada q paga el titulas y el alquiler lo paga el \"inquilino\" mes a mes', 0, NULL, NULL, '', ''),
+(22, 'Apto Galeria Caracol', 'Apto', 'Apto Galeria Caracol', 'Galeria Caracol', 'Apto Galeria Caracol', 0.00, 0, 0.00, 'en venta', 0.00, '', '', 0.00, ' es de uso propio ', 0, NULL, NULL, '', ''),
+(23, 'Bolo 01', 'Cochera', 'Bolo', '', '', 0.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, '', ''),
+(24, 'Bolo 02', 'Cochera', 'Bolo', '', '', 3600.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, '', ''),
+(25, 'Bolo 03', 'Cochera', 'Bolo', '', '', 3400.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, '', ''),
+(26, 'Bolo 04', 'Cochera', 'Bolo', '', '', 3200.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, '', ''),
+(27, 'Bolo 05', 'Cochera', 'Bolo', '', '', 3400.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, '', ''),
+(28, 'Bolo 06', 'Cochera', 'Bolo', '', '', 4300.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, '', ''),
+(29, 'Bolo 07', 'Cochera', 'Bolo', '', '', 3600.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, '', ''),
+(30, 'Bolo 08', 'Cochera', 'Bolo', '', '', 2500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, '', ''),
+(31, 'Bolo 09', 'Cochera', 'Bolo', '', '', 4200.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, '', ''),
+(32, 'Bolo 10', 'Cochera', 'Bolo', '', '', 3600.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, '', ''),
+(33, 'Bolo Apto', 'Apto', 'Bolo', '', 'Apartamento', 0.00, 0, 0.00, 'libre', 0.00, '', '', 0.00, '', 0, NULL, NULL, '', ''),
+(34, 'Bolo Moto', 'Cochera', 'Bolo', '', '', 1500.00, 0, 0.00, 'alquilado', 0.00, '', '7/5 brou', 0.00, '', 0, NULL, NULL, '', ''),
+(35, 'Deposito GA', 'Deposito', 'Galeria de las Americas', 'Galeria de las Americas', 'D1', 6200.00, 0, 0.00, 'alquilado', 0.00, '', '2/5 brou', 0.00, '', 0, NULL, NULL, '', ''),
+(36, 'Tmal', 'Local', 'Terminal', 'Terminal', 'Local 030', 5500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, '', ''),
+(37, 'dc2', 'Cochera', 'Dionisio Coronel', '', '', 2400.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, '', ''),
+(38, 'dc3', 'Cochera', 'Dionisio Coronel', '', '', 2500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, '', ''),
+(39, 'dc4', 'Cochera', 'Dionisio Coronel', '', '', 2500.00, 0, 0.00, 'alquilado', 0.00, '13/5 sob', '13/5 sob', 0.00, '', 0, NULL, NULL, '', ''),
+(40, 'dc5', 'Cochera', 'Dionisio Coronel', '', '', 0.00, 0, 0.00, 'libre', 0.00, '', '', 0.00, '', 0, NULL, NULL, '', ''),
+(41, 'dc6', 'Cochera', 'Dionisio Coronel', '', '', 2600.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 0, NULL, NULL, '', ''),
+(42, 'dc7', 'Cochera', 'Dionisio Coronel', '', '', 2500.00, 0, 0.00, 'alquilado', 0.00, '', '7/5 sob', 0.00, '', 0, NULL, NULL, '', ''),
+(43, 'dc9', 'Cochera', 'Dionisio Coronel', '', '', 0.00, 0, 0.00, 'uso propio', 0.00, '', '', 0.00, '', 0, NULL, NULL, '', ''),
+(44, 'dc10', 'Cochera', 'Dionisio Coronel', '', '', 2500.00, 0, 0.00, 'alquilado', 0.00, '', '13/5 sob', 0.00, '', 0, NULL, NULL, '', ''),
+(48, 'Elysee local 11 Lucho', 'Local', 'Elysee', 'Elysee', '11', 6500.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, 'Tributos domiciliarios cuenta 659818\r\nContribución inmobiliaria cuenta 2036342', 1, '2025-06-09 19:35:42', '2025-06-14 19:39:43', '[]', '[\"doc_684ae16402f5f.jpeg\",\"doc_684ae16403bf5.jpeg\"]'),
+(49, 'Ruperto Pérez Martínez', 'Apartamento', 'Ruperto perez martinez 547', '', '', 32705.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 1, '2025-06-10 07:53:27', NULL, '[]', ''),
+(50, 'Bolognese Local Completo', 'Cochera', 'Bolognese', '', '', 31110.00, 0, 0.00, 'alquilado', 0.00, '', '', 0.00, '', 1, '2025-06-10 11:04:11', '2025-06-10 11:23:19', '[]', ''),
+(51, 'Imprenta', 'Local', 'Cerrito 564', '', '', 18000.00, 1, 0.00, 'alquilado', 0.00, '', '6373802', 228933.00, 'DEL PRECIO DEL ALQUILER SE DESCUENTA ANEP Y CONTRIBUCION.\r\nPADRÓN N° 3350', 2, '2025-06-11 00:04:37', '2025-06-11 00:07:18', '[]', '');
 
 -- --------------------------------------------------------
 
