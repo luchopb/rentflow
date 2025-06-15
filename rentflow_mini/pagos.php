@@ -4,6 +4,8 @@ check_login();
 $page_title = 'Pagos - Inmobiliaria';
 
 $contrato_id = intval($_GET['contrato_id'] ?? 0);
+$add_pago = isset($_GET['add']) && $_GET['add'] === 'true'; // Verificar si se debe mostrar el formulario de nuevo pago
+
 if (!$contrato_id) {
   header("Location: contratos.php");
   exit();
@@ -85,7 +87,7 @@ include 'includes/header_nav.php';
 
   <h1>Pagos</h1>
   <p>
-    Contrato: <a href="contratos.php?edit=<?= $contrato['id'] ?>" class="text-decoration-none text-dark"><strong>#<?= $contrato_id?></strong></a><br>
+    Contrato: <a href="contratos.php?edit=<?= $contrato_id ?>" class="text-decoration-none text-dark"><strong>#<?= $contrato_id?></strong></a><br>
     Inquilino: <a href="inquilinos.php?edit=<?= intval($contrato['inquilino_id']) ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['inquilino_nombre']) ?></strong></a><br>
     Propiedad: <a href="propiedades.php?edit=<?= htmlspecialchars($contrato['propiedad_id'] ?? '') ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['propiedad_nombre']) ?></strong></a>
   </p>
@@ -100,48 +102,54 @@ include 'includes/header_nav.php';
     </div>
   <?php endif; ?>
 
-  <!-- Formulario para agregar un nuevo pago -->
-  <div class="card mb-4">
-    <div class="card-header">
-      <h5>Registrar Nuevo Pago</h5>
-    </div>
-    <div class="card-body">
-      <form method="POST" enctype="multipart/form-data">
-        <div class="mb-3">
-          <label for="periodo" class="form-label">Período *</label>
-          <select name="periodo" id="periodo" class="form-select" required>
-            <?php foreach ($periodos as $periodo): ?>
-              <option value="<?= $periodo ?>" <?= $periodo === $fecha_actual->format('Y-m') ? 'selected' : '' ?>><?= $periodo ?></option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-        <div class="mb-3">
-          <label for="fecha_pago" class="form-label">Fecha *</label>
-          <input type="date" class="form-control" id="fecha_pago" name="fecha_pago" value="<?= date('Y-m-d') ?>" required>
-        </div>
-        <div class="mb-3">
-          <label for="concepto" class="form-label">Concepto *</label>
-          <select name="concepto" id="concepto" class="form-select" required>
-            <option value="">Seleccione...</option>
-            <option value="Pago mensual">Pago mensual</option>
-            <option value="Impuestos">Impuestos</option>
-            <option value="Gastos comunes">Gastos comunes</option>
-          </select>
-        </div>
-        <div class="mb-3">
-          <label for="importe" class="form-label">Importe *</label>
-          <input type="number" step="0.01" min="0" class="form-control" id="importe" name="importe" value="<?= htmlspecialchars($contrato['importe']) ?>" required>
-        </div>
-        <div class="mb-3">
-          <label for="comentario" class="form-label">Comentario</label>
-          <textarea class="form-control" id="comentario" name="comentario" rows="3"></textarea>
-        </div>
-        <div class="mb-3">
-          <label for="comprobante" class="form-label">Comprobante</label>
-          <input type="file" class="form-control" id="comprobante" name="comprobante" accept="image/*,application/pdf">
-        </div>
-        <button type="submit" name="nuevo_pago" class="btn btn-primary">Registrar Pago</button>
-      </form>
+  <!-- Botón para mostrar/ocultar el formulario de nuevo pago -->
+  <button class="btn btn-outline-dark mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formPagoCollapse" aria-expanded="<?= $add_pago ? 'true' : 'false' ?>" aria-controls="formPagoCollapse" style="font-weight:600;">
+    <?= $add_pago ? 'Ocultar' : 'Agregar Nuevo Pago' ?>
+  </button>
+
+  <div class="collapse <?= $add_pago ? 'show' : '' ?>" id="formPagoCollapse">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5>Registrar Nuevo Pago</h5>
+      </div>
+      <div class="card-body">
+        <form method="POST" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label for="periodo" class="form-label">Período *</label>
+            <select name="periodo" id="periodo" class="form-select" required>
+              <?php foreach ($periodos as $periodo): ?>
+                <option value="<?= $periodo ?>" <?= $periodo === $fecha_actual->format('Y-m') ? 'selected' : '' ?>><?= $periodo ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="fecha_pago" class="form-label">Fecha *</label>
+            <input type="date" class="form-control" id="fecha_pago" name="fecha_pago" value="<?= date('Y-m-d') ?>" required>
+          </div>
+          <div class="mb-3">
+            <label for="concepto" class="form-label">Concepto *</label>
+            <select name="concepto" id="concepto" class="form-select" required>
+              <option value="">Seleccione...</option>
+              <option value="Pago mensual">Pago mensual</option>
+              <option value="Impuestos">Impuestos</option>
+              <option value="Gastos comunes">Gastos comunes</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="importe" class="form-label">Importe *</label>
+            <input type="number" step="0.01" min="0" class="form-control" id="importe" name="importe" value="<?= htmlspecialchars($contrato['importe']) ?>" required>
+          </div>
+          <div class="mb-3">
+            <label for="comentario" class="form-label">Comentario</label>
+            <textarea class="form-control" id="comentario" name="comentario" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="comprobante" class="form-label">Comprobante</label>
+            <input type="file" class="form-control" id="comprobante" name="comprobante" accept="image/*,application/pdf">
+          </div>
+          <button type="submit" name="nuevo_pago" class="btn btn-primary">Registrar Pago</button>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -184,6 +192,13 @@ include 'includes/header_nav.php';
   <?php endif; ?>
 
 </main>
+
+<script>
+  const collapseInquilino = document.getElementById('formPagoCollapse');
+  const toggleBtnInquilino = document.querySelector('button[data-bs-target="#formPagoCollapse"]');
+  collapseInquilino.addEventListener('show.bs.collapse', () => toggleBtnInquilino.textContent = 'Ocultar');
+  collapseInquilino.addEventListener('hide.bs.collapse', () => toggleBtnInquilino.textContent = 'Agregar Nuevo Pago');
+</script>
 
 <?php
 include 'includes/footer.php';

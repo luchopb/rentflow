@@ -134,7 +134,7 @@ $payment_ratio = $total_contratos > 0 ? round(($pagos_recibidos / $total_contrat
               <?php if (in_array($row['id'], $pagos_mes_actual)): ?>
                 <a href="pagos.php?contrato_id=<?= $row['id'] ?>" class="btn btn-success btn-sm">Pago recibido</a>
               <?php else: ?>
-                <a href="pagos.php?contrato_id=<?= $row['id'] ?>" class="btn btn-outline-success btn-sm">Registrar pago</a>
+                <a href="pagos.php?contrato_id=<?= $row['id'] ?>&add=true" class="btn btn-outline-success btn-sm">Registrar pago</a>
               <?php endif; ?>
             </td>
           </tr>
