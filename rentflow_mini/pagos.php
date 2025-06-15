@@ -83,9 +83,12 @@ include 'includes/header_nav.php';
 
 <main class="container container-main py-4">
 
-  <h1>Pagos - Contrato #<?= $contrato_id ?></h1>
-  <p>Inquilino: <strong><?= htmlspecialchars($contrato['inquilino_nombre']) ?></strong><br>
-    Propiedad: <strong><?= htmlspecialchars($contrato['propiedad_nombre']) ?></strong></p>
+  <h1>Pagos</h1>
+  <p>
+    Contrato: <a href="contratos.php?edit=<?= $row['id'] ?>" class="text-decoration-none text-dark"><strong>#<?= $contrato_id?></strong></a><br>
+    Inquilino: <a href="inquilinos.php?edit=<?= intval($p['inquilino_id']) ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['inquilino_nombre']) ?></strong></a><br>
+    Propiedad: <a href="propiedades.php?edit=<?= htmlspecialchars($edit_data['propiedad_id'] ?? '') ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['propiedad_nombre']) ?></strong></a>
+  </p>
 
   <?php if ($message): ?>
     <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
@@ -127,7 +130,7 @@ include 'includes/header_nav.php';
         </div>
         <div class="mb-3">
           <label for="importe" class="form-label">Importe *</label>
-          <input type="number" step="0.01" min="0" class="form-control" id="importe" name="importe" required>
+          <input type="number" step="0.01" min="0" class="form-control" id="importe" name="importe" value="<?= htmlspecialchars($contrato['importe']) ?>" required>
         </div>
         <div class="mb-3">
           <label for="comentario" class="form-label">Comentario</label>

@@ -7,9 +7,9 @@ error_reporting(E_ALL);
 session_start();
 
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'drakon_luchorentflow_mini');
+define('DB_NAME', 'drakon_luchorentflow_min');
 define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_PASS', 'root'); // Changed password to 'root' which is the default MAMP password
 
 // Crear conexión PDO
 try {
