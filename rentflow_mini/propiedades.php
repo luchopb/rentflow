@@ -4,11 +4,14 @@ check_login();
 $page_title = 'Propiedades - Inmobiliaria';
 
 $edit_id = intval($_GET['edit'] ?? 0);
-$search = clean_input($_GET['search'] ?? '');
-
 $delete_id = intval($_GET['delete'] ?? 0);
 $message = '';
 $errors = [];
+$search = clean_input($_GET['search'] ?? '');
+
+// Verificar si se debe mostrar el formulario de nueva propiedad
+$show_form = isset($_GET['add']) && $_GET['add'] === 'true';
+
 if ($delete_id) {
   $upload_dir = __DIR__ . '/uploads/';
   $stmt = $pdo->prepare("SELECT imagenes, documentos FROM propiedades WHERE id = ?");
@@ -195,10 +198,10 @@ include 'includes/header_nav.php';
   </form>
 
   <button class="btn btn-outline-dark mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formPropiedadCollapse" aria-expanded="<?= $edit_id || !empty($errors) ? 'true' : 'false' ?>" aria-controls="formPropiedadCollapse" style="font-weight:600;">
-    <?= $edit_id || !empty($errors) ? 'Ocultar' : 'Agregar Nueva Propiedad' ?>
+    <?= $show_form || $edit_id || !empty($errors) ? 'Ocultar' : 'Agregar Nueva Propiedad' ?>
   </button>
 
-  <div class="collapse <?= $edit_id || !empty($errors) ? 'show' : '' ?>" id="formPropiedadCollapse">
+  <div class="collapse <?= $show_form || $edit_id || !empty($errors) ? 'show' : '' ?>" id="formPropiedadCollapse">
     <div class="card p-4 mb-4 mt-3">
       <h3><?= $edit_id ? "Editar Propiedad" : "Nueva Propiedad" ?></h3>
       <form method="POST" enctype="multipart/form-data" novalidate>
@@ -412,7 +415,7 @@ include 'includes/header_nav.php';
   }
 
   const collapseEl = document.getElementById('formPropiedadCollapse');
-  const toggleBtn = document.querySelector('button[data-bs-toggle="collapse"]');
+  const toggleBtn = document.querySelector('button[data-bs-target="#formPropiedadCollapse"]');
   collapseEl.addEventListener('show.bs.collapse', () => toggleBtn.textContent = 'Ocultar');
   collapseEl.addEventListener('hide.bs.collapse', () => toggleBtn.textContent = 'Agregar Nueva Propiedad');
 </script>
