@@ -227,11 +227,18 @@ include 'includes/header_nav.php';
     <?= ($edit_id || !empty($errors) || $propiedad_id_param) ? 'Ocultar' : 'Agregar Nuevo Contrato' ?>
   </button>
 
+    
   <div class="collapse <?= ($edit_id || !empty($errors) || $propiedad_id_param) ? 'show' : '' ?>" id="formContratoCollapse">
     <div class="card p-4 mb-4 mt-3">
       <h3><?= $edit_id ? "Editar Contrato" : "Nuevo Contrato" ?></h3>
       <form method="POST" enctype="multipart/form-data" novalidate id="formContrato">
         <input type="hidden" name="edit_id" value="<?= $edit_id ?: '' ?>" />
+
+        <?php if ($edit_id): ?>
+          <div class="mb-3">
+            <a href="pagos.php?contrato_id=<?= intval($edit_id) ?>" class="btn btn-success">Registrar Pagos</a>
+          </div>
+        <?php endif; ?>
 
         <div class="mb-3">
           <label for="propiedad_id" class="form-label">Propiedad *</label>
@@ -328,7 +335,6 @@ include 'includes/header_nav.php';
         <button type="submit" class="btn btn-primary fw-semibold mt-3"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
         <?php if ($edit_id): ?>
           <a href="contratos.php" class="btn btn-outline-secondary ms-2 mt-3">Cancelar</a>
-          <a href="pagos.php?contrato_id=<?= intval($edit_id) ?>" class="btn btn-success float-end mt-3">Registrar Pagos</a>
         <?php endif; ?>
       </form>
     </div>

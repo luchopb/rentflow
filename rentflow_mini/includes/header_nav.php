@@ -10,84 +10,38 @@ $search = clean_input($_GET['search'] ?? '');
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><?= htmlspecialchars($page_title ?? 'Inmobiliaria') ?></title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <style>
-    /* Estilos generales siguiendo inspiración minimal y elegante */
-    body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-      background: #ffffff;
-      color: #374151;
-      padding-top: 5.5rem;
-      min-height: 100vh;
-      margin: 0;
-    }
+  <link href="includes/styles.css" rel="stylesheet" />
 
-    nav {
-      box-shadow: 0 2px 5px rgb(0 0 0 / 0.05);
-      background: #fff;
-    }
-
-    .container-main {
-      max-width: 1200px;
-      /* Puedes ajustar este valor según sea necesario */
-      margin: auto;
-      padding: 1rem;
-    }
-
-    h1 {
-      /* Ajustado para ser consistente */
-      margin-bottom: 1.5rem;
-      color: #111827;
-    }
-
-    label {
-      font-weight: 600;
-    }
-
-    .card {
-      border-radius: 0.75rem;
-      box-shadow: 0 3px 10px rgb(0 0 0 / 0.07);
-      background: #fff;
-    }
-
-    a.nav-link {
-      transition: color 0.25s ease;
-    }
-
-    a.nav-link:hover,
-    a.nav-link:focus {
-      color: #FFFFFF;
-      text-decoration: none;
-    }
-
-    a.nav-link.active {
-      color: #FFFFFF;
-      border-bottom: 2px solid #FFFFFF;
-    }
-
-    .btn-remove-image {
-      position: absolute;
-      top: 2px;
-      right: 2px;
-      border-radius: 50%;
-      padding: 0 6px 2px 6px;
-      line-height: 1;
-      font-weight: bold;
-      font-size: 1rem;
-      cursor: pointer;
-      border: none;
-      background-color: rgba(220, 38, 38, 0.85);
-      color: white;
-    }
-
-    .img-preview {
-      position: relative;
-      display: inline-block;
-      margin-right: 12px;
-      margin-bottom: 10px;
-    }
-  </style>
-
+  <link rel="apple-touch-icon" sizes="57x57" href="images/favicon/apple-icon-57x57.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="images/favicon/apple-icon-60x60.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="images/favicon/apple-icon-72x72.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="images/favicon/apple-icon-76x76.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="images/favicon/apple-icon-114x114.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="images/favicon/apple-icon-120x120.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="images/favicon/apple-icon-144x144.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="images/favicon/apple-icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="images/favicon/apple-icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192"  href="images/favicon/android-icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="images/favicon/favicon-96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="images/favicon/favicon-16x16.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="msapplication-TileColor" content="#ffffff">
+  <meta name="msapplication-TileImage" content="images/favicon/ms-icon-144x144.png">
+  <meta name="theme-color" content="#ffffff">
 </head>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('service-worker.js').then(function(registration) {
+        console.log('Service Worker registrado con éxito:', registration);
+      }).catch(function(error) {
+        console.log('Error al registrar el Service Worker:', error);
+      });
+    });
+  }
+</script>
 
 <body>
   <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
