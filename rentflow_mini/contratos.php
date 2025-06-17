@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $new_id = $pdo->lastInsertId();
 
       // Programar pagos durante la duración del contrato
-      $start = new DateTime($fecha_inicio);
+      /*$start = new DateTime($fecha_inicio);
       $end = new DateTime($fecha_fin);
       // Empezar el primer día del mes actual
       $start->modify('first day of this month');
@@ -132,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $fecha_programada = $dt->format('Y-m-01'); // Siempre primer día del mes
         $pdo->prepare("INSERT INTO pagos (contrato_id, fecha, mes, anio, periodo, importe, pagado, concepto) VALUES (?, ?, ?, ?, ?, ?, 0, 'Debe')")
           ->execute([$new_id, $fecha_programada, $mes, $anio, $periodo, -$importe]);
-      }
+      }*/
 
       // Actualizar estado propiedad a "alquilado"
       $pdo->prepare("UPDATE propiedades SET estado = 'alquilado' WHERE id = ?")->execute([$propiedad_id]);
