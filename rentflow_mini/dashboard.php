@@ -97,7 +97,7 @@ $ratio_pagos = $total_contratos > 0 ? round(($pagos_recibidos / $total_contratos
         <div class="card text-bg-success h-100 mb-3">
           <div class="card-body d-flex flex-column justify-content-between">
             <h5 class="card-title">Propiedades Ocupadas</h5>
-            <p class="card-text display-4"><?= $total_ocupadas ?>/<?= $total_propiedades ?></p>
+            <p class="card-text display-4"><?= $total_ocupadas ?> de <?= $total_propiedades ?></p>
             <div class="progress mb-2" role="progressbar" aria-label="Progreso de ocupación">
               <div class="progress-bar" style="width: <?= $ratio_ocupacion ?>%"><?= $ratio_ocupacion ?>%</div>
             </div>
@@ -121,7 +121,7 @@ $ratio_pagos = $total_contratos > 0 ? round(($pagos_recibidos / $total_contratos
         <div class="card text-bg-info h-100 mb-3">
           <div class="card-body d-flex flex-column justify-content-between">
             <h5 class="card-title">Pagos del Mes</h5>
-            <p class="card-text display-4"><?= $pagos_recibidos ?>/<?= $total_contratos ?></p>
+            <p class="card-text display-4"><?= $pagos_recibidos ?> de <?= $total_contratos ?></p>
             <div class="progress" role="progressbar" aria-label="Progreso de pagos">
               <div class="progress-bar" style="width: <?= $ratio_pagos ?>%"><?= $ratio_pagos ?>%</div>
             </div>
