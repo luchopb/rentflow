@@ -27,7 +27,11 @@ h1 {
 }
 
 label {
-    font-weight: 600;
+    font-weight: normal;
+    font-size: 14px;
+    letter-spacing: 0px;
+    text-transform: uppercase;
+    color: #000000;
 }
 
 .card {
@@ -71,3 +75,48 @@ a.nav-link.active {
     margin-right: 12px;
     margin-bottom: 10px;
 }
+
+
+.form-control, .form-select {
+    background: #f4f4f4;
+    font-weight: bold;
+    border: solid 1px #c3c3c3;
+}
+
+
+/* Menú inferior mobile */
+.mobile-navbar {
+    display: none;
+    z-index: 1000;
+  }
+  
+  @media (max-width: 992px) {
+    .mobile-navbar {
+      display: block;
+    }
+    
+    /* Ajusta el padding del body para que el contenido no quede detrás del menú */
+    body {
+      padding-bottom: 70px !important;
+    }
+    
+    .mobile-navbar .nav-link {
+      color: #495057;
+      transition: all 0.2s ease;
+    }
+    
+    .mobile-navbar .nav-link:hover,
+    .mobile-navbar .nav-link.active {
+      color: #007bff;
+    }
+    
+    .mobile-navbar .nav-link i {
+      margin-bottom: 2px;
+    }
+    
+    .mobile-navbar .small {
+      font-size: 0.65rem;
+      line-height: 1.2;
+    }
+  }
+  
