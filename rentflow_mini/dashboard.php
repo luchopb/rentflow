@@ -10,19 +10,20 @@ $anio_actual = date('Y');
 $periodo = date('Y-m');
 $search = clean_input($_GET['search'] ?? '');
 
-// Get properties count by type
+// Get properties count and active contracts by type
 $stmt_properties = $pdo->query("
-    SELECT tipo, COUNT(*) as total 
-    FROM propiedades 
-    GROUP BY tipo
+    SELECT p.tipo, 
+           COUNT(*) as total,
+           SUM(CASE WHEN c.estado = 'activo' THEN 1 ELSE 0 END) as ocupadas
+    FROM propiedades p
+    LEFT JOIN contratos c ON p.id = c.propiedad_id AND c.estado = 'activo'
+    GROUP BY p.tipo
     ORDER BY total DESC
 ");
 $properties_by_type = $stmt_properties->fetchAll(PDO::FETCH_ASSOC);
 $total_properties = array_sum(array_column($properties_by_type, 'total'));
-
-// Get total active contracts count
-$stmt_contracts = $pdo->query("SELECT COUNT(*) FROM contratos WHERE estado = 'activo'");
-$total_active_contracts = $stmt_contracts->fetchColumn();
+$total_occupied = array_sum(array_column($properties_by_type, 'ocupadas'));
+$occupation_ratio = $total_properties > 0 ? round(($total_occupied / $total_properties) * 100) : 0;
 
 // Obtener propiedades y sus inquilinos actuales
 $stmt = $pdo->prepare("
@@ -78,8 +79,22 @@ $payment_ratio = $total_contratos > 0 ? round(($pagos_recibidos / $total_contrat
       <a href="contratos.php" class="text-decoration-none">
         <div class="card text-bg-success h-100 mb-3">
           <div class="card-body d-flex flex-column justify-content-between">
-            <h5 class="card-title">Contratos Activos</h5>
-            <p class="card-text display-4 mb-0"><?= $total_active_contracts ?></p>
+            <h5 class="card-title">Propiedades Ocupadas</h5>
+            <p class="card-text display-4"><?= $total_occupied ?>/<?= $total_properties ?></p>
+            <div class="progress mb-2" role="progressbar" aria-label="Occupation progress">
+              <div class="progress-bar" style="width: <?= $occupation_ratio ?>%"><?= $occupation_ratio ?>%</div>
+            </div>
+            <div class="small mt-2">
+              <?php foreach ($properties_by_type as $type): ?>
+                <?php 
+                  $type_ratio = $type['total'] > 0 ? round(($type['ocupadas'] / $type['total']) * 100) : 0;
+                ?>
+                <div class="d-flex justify-content-between">
+                  <span class="text-capitalize"><?= htmlspecialchars($type['tipo']) ?>:</span>
+                  <span><?= $type['ocupadas'] ?>/<?= $type['total'] ?> (<?= $type_ratio ?>%)</span>
+                </div>
+              <?php endforeach; ?>
+            </div>
           </div>
         </div>
       </a>
