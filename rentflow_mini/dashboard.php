@@ -10,9 +10,15 @@ $anio_actual = date('Y');
 $periodo = date('Y-m');
 $search = clean_input($_GET['search'] ?? '');
 
-// Get total properties count
-$stmt_properties = $pdo->query("SELECT COUNT(*) FROM propiedades");
-$total_properties = $stmt_properties->fetchColumn();
+// Get properties count by type
+$stmt_properties = $pdo->query("
+    SELECT tipo, COUNT(*) as total 
+    FROM propiedades 
+    GROUP BY tipo
+    ORDER BY total DESC
+");
+$properties_by_type = $stmt_properties->fetchAll(PDO::FETCH_ASSOC);
+$total_properties = array_sum(array_column($properties_by_type, 'total'));
 
 // Get total active contracts count
 $stmt_contracts = $pdo->query("SELECT COUNT(*) FROM contratos WHERE estado = 'activo'");
@@ -56,6 +62,14 @@ $payment_ratio = $total_contratos > 0 ? round(($pagos_recibidos / $total_contrat
           <div class="card-body d-flex flex-column justify-content-between">
             <h5 class="card-title">Propiedades</h5>
             <p class="card-text display-4 mb-0"><?= $total_properties ?></p>
+            <div class="small mt-2">
+              <?php foreach ($properties_by_type as $type): ?>
+                <div class="d-flex justify-content-between">
+                  <span class="text-capitalize"><?= htmlspecialchars($type['tipo']) ?>:</span>
+                  <span><?= $type['total'] ?></span>
+                </div>
+              <?php endforeach; ?>
+            </div>
           </div>
         </div>
       </a>
