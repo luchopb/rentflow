@@ -8,10 +8,10 @@ include 'includes/header_nav.php';
 $mes_actual = date('m');
 $anio_actual = date('Y');
 $periodo = date('Y-m');
-$search = clean_input($_GET['search'] ?? '');
+$busqueda = clean_input($_GET['search'] ?? '');
 
-// Get properties count and active contracts by type
-$stmt_properties = $pdo->query("
+// Obtener conteo de propiedades y contratos activos por tipo
+$stmt_propiedades = $pdo->query("
     SELECT p.tipo, 
            COUNT(*) as total,
            SUM(CASE WHEN c.estado = 'activo' THEN 1 ELSE 0 END) as ocupadas
@@ -20,10 +20,10 @@ $stmt_properties = $pdo->query("
     GROUP BY p.tipo
     ORDER BY total DESC
 ");
-$properties_by_type = $stmt_properties->fetchAll(PDO::FETCH_ASSOC);
-$total_properties = array_sum(array_column($properties_by_type, 'total'));
-$total_occupied = array_sum(array_column($properties_by_type, 'ocupadas'));
-$occupation_ratio = $total_properties > 0 ? round(($total_occupied / $total_properties) * 100) : 0;
+$propiedades_por_tipo = $stmt_propiedades->fetchAll(PDO::FETCH_ASSOC);
+$total_propiedades = array_sum(array_column($propiedades_por_tipo, 'total'));
+$total_ocupadas = array_sum(array_column($propiedades_por_tipo, 'ocupadas'));
+$ratio_ocupacion = $total_propiedades > 0 ? round(($total_ocupadas / $total_propiedades) * 100) : 0;
 
 // Obtener propiedades y sus inquilinos actuales
 $stmt = $pdo->prepare("
@@ -45,29 +45,46 @@ $stmt_pagos = $pdo->prepare("
 $stmt_pagos->execute([$mes_actual, $anio_actual]);
 $pagos_mes_actual = $stmt_pagos->fetchAll(PDO::FETCH_COLUMN, 0);
 
-// Calculate payments ratio
+// Calcular ratio de pagos
 $total_contratos = count($propiedades_inquilinos);
 $pagos_recibidos = count($pagos_mes_actual);
 $pagos_pendientes = $total_contratos - $pagos_recibidos;
-$payment_ratio = $total_contratos > 0 ? round(($pagos_recibidos / $total_contratos) * 100) : 0;
+$ratio_pagos = $total_contratos > 0 ? round(($pagos_recibidos / $total_contratos) * 100) : 0;
 
 ?>
 
 <main class="container container-main">
   <h1>Bienvenido, <?= htmlspecialchars($_SESSION['user_name']) ?></h1>
-  <!-- Dashboard Cards -->
+
+  <form action="propiedades.php" method="GET" class="mb-4" role="search" aria-label="Buscar propiedades">
+    <div class="input-group" style="max-width:480px;">
+      <input
+        type="search"
+        name="search"
+        class="form-control"
+        placeholder="Buscar por nombre, dirección, local o inquilino"
+        value="<?= htmlspecialchars($busqueda) ?>"
+        aria-label="Buscar propiedades" autocomplete="off" />
+      <button class="btn btn-primary" type="submit" aria-label="Buscar">Buscar</button>
+      <?php if ($busqueda): ?>
+        <a href="dashboard.php" class="btn btn-outline-secondary" aria-label="Limpiar búsqueda">Limpiar</a>
+      <?php endif; ?>
+    </div>
+  </form>
+
+  <!-- Tarjetas del Dashboard -->
   <div class="row mb-4">
     <div class="col-md-4 h-100">
       <a href="propiedades.php" class="text-decoration-none">
         <div class="card text-bg-primary h-100 mb-3">
           <div class="card-body d-flex flex-column justify-content-between">
             <h5 class="card-title">Propiedades</h5>
-            <p class="card-text display-4 mb-0"><?= $total_properties ?></p>
+            <p class="card-text display-4 mb-0"><?= $total_propiedades ?></p>
             <div class="small mt-2">
-              <?php foreach ($properties_by_type as $type): ?>
+              <?php foreach ($propiedades_por_tipo as $tipo): ?>
                 <div class="d-flex justify-content-between">
-                  <span class="text-capitalize"><?= htmlspecialchars($type['tipo']) ?>:</span>
-                  <span><?= $type['total'] ?></span>
+                  <span class="text-capitalize"><?= htmlspecialchars($tipo['tipo']) ?>:</span>
+                  <span><?= $tipo['total'] ?></span>
                 </div>
               <?php endforeach; ?>
             </div>
@@ -80,18 +97,18 @@ $payment_ratio = $total_contratos > 0 ? round(($pagos_recibidos / $total_contrat
         <div class="card text-bg-success h-100 mb-3">
           <div class="card-body d-flex flex-column justify-content-between">
             <h5 class="card-title">Propiedades Ocupadas</h5>
-            <p class="card-text display-4"><?= $total_occupied ?>/<?= $total_properties ?></p>
-            <div class="progress mb-2" role="progressbar" aria-label="Occupation progress">
-              <div class="progress-bar" style="width: <?= $occupation_ratio ?>%"><?= $occupation_ratio ?>%</div>
+            <p class="card-text display-4"><?= $total_ocupadas ?>/<?= $total_propiedades ?></p>
+            <div class="progress mb-2" role="progressbar" aria-label="Progreso de ocupación">
+              <div class="progress-bar" style="width: <?= $ratio_ocupacion ?>%"><?= $ratio_ocupacion ?>%</div>
             </div>
             <div class="small mt-2">
-              <?php foreach ($properties_by_type as $type): ?>
+              <?php foreach ($propiedades_por_tipo as $tipo): ?>
                 <?php 
-                  $type_ratio = $type['total'] > 0 ? round(($type['ocupadas'] / $type['total']) * 100) : 0;
+                  $ratio_tipo = $tipo['total'] > 0 ? round(($tipo['ocupadas'] / $tipo['total']) * 100) : 0;
                 ?>
                 <div class="d-flex justify-content-between">
-                  <span class="text-capitalize"><?= htmlspecialchars($type['tipo']) ?>:</span>
-                  <span><?= $type['ocupadas'] ?>/<?= $type['total'] ?> (<?= $type_ratio ?>%)</span>
+                  <span class="text-capitalize"><?= htmlspecialchars($tipo['tipo']) ?>:</span>
+                  <span><?= $tipo['ocupadas'] ?>/<?= $tipo['total'] ?> (<?= $ratio_tipo ?>%)</span>
                 </div>
               <?php endforeach; ?>
             </div>
@@ -105,29 +122,14 @@ $payment_ratio = $total_contratos > 0 ? round(($pagos_recibidos / $total_contrat
           <div class="card-body d-flex flex-column justify-content-between">
             <h5 class="card-title">Pagos del Mes</h5>
             <p class="card-text display-4"><?= $pagos_recibidos ?>/<?= $total_contratos ?></p>
-            <div class="progress" role="progressbar" aria-label="Payment progress">
-              <div class="progress-bar" style="width: <?= $payment_ratio ?>%"><?= $payment_ratio ?>%</div>
+            <div class="progress" role="progressbar" aria-label="Progreso de pagos">
+              <div class="progress-bar" style="width: <?= $ratio_pagos ?>%"><?= $ratio_pagos ?>%</div>
             </div>
           </div>
         </div>
       </a>
     </div>
   </div>
-  <form action="propiedades.php" method="GET" class="mb-4" role="search" aria-label="Buscar propiedades">
-    <div class="input-group" style="max-width:480px;">
-      <input
-        type="search"
-        name="search"
-        class="form-control"
-        placeholder="Buscar por nombre, dirección, local o inquilino"
-        value="<?= htmlspecialchars($search) ?>"
-        aria-label="Buscar propiedades" autocomplete="off" />
-      <button class="btn btn-primary" type="submit" aria-label="Buscar">Buscar</button>
-      <?php if ($search): ?>
-        <a href="dashboard.php" class="btn btn-outline-secondary" aria-label="Limpiar búsqueda">Limpiar</a>
-      <?php endif; ?>
-    </div>
-  </form>
 
   <section class="mt-5">
     <h2 class="fw-semibold">Pagos Mensuales</h2>
@@ -149,21 +151,21 @@ $payment_ratio = $total_contratos > 0 ? round(($pagos_recibidos / $total_contrat
         </tr>
       </thead>
       <tbody>
-        <?php foreach ($propiedades_inquilinos as $row): ?>
+        <?php foreach ($propiedades_inquilinos as $fila): ?>
           <tr>
-            <td><?= htmlspecialchars($row['id']) ?></td>
+            <td><?= htmlspecialchars($fila['id']) ?></td>
             <td>
-              <a href="contratos.php?edit=<?= $row['id'] ?>" class="text-decoration-none text-dark">
-                <b><?= htmlspecialchars($row['propiedad_nombre']) ?></b></a><br>
-              <a href="inquilinos.php?edit=<?= $row['inquilino_id'] ?>" class="text-decoration-none text-dark">
-                <?= htmlspecialchars($row['inquilino_nombre'] ?? 'N/A') ?>
+              <a href="contratos.php?edit=<?= $fila['id'] ?>" class="text-decoration-none text-dark">
+                <b><?= htmlspecialchars($fila['propiedad_nombre']) ?></b></a><br>
+              <a href="inquilinos.php?edit=<?= $fila['inquilino_id'] ?>" class="text-decoration-none text-dark">
+                <?= htmlspecialchars($fila['inquilino_nombre'] ?? 'N/A') ?>
               </a>
             </td>
             <td>
-              <?php if (in_array($row['id'], $pagos_mes_actual)): ?>
-                <a href="pagos.php?contrato_id=<?= $row['id'] ?>" class="btn btn-success btn-sm">Pago recibido</a>
+              <?php if (in_array($fila['id'], $pagos_mes_actual)): ?>
+                <a href="pagos.php?contrato_id=<?= $fila['id'] ?>" class="btn btn-success btn-sm">Pago recibido</a>
               <?php else: ?>
-                <a href="pagos.php?contrato_id=<?= $row['id'] ?>&add=true" class="btn btn-outline-success btn-sm">Registrar pago</a>
+                <a href="pagos.php?contrato_id=<?= $fila['id'] ?>&add=true" class="btn btn-outline-success btn-sm">Registrar pago</a>
               <?php endif; ?>
             </td>
           </tr>

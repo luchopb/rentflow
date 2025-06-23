@@ -7,7 +7,7 @@ $edit_id = intval($_GET['edit'] ?? 0);
 $delete_id = intval($_GET['delete'] ?? 0);
 $message = '';
 $errors = [];
-$search = clean_input($_GET['search'] ?? '');
+$busqueda = clean_input($_GET['search'] ?? '');
 
 // Verificar si se debe mostrar el formulario de nueva propiedad
 $show_form = isset($_GET['add']) && $_GET['add'] === 'true';
@@ -151,7 +151,7 @@ function estado_label($e)
 }
 
 // Consulta con búsqueda
-$search = clean_input($_GET['search'] ?? '');
+$busqueda = clean_input($_GET['search'] ?? '');
 $params = [];
 $sql = "SELECT p.*, c.id AS contrato_id, i.nombre AS inquilino_nombre, i.id AS inquilino_id
         FROM propiedades p 
@@ -159,9 +159,9 @@ $sql = "SELECT p.*, c.id AS contrato_id, i.nombre AS inquilino_nombre, i.id AS i
           AND c.estado = 'activo' 
           AND CURDATE() BETWEEN c.fecha_inicio AND c.fecha_fin 
         LEFT JOIN inquilinos i ON c.inquilino_id = i.id";
-if ($search) {
+if ($busqueda) {
   $sql .= " WHERE p.nombre LIKE ? OR p.direccion LIKE ? OR p.local LIKE ? OR i.nombre LIKE ?";
-  $like_search = '%' . $search . '%';
+  $like_search = '%' . $busqueda . '%';
   $params = [$like_search, $like_search, $like_search, $like_search];
 }
 $sql .= " ORDER BY p.id DESC";
@@ -188,10 +188,10 @@ include 'includes/header_nav.php';
         name="search"
         class="form-control"
         placeholder="Buscar por nombre, dirección, local o inquilino"
-        value="<?= htmlspecialchars($search) ?>"
+        value="<?= htmlspecialchars($busqueda) ?>"
         aria-label="Buscar propiedades" autocomplete="off" />
       <button class="btn btn-primary" type="submit" aria-label="Buscar">Buscar</button>
-      <?php if ($search): ?>
+      <?php if ($busqueda): ?>
         <a href="propiedades.php" class="btn btn-outline-secondary" aria-label="Limpiar búsqueda">Limpiar</a>
       <?php endif; ?>
     </div>
