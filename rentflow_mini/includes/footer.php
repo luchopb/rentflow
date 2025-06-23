@@ -5,7 +5,7 @@
 
 <!-- Agrega esto antes del cierre del body (antes del </body>) -->
 <nav class="fixed-bottom mobile-navbar d-lg-none">
-  <div class="d-flex justify-content-around bg-white shadow-sm pt-2 pb-4">
+  <div class="d-flex justify-content-around bg-primary shadow-sm pt-2 pb-4">
     <!-- Botón Propiedades -->
     <a href="propiedades.php" class="nav-link text-center px-2">
       <i class="bi bi-house-door d-block fs-5"></i>

@@ -33,9 +33,9 @@ $propiedades_inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $stmt_pagos = $pdo->prepare("
     SELECT contrato_id 
     FROM pagos 
-    WHERE periodo = ? AND concepto = 'Pago mensual'
+    WHERE MONTH(fecha) = ? AND YEAR(fecha) = ? AND concepto = 'Pago mensual'
 ");
-$stmt_pagos->execute([$periodo]);
+$stmt_pagos->execute([$mes_actual, $anio_actual]);
 $pagos_mes_actual = $stmt_pagos->fetchAll(PDO::FETCH_COLUMN, 0);
 
 // Calculate payments ratio

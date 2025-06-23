@@ -51,7 +51,7 @@ a.nav-link:hover, a.nav-link:focus {
 
 a.nav-link.active {
     color: #FFFFFF;
-    border-bottom: 2px solid #FFFFFF;
+    border-bottom: 2px solid #FFEB3B;
 }
 
 .btn-remove-image {
@@ -101,13 +101,13 @@ a.nav-link.active {
     }
     
     .mobile-navbar .nav-link {
-      color: #495057;
+      color: #ffffff;
       transition: all 0.2s ease;
     }
     
     .mobile-navbar .nav-link:hover,
     .mobile-navbar .nav-link.active {
-      color: #007bff;
+      color: #ffffff;
     }
     
     .mobile-navbar .nav-link i {
