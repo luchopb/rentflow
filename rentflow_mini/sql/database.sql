@@ -101,3 +101,13 @@ ADD COLUMN concepto VARCHAR(50) NOT NULL AFTER fecha_recibido;
 ALTER TABLE pagos
 ADD COLUMN fecha DATE NOT NULL AFTER periodo;
 
+
+ALTER TABLE propiedades
+ADD COLUMN ose INT DEFAULT 0,
+ADD COLUMN ute INT DEFAULT 0,
+ADD COLUMN padron INT DEFAULT 0,
+ADD COLUMN imm_tasa_general INT DEFAULT 0,
+ADD COLUMN imm_tarifa_saneamiento INT DEFAULT 0,
+ADD COLUMN imm_instalaciones INT DEFAULT 0,
+ADD COLUMN imm_adicional_mercantil INT DEFAULT 0,
+ADD COLUMN convenios INT DEFAULT 0;
