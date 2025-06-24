@@ -54,6 +54,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $anep = clean_input($_POST['anep'] ?? '');
   $contribucion_inmobiliaria = floatval($_POST['contribucion_inmobiliaria'] ?? 0);
   $comentarios = clean_input($_POST['comentarios'] ?? '');
+  $ose = intval($_POST['ose'] ?? 0);
+  $ute = intval($_POST['ute'] ?? 0);
+  $padron = intval($_POST['padron'] ?? 0);
+  $imm_tasa_general = intval($_POST['imm_tasa_general'] ?? 0);
+  $imm_tarifa_de_saneamiento = intval($_POST['imm_tarifa_de_saneamiento'] ?? 0);
+  $imm_instalaciones_mecanicas_electricas = intval($_POST['imm_instalaciones_mecanicas_electricas'] ?? 0);
+  $imm_adicional_mercantil = intval($_POST['imm_adicional_mercantil'] ?? 0);
+  $convenios = intval($_POST['convenios'] ?? 0);
 
   $gallery_images = json_decode($_POST['existing_images'] ?? '[]', true) ?: [];
   $attached_docs = json_decode($_POST['existing_docs'] ?? '[]', true) ?: [];
@@ -105,18 +113,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fecha_hora = date('Y-m-d H:i:s');
 
     if ($edit_id > 0) {
-      $stmt = $pdo->prepare("UPDATE propiedades SET nombre=?, tipo=?, direccion=?, imagenes=?, documentos=?, galeria=?, local=?, precio=?, incluye_gc=?, gastos_comunes=?, estado=?, garantia=?, corredor=?, anep=?, contribucion_inmobiliaria=?, comentarios=?, usuario_id=?, fecha_modificacion=? WHERE id=?");
-      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios, $usuario_id, $fecha_hora, $edit_id]);
+      $stmt = $pdo->prepare("UPDATE propiedades SET nombre=?, tipo=?, direccion=?, imagenes=?, documentos=?, galeria=?, local=?, precio=?, incluye_gc=?, gastos_comunes=?, estado=?, garantia=?, corredor=?, anep=?, contribucion_inmobiliaria=?, comentarios=?, ose=?, ute=?, padron=?, imm_tasa_general=?, imm_tarifa_de_saneamiento=?, imm_instalaciones_mecanicas_electricas=?, imm_adicional_mercantil=?, convenios=?, usuario_id=?, fecha_modificacion=? WHERE id=?");
+      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_de_saneamiento, $imm_instalaciones_mecanicas_electricas, $imm_adicional_mercantil, $convenios, $usuario_id, $fecha_hora, $edit_id]);
       $message = "Propiedad actualizada correctamente.";
     } else {
-      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,documentos,galeria,local,precio,incluye_gc,gastos_comunes,estado,garantia,corredor,anep,contribucion_inmobiliaria,comentarios,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios, $usuario_id, $fecha_hora]);
+      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,documentos,galeria,local,precio,incluye_gc,gastos_comunes,estado,garantia,corredor,anep,contribucion_inmobiliaria,comentarios,ose,ute,padron,imm_tasa_general,imm_tarifa_de_saneamiento,imm_instalaciones_mecanicas_electricas,imm_adicional_mercantil,convenios,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_de_saneamiento, $imm_instalaciones_mecanicas_electricas, $imm_adicional_mercantil, $convenios, $usuario_id, $fecha_hora]);
       $message = "Propiedad creada correctamente.";
     }
     header("Location: propiedades.php?msg=" . urlencode($message));
     exit();
   } else {
-    $edit_data = compact('nombre', 'tipo', 'direccion', 'galeria', 'local', 'precio', 'incluye_gc', 'gastos_comunes', 'estado', 'garantia', 'corredor', 'anep', 'contribucion_inmobiliaria', 'comentarios');
+    $edit_data = compact('nombre', 'tipo', 'direccion', 'galeria', 'local', 'precio', 'incluye_gc', 'gastos_comunes', 'estado', 'garantia', 'corredor', 'anep', 'contribucion_inmobiliaria', 'comentarios', 'ose', 'ute', 'padron', 'imm_tasa_general', 'imm_tarifa_de_saneamiento', 'imm_instalaciones_mecanicas_electricas', 'imm_adicional_mercantil', 'convenios');
     $edit_data['imagenes_arr'] = $gallery_images;
     $edit_data['documentos_arr'] = $attached_docs;
   }
@@ -331,6 +339,48 @@ include 'includes/header_nav.php';
             </ul>
           </div>
         <?php endif; ?>
+
+        <hr />
+
+        <div class="mb-3">
+          <label for="ose" class="form-label">OSE</label>
+          <input type="number" class="form-control" id="ose" name="ose" step="1" min="0" value="<?= htmlspecialchars($edit_data['ose'] ?? 0) ?>" />
+        </div>
+
+        <div class="mb-3">
+          <label for="ute" class="form-label">UTE</label>
+          <input type="number" class="form-control" id="ute" name="ute" step="1" min="0" value="<?= htmlspecialchars($edit_data['ute'] ?? 0) ?>" />
+        </div>
+
+        <div class="mb-3">
+          <label for="padron" class="form-label">Padrón</label>
+          <input type="number" class="form-control" id="padron" name="padron" step="1" min="0" value="<?= htmlspecialchars($edit_data['padron'] ?? 0) ?>" />
+        </div>
+
+        <div class="mb-3">
+          <label for="imm_tasa_general" class="form-label">IMM Tasa general</label>
+          <input type="number" class="form-control" id="imm_tasa_general" name="imm_tasa_general" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_tasa_general'] ?? 0) ?>" />
+        </div>
+
+        <div class="mb-3">
+          <label for="imm_tarifa_de_saneamiento" class="form-label">IMM Tarifa de saneamiento</label>
+          <input type="number" class="form-control" id="imm_tarifa_de_saneamiento" name="imm_tarifa_de_saneamiento" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_tarifa_de_saneamiento'] ?? 0) ?>" />
+        </div>
+
+        <div class="mb-3">
+          <label for="imm_instalaciones_mecanicas_electricas" class="form-label">IMM Instalaciones mecánicas eléctricas</label>
+          <input type="number" class="form-control" id="imm_instalaciones_mecanicas_electricas" name="imm_instalaciones_mecanicas_electricas" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_instalaciones_mecanicas_electricas'] ?? 0) ?>" />
+        </div>
+
+        <div class="mb-3">
+          <label for="imm_adicional_mercantil" class="form-label">IMM Adicional mercantil</label>
+          <input type="number" class="form-control" id="imm_adicional_mercantil" name="imm_adicional_mercantil" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_adicional_mercantil'] ?? 0) ?>" />
+        </div>
+
+        <div class="mb-3">
+          <label for="convenios" class="form-label">Convenios</label>
+          <input type="number" class="form-control" id="convenios" name="convenios" step="1" min="0" value="<?= htmlspecialchars($edit_data['convenios'] ?? 0) ?>" />
+        </div>
 
         <button type="submit" class="btn btn-primary fw-semibold"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
         <?php if ($edit_id): ?>
