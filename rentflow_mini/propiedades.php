@@ -49,19 +49,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $incluye_gc = isset($_POST['incluye_gc']) && $_POST['incluye_gc'] === '1' ? 1 : 0;
   $gastos_comunes = floatval($_POST['gastos_comunes'] ?? 0);
   $estado = $_POST['estado'] ?? 'libre';
-  $garantia = floatval($_POST['garantia'] ?? 0);
-  $corredor = clean_input($_POST['corredor'] ?? '');
   $anep = clean_input($_POST['anep'] ?? '');
-  $contribucion_inmobiliaria = floatval($_POST['contribucion_inmobiliaria'] ?? 0);
+  $contribucion_inmobiliaria = clean_input($_POST['contribucion_inmobiliaria'] ?? '');
   $comentarios = clean_input($_POST['comentarios'] ?? '');
-  $ose = intval($_POST['ose'] ?? 0);
-  $ute = intval($_POST['ute'] ?? 0);
-  $padron = intval($_POST['padron'] ?? 0);
-  $imm_tasa_general = intval($_POST['imm_tasa_general'] ?? 0);
-  $imm_tarifa_de_saneamiento = intval($_POST['imm_tarifa_de_saneamiento'] ?? 0);
-  $imm_instalaciones_mecanicas_electricas = intval($_POST['imm_instalaciones_mecanicas_electricas'] ?? 0);
-  $imm_adicional_mercantil = intval($_POST['imm_adicional_mercantil'] ?? 0);
-  $convenios = intval($_POST['convenios'] ?? 0);
+  $ose = clean_input($_POST['ose'] ?? '');
+  $ute = clean_input($_POST['ute'] ?? '');
+  $padron = clean_input($_POST['padron'] ?? '');
+  $imm_tasa_general = clean_input($_POST['imm_tasa_general'] ?? '');
+  $imm_tarifa_saneamiento = clean_input($_POST['imm_tarifa_saneamiento'] ?? '');
+  $imm_instalaciones = clean_input($_POST['imm_instalaciones'] ?? '');
+  $imm_adicional_mercantil = clean_input($_POST['imm_adicional_mercantil'] ?? '');
+  $convenios = clean_input($_POST['convenios'] ?? '');
 
   $gallery_images = json_decode($_POST['existing_images'] ?? '[]', true) ?: [];
   $attached_docs = json_decode($_POST['existing_docs'] ?? '[]', true) ?: [];
@@ -113,18 +111,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fecha_hora = date('Y-m-d H:i:s');
 
     if ($edit_id > 0) {
-      $stmt = $pdo->prepare("UPDATE propiedades SET nombre=?, tipo=?, direccion=?, imagenes=?, documentos=?, galeria=?, local=?, precio=?, incluye_gc=?, gastos_comunes=?, estado=?, garantia=?, corredor=?, anep=?, contribucion_inmobiliaria=?, comentarios=?, ose=?, ute=?, padron=?, imm_tasa_general=?, imm_tarifa_de_saneamiento=?, imm_instalaciones_mecanicas_electricas=?, imm_adicional_mercantil=?, convenios=?, usuario_id=?, fecha_modificacion=? WHERE id=?");
-      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_de_saneamiento, $imm_instalaciones_mecanicas_electricas, $imm_adicional_mercantil, $convenios, $usuario_id, $fecha_hora, $edit_id]);
+      $stmt = $pdo->prepare("UPDATE propiedades SET nombre=?, tipo=?, direccion=?, imagenes=?, documentos=?, galeria=?, local=?, precio=?, incluye_gc=?, gastos_comunes=?, estado=?, anep=?, contribucion_inmobiliaria=?, comentarios=?, ose=?, ute=?, padron=?, imm_tasa_general=?, imm_tarifa_saneamiento=?, imm_instalaciones=?, imm_adicional_mercantil=?, convenios=?, usuario_id=?, fecha_modificacion=? WHERE id=?");
+      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $anep, $contribucion_inmobiliaria, $comentarios, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_saneamiento, $imm_instalaciones, $imm_adicional_mercantil, $convenios, $usuario_id, $fecha_hora, $edit_id]);
       $message = "Propiedad actualizada correctamente.";
     } else {
-      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,documentos,galeria,local,precio,incluye_gc,gastos_comunes,estado,garantia,corredor,anep,contribucion_inmobiliaria,comentarios,ose,ute,padron,imm_tasa_general,imm_tarifa_de_saneamiento,imm_instalaciones_mecanicas_electricas,imm_adicional_mercantil,convenios,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $garantia, $corredor, $anep, $contribucion_inmobiliaria, $comentarios, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_de_saneamiento, $imm_instalaciones_mecanicas_electricas, $imm_adicional_mercantil, $convenios, $usuario_id, $fecha_hora]);
+      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,documentos,galeria,local,precio,incluye_gc,gastos_comunes,estado,anep,contribucion_inmobiliaria,comentarios,ose,ute,padron,imm_tasa_general,imm_tarifa_saneamiento,imm_instalaciones,imm_adicional_mercantil,convenios,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $anep, $contribucion_inmobiliaria, $comentarios, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_saneamiento, $imm_instalaciones, $imm_adicional_mercantil, $convenios, $usuario_id, $fecha_hora]);
       $message = "Propiedad creada correctamente.";
     }
     header("Location: propiedades.php?msg=" . urlencode($message));
     exit();
   } else {
-    $edit_data = compact('nombre', 'tipo', 'direccion', 'galeria', 'local', 'precio', 'incluye_gc', 'gastos_comunes', 'estado', 'garantia', 'corredor', 'anep', 'contribucion_inmobiliaria', 'comentarios', 'ose', 'ute', 'padron', 'imm_tasa_general', 'imm_tarifa_de_saneamiento', 'imm_instalaciones_mecanicas_electricas', 'imm_adicional_mercantil', 'convenios');
+    $edit_data = compact('nombre', 'tipo', 'direccion', 'galeria', 'local', 'precio', 'incluye_gc', 'gastos_comunes', 'estado', 'anep', 'contribucion_inmobiliaria', 'comentarios', 'ose', 'ute', 'padron', 'imm_tasa_general', 'imm_tarifa_saneamiento', 'imm_instalaciones', 'imm_adicional_mercantil', 'convenios');
     $edit_data['imagenes_arr'] = $gallery_images;
     $edit_data['documentos_arr'] = $attached_docs;
   }
@@ -210,183 +208,202 @@ include 'includes/header_nav.php';
   </button>
 
   <div class="collapse <?= $show_form || $edit_id || !empty($errors) ? 'show' : '' ?>" id="formPropiedadCollapse">
-    <div class="card p-4 mb-4 mt-3">
-      <h3><?= $edit_id ? "Editar Propiedad" : "Nueva Propiedad" ?></h3>
-      <form method="POST" enctype="multipart/form-data" novalidate>
-        <input type="hidden" name="edit_id" value="<?= $edit_id ?: '' ?>" />
-        <input type="hidden" name="existing_images" id="existing_images" value='<?= htmlspecialchars(json_encode($edit_data['imagenes_arr'] ?? [])) ?>' />
-
-        <div class="mb-3">
-          <label for="nombre" class="form-label">Nombre *</label>
-          <input type="text" class="form-control" id="nombre" name="nombre" required value="<?= htmlspecialchars($edit_data['nombre'] ?? '') ?>" />
-        </div>
-
-        <div class="mb-3">
-          <label for="tipo" class="form-label">Tipo *</label>
-          <select class="form-select" id="tipo" name="tipo" required>
-            <?php
-            $tipos = [
-              'Local' => 'Local',
-              'Apartamento' => 'Apartamento',
-              'Cochera' => 'Cochera',
-              'Depósito' => 'Depósito',
-            ];
-            foreach ($tipos as $key => $val) {
-              $sel = ($edit_data['tipo'] ?? '') === $key ? "selected" : "";
-              echo "<option value=\"$key\" $sel>$val</option>";
-            }
-            ?>
-          </select>
-        </div>
-
-        <div class="mb-3">
-          <label for="direccion" class="form-label">Dirección *</label>
-          <input type="text" class="form-control" id="direccion" name="direccion" required value="<?= htmlspecialchars($edit_data['direccion'] ?? '') ?>" />
-        </div>
-
-        <div class="mb-3">
-          <label for="galeria" class="form-label">Galería</label>
-          <input type="text" class="form-control" id="galeria" name="galeria" value="<?= htmlspecialchars($edit_data['galeria'] ?? '') ?>" />
-        </div>
-
-        <div class="mb-3">
-          <label for="local" class="form-label">Local</label>
-          <input type="text" class="form-control" id="local" name="local" value="<?= htmlspecialchars($edit_data['local'] ?? '') ?>" />
-        </div>
-
-        <div class="mb-3">
-          <label for="precio" class="form-label">Precio *</label>
-          <input type="number" class="form-control" step="0.01" id="precio" name="precio" required value="<?= htmlspecialchars($edit_data['precio'] ?? '') ?>" />
-        </div>
-
-        <div class="mb-3 form-check">
-          <input type="checkbox" class="form-check-input" id="incluye_gc" name="incluye_gc" value="1" <?= ($edit_data['incluye_gc'] ?? 0) ? 'checked' : '' ?>>
-          <label class="form-check-label" for="incluye_gc">Incluye gastos comunes</label>
-        </div>
-
-        <div class="mb-3">
-          <label for="gastos_comunes" class="form-label">Gastos comunes</label>
-          <input type="number" class="form-control" step="0.01" id="gastos_comunes" name="gastos_comunes" value="<?= htmlspecialchars($edit_data['gastos_comunes'] ?? '') ?>" />
-        </div>
-
-        <div class="mb-3">
-          <label for="estado" class="form-label">Estado *</label>
-          <select class="form-select" id="estado" name="estado" required>
-            <?php
-            $estados = [
-              'libre' => 'Libre',
-              'alquilado' => 'Alquilado',
-              'uso propio' => 'Uso Propio',
-              'en venta' => 'En Venta'
-            ];
-            foreach ($estados as $key => $val) {
-              $sel = ($edit_data['estado'] ?? '') === $key ? "selected" : "";
-              echo "<option value=\"$key\" $sel>$val</option>";
-            }
-            ?>
-          </select>
-        </div>
-
-        <div class="mb-3">
-          <label for="anep" class="form-label">ANEP</label>
-          <input type="text" class="form-control" id="anep" name="anep" value="<?= htmlspecialchars($edit_data['anep'] ?? '') ?>" />
-        </div>
-
-        <div class="mb-3">
-          <label for="contribucion_inmobiliaria" class="form-label">Contribución Inmobiliaria</label>
-          <input type="number" class="form-control" step="0.01" id="contribucion_inmobiliaria" name="contribucion_inmobiliaria" value="<?= htmlspecialchars($edit_data['contribucion_inmobiliaria'] ?? '') ?>" />
-        </div>
-
-        <div class="mb-3">
-          <label for="comentarios" class="form-label">Comentarios</label>
-          <textarea class="form-control" id="comentarios" name="comentarios" rows="3"><?= htmlspecialchars($edit_data['comentarios'] ?? '') ?></textarea>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Galería de imágenes</label>
-          <input type="file" name="imagenes[]" multiple accept="image/*" class="form-control" />
-        </div>
-
-        <?php if (!empty($edit_data['imagenes_arr'])): ?>
-          <div class="mb-3" id="image-preview-container">
-            <?php foreach ($edit_data['imagenes_arr'] as $img): ?>
-              <div class="img-preview" data-img="<?= htmlspecialchars($img) ?>">
-                <button type="button" class="btn-remove-image" title="Eliminar imagen" onclick="removeImage('<?= htmlspecialchars($img) ?>')">&times;</button>
-                <img src="uploads/<?= htmlspecialchars($img) ?>" alt="" style="max-height:80px; max-width:100px; border-radius:0.5rem;" />
-              </div>
-            <?php endforeach; ?>
-          </div>
-        <?php endif; ?>
-
-        <div class="mb-3">
-          <label class="form-label">Documentos adjuntos</label>
+    <div class="card mb-4 mt-3">
+      <div class="card-header">
+        <h5><?= $edit_id? "Editar Propiedad" : "Nueva Propiedad"?></h5>
+      </div>
+      <div class="card-body">
+        <form method="POST" enctype="multipart/form-data" novalidate>
+          <input type="hidden" name="edit_id" value="<?= $edit_id ?: '' ?>" />
+          <input type="hidden" name="existing_images" id="existing_images" value='<?= htmlspecialchars(json_encode($edit_data['imagenes_arr'] ?? [])) ?>' />
           <input type="hidden" name="existing_docs" id="existing_docs" value='<?= htmlspecialchars(json_encode($edit_data['documentos_arr'] ?? [])) ?>' />
-          <input type="file" name="documentos[]" multiple class="form-control" />
-        </div>
 
-        <?php if (!empty($edit_data['documentos_arr'])): ?>
-          <div class="mb-3" id="doc-preview-container">
-            <label class="form-label">Documentos adjuntos</label>
-            <ul class="list-group">
-              <?php foreach ($edit_data['documentos_arr'] as $doc): ?>
-                <li class="list-group-item d-flex justify-content-between align-items-center" data-doc="<?= htmlspecialchars($doc) ?>">
-                  <a href="uploads/<?= htmlspecialchars($doc) ?>" target="_blank">
-                    <?= htmlspecialchars($doc) ?>
-                  </a>
-                  <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar documento" onclick="removeDoc('<?= htmlspecialchars($doc) ?>')">&times;</button>
-                </li>
-              <?php endforeach; ?>
-            </ul>
+          <!-- Main Data Section - Always visible -->
+          <div class="mb-4">
+            
+            <div class="mb-3">
+              <label for="nombre" class="form-label">Nombre *</label>
+              <input type="text" class="form-control" id="nombre" name="nombre" required value="<?= htmlspecialchars($edit_data['nombre'] ?? '') ?>" />
+            </div>
+
+            <div class="mb-3">
+              <label for="tipo" class="form-label">Tipo *</label>
+              <select class="form-select" id="tipo" name="tipo" required>
+                <?php
+                $tipos = [
+                  'Local' => 'Local',
+                  'Apartamento' => 'Apartamento',
+                  'Cochera' => 'Cochera',
+                  'Depósito' => 'Depósito',
+                ];
+                foreach ($tipos as $key => $val) {
+                  $sel = ($edit_data['tipo'] ?? '') === $key ? "selected" : "";
+                  echo "<option value=\"$key\" $sel>$val</option>";
+                }
+                ?>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="direccion" class="form-label">Dirección *</label>
+              <input type="text" class="form-control" id="direccion" name="direccion" required value="<?= htmlspecialchars($edit_data['direccion'] ?? '') ?>" />
+            </div>
+
+            <div class="mb-3">
+              <label for="galeria" class="form-label">Galería</label>
+              <input type="text" class="form-control" id="galeria" name="galeria" value="<?= htmlspecialchars($edit_data['galeria'] ?? '') ?>" />
+            </div>
+
+            <div class="mb-3">
+              <label for="local" class="form-label">Local</label>
+              <input type="text" class="form-control" id="local" name="local" value="<?= htmlspecialchars($edit_data['local'] ?? '') ?>" />
+            </div>
+
+            <div class="mb-3">
+              <label for="precio" class="form-label">Precio *</label>
+              <input type="number" class="form-control" step="0.01" id="precio" name="precio" required value="<?= htmlspecialchars($edit_data['precio'] ?? '') ?>" />
+            </div>
+
+            <div class="mb-3 form-check">
+              <input type="checkbox" class="form-check-input" id="incluye_gc" name="incluye_gc" value="1" <?= ($edit_data['incluye_gc'] ?? 0) ? 'checked' : '' ?>>
+              <label class="form-check-label" for="incluye_gc">Incluye gastos comunes</label>
+            </div>
+
+            <div class="mb-3">
+              <label for="gastos_comunes" class="form-label">Gastos comunes</label>
+              <input type="number" class="form-control" step="0.01" id="gastos_comunes" name="gastos_comunes" value="<?= htmlspecialchars($edit_data['gastos_comunes'] ?? '') ?>" />
+            </div>
+
+            <div class="mb-3">
+              <label for="estado" class="form-label">Estado *</label>
+              <select class="form-select" id="estado" name="estado" required>
+                <?php
+                $estados = [
+                  'libre' => 'Libre',
+                  'alquilado' => 'Alquilado',
+                  'uso propio' => 'Uso Propio',
+                  'en venta' => 'En Venta'
+                ];
+                foreach ($estados as $key => $val) {
+                  $sel = ($edit_data['estado'] ?? '') === $key ? "selected" : "";
+                  echo "<option value=\"$key\" $sel>$val</option>";
+                }
+                ?>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="comentarios" class="form-label">Comentarios</label>
+              <textarea class="form-control" id="comentarios" name="comentarios" rows="3"><?= htmlspecialchars($edit_data['comentarios'] ?? '') ?></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Galería de imágenes</label>
+              <input type="file" name="imagenes[]" multiple accept="image/*" class="form-control" />
+            </div>
+
+            <?php if (!empty($edit_data['imagenes_arr'])): ?>
+              <div class="mb-3" id="image-preview-container">
+                <?php foreach ($edit_data['imagenes_arr'] as $img): ?>
+                  <div class="img-preview" data-img="<?= htmlspecialchars($img) ?>">
+                    <button type="button" class="btn-remove-image" title="Eliminar imagen" onclick="removeImage('<?= htmlspecialchars($img) ?>')">&times;</button>
+                    <img src="uploads/<?= htmlspecialchars($img) ?>" alt="" style="max-height:80px; max-width:100px; border-radius:0.5rem;" />
+                  </div>
+                <?php endforeach; ?>
+              </div>
+            <?php endif; ?>
+
+            <div class="mb-3">
+              <label class="form-label">Documentos adjuntos</label>
+              <input type="file" name="documentos[]" multiple class="form-control" />
+            </div>
+
+            <?php if (!empty($edit_data['documentos_arr'])): ?>
+              <div class="mb-3" id="doc-preview-container">
+                <ul class="list-group">
+                  <?php foreach ($edit_data['documentos_arr'] as $doc): ?>
+                    <li class="list-group-item d-flex justify-content-between align-items-center" data-doc="<?= htmlspecialchars($doc) ?>">
+                      <a href="uploads/<?= htmlspecialchars($doc) ?>" target="_blank">
+                        <?= htmlspecialchars($doc) ?>
+                      </a>
+                      <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar documento" onclick="removeDoc('<?= htmlspecialchars($doc) ?>')">&times;</button>
+                    </li>
+                  <?php endforeach; ?>
+                </ul>
+              </div>
+            <?php endif; ?>
           </div>
-        <?php endif; ?>
 
-        <hr />
+          <!-- Additional Data Section - In Accordion -->
+          <div class="accordion accordion-flush mb-4" id="additionalDataAccordion">
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#additionalDataContent">
+                  Ver más datos...
+                </button>
+              </h2>
+              <div id="additionalDataContent" class="accordion-collapse collapse" data-bs-parent="#additionalDataAccordion">
+                <div class="accordion-body px-1">
+                  <div class="mb-3">
+                    <label for="ose" class="form-label">OSE</label>
+                    <input type="number" class="form-control" id="ose" name="ose" step="1" min="0" value="<?= htmlspecialchars($edit_data['ose'] ?? '') ?>" />
+                  </div>
 
-        <div class="mb-3">
-          <label for="ose" class="form-label">OSE</label>
-          <input type="number" class="form-control" id="ose" name="ose" step="1" min="0" value="<?= htmlspecialchars($edit_data['ose'] ?? 0) ?>" />
-        </div>
+                  <div class="mb-3">
+                    <label for="ute" class="form-label">UTE</label>
+                    <input type="number" class="form-control" id="ute" name="ute" step="1" min="0" value="<?= htmlspecialchars($edit_data['ute'] ?? '') ?>" />
+                  </div>
 
-        <div class="mb-3">
-          <label for="ute" class="form-label">UTE</label>
-          <input type="number" class="form-control" id="ute" name="ute" step="1" min="0" value="<?= htmlspecialchars($edit_data['ute'] ?? 0) ?>" />
-        </div>
+                  <div class="mb-3">
+                    <label for="anep" class="form-label">ANEP</label>
+                    <input type="text" class="form-control" id="anep" name="anep" value="<?= htmlspecialchars($edit_data['anep'] ?? '') ?>" />
+                  </div>
 
-        <div class="mb-3">
-          <label for="padron" class="form-label">Padrón</label>
-          <input type="number" class="form-control" id="padron" name="padron" step="1" min="0" value="<?= htmlspecialchars($edit_data['padron'] ?? 0) ?>" />
-        </div>
+                  <div class="mb-3">
+                    <label for="padron" class="form-label">Padrón</label>
+                    <input type="number" class="form-control" id="padron" name="padron" step="1" min="0" value="<?= htmlspecialchars($edit_data['padron'] ?? '') ?>" />
+                  </div>
 
-        <div class="mb-3">
-          <label for="imm_tasa_general" class="form-label">IMM Tasa general</label>
-          <input type="number" class="form-control" id="imm_tasa_general" name="imm_tasa_general" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_tasa_general'] ?? 0) ?>" />
-        </div>
+                  <div class="mb-3">
+                    <label for="contribucion_inmobiliaria" class="form-label">IMM Contribución Inmobiliaria</label>
+                    <input type="number" class="form-control" step="1" id="contribucion_inmobiliaria" name="contribucion_inmobiliaria" value="<?= htmlspecialchars($edit_data['contribucion_inmobiliaria'] ?? '') ?>" />
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label for="imm_tasa_general" class="form-label">IMM Tasa general</label>
+                    <input type="number" class="form-control" id="imm_tasa_general" name="imm_tasa_general" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_tasa_general'] ?? '') ?>" />
+                  </div>
 
-        <div class="mb-3">
-          <label for="imm_tarifa_de_saneamiento" class="form-label">IMM Tarifa de saneamiento</label>
-          <input type="number" class="form-control" id="imm_tarifa_de_saneamiento" name="imm_tarifa_de_saneamiento" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_tarifa_de_saneamiento'] ?? 0) ?>" />
-        </div>
+                  <div class="mb-3">
+                    <label for="imm_tarifa_saneamiento" class="form-label">IMM Tarifa de saneamiento</label>
+                    <input type="number" class="form-control" id="imm_tarifa_saneamiento" name="imm_tarifa_saneamiento" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_tarifa_saneamiento'] ?? '') ?>" />
+                  </div>
 
-        <div class="mb-3">
-          <label for="imm_instalaciones_mecanicas_electricas" class="form-label">IMM Instalaciones mecánicas eléctricas</label>
-          <input type="number" class="form-control" id="imm_instalaciones_mecanicas_electricas" name="imm_instalaciones_mecanicas_electricas" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_instalaciones_mecanicas_electricas'] ?? 0) ?>" />
-        </div>
+                  <div class="mb-3">
+                    <label for="imm_instalaciones" class="form-label">IMM Instalaciones mecánicas eléctricas</label>
+                    <input type="number" class="form-control" id="imm_instalaciones" name="imm_instalaciones" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_instalaciones'] ?? '') ?>" />
+                  </div>
 
-        <div class="mb-3">
-          <label for="imm_adicional_mercantil" class="form-label">IMM Adicional mercantil</label>
-          <input type="number" class="form-control" id="imm_adicional_mercantil" name="imm_adicional_mercantil" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_adicional_mercantil'] ?? 0) ?>" />
-        </div>
+                  <div class="mb-3">
+                    <label for="imm_adicional_mercantil" class="form-label">IMM Adicional mercantil</label>
+                    <input type="number" class="form-control" id="imm_adicional_mercantil" name="imm_adicional_mercantil" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_adicional_mercantil'] ?? '') ?>" />
+                  </div>
 
-        <div class="mb-3">
-          <label for="convenios" class="form-label">Convenios</label>
-          <input type="number" class="form-control" id="convenios" name="convenios" step="1" min="0" value="<?= htmlspecialchars($edit_data['convenios'] ?? 0) ?>" />
-        </div>
+                  <div class="mb-3">
+                    <label for="convenios" class="form-label">Convenios</label>
+                    <input type="number" class="form-control" id="convenios" name="convenios" step="1" min="0" value="<?= htmlspecialchars($edit_data['convenios'] ?? '') ?>" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <button type="submit" class="btn btn-primary fw-semibold"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
-        <?php if ($edit_id): ?>
-          <a href="propiedades.php" class="btn btn-outline-secondary ms-2">Cancelar</a>
-        <?php endif; ?>
-      </form>
+          <button type="submit" class="btn btn-primary fw-semibold"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
+          <?php if ($edit_id): ?>
+            <a href="propiedades.php" class="btn btn-outline-secondary ms-2">Cancelar</a>
+          <?php endif; ?>
+        </form>
+      </div>
     </div>
   </div>
 
