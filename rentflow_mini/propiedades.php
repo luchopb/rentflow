@@ -6,6 +6,7 @@ $page_title = 'Propiedades - Inmobiliaria';
 $edit_id = intval($_GET['edit'] ?? 0);
 $delete_id = intval($_GET['delete'] ?? 0);
 $message = '';
+$propiedad_id = '';
 $errors = [];
 $busqueda = clean_input($_GET['search'] ?? '');
 
@@ -37,6 +38,7 @@ $msg = $_GET['msg'] ?? '';
 if ($msg) {
   $message = $msg;
 }
+$propiedad_id = $_GET['propiedad_id'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $edit_id = intval($_POST['edit_id'] ?? 0);
@@ -113,13 +115,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($edit_id > 0) {
       $stmt = $pdo->prepare("UPDATE propiedades SET nombre=?, tipo=?, direccion=?, imagenes=?, documentos=?, galeria=?, local=?, precio=?, incluye_gc=?, gastos_comunes=?, estado=?, anep=?, contribucion_inmobiliaria=?, comentarios=?, ose=?, ute=?, padron=?, imm_tasa_general=?, imm_tarifa_saneamiento=?, imm_instalaciones=?, imm_adicional_mercantil=?, convenios=?, usuario_id=?, fecha_modificacion=? WHERE id=?");
       $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $anep, $contribucion_inmobiliaria, $comentarios, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_saneamiento, $imm_instalaciones, $imm_adicional_mercantil, $convenios, $usuario_id, $fecha_hora, $edit_id]);
+      $propiedad_id = $edit_id;
       $message = "Propiedad actualizada correctamente.";
     } else {
       $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,documentos,galeria,local,precio,incluye_gc,gastos_comunes,estado,anep,contribucion_inmobiliaria,comentarios,ose,ute,padron,imm_tasa_general,imm_tarifa_saneamiento,imm_instalaciones,imm_adicional_mercantil,convenios,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
       $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $anep, $contribucion_inmobiliaria, $comentarios, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_saneamiento, $imm_instalaciones, $imm_adicional_mercantil, $convenios, $usuario_id, $fecha_hora]);
+      $propiedad_id = $pdo->lastInsertId();
       $message = "Propiedad creada correctamente.";
     }
-    header("Location: propiedades.php?msg=" . urlencode($message));
+    header("Location: propiedades.php?msg=" . urlencode($message) . "&propiedad_id=" . urlencode($propiedad_id));
     exit();
   } else {
     $edit_data = compact('nombre', 'tipo', 'direccion', 'galeria', 'local', 'precio', 'incluye_gc', 'gastos_comunes', 'estado', 'anep', 'contribucion_inmobiliaria', 'comentarios', 'ose', 'ute', 'padron', 'imm_tasa_general', 'imm_tarifa_saneamiento', 'imm_instalaciones', 'imm_adicional_mercantil', 'convenios');
@@ -184,7 +188,12 @@ include 'includes/header_nav.php';
   <h1>Propiedades</h1>
 
   <?php if ($message): ?>
-    <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
+    <div class="alert alert-success">
+      <?= htmlspecialchars($message) ?>
+      <?php if ($propiedad_id):?>
+        <a href="propiedades.php?edit=<?= $propiedad_id?>" class="btn btn-success">Ver propiedad</a>
+      <?php endif;?>
+    </div>
   <?php endif; ?>
 
   <form method="GET" class="mb-4" role="search" aria-label="Buscar propiedades">
