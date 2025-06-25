@@ -109,6 +109,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   // Verificar si la fecha de fin es menor a hoy
   if ($fecha_fin && (strtotime($fecha_fin) < time())) {
     $estado = 'finalizado'; // Marcar como finalizado
+  } else {
+    $estado = 'activo'; // Mantener como activo si la fecha de fin es mayor o igual a hoy
   }
 
   if (empty($errors)) {
