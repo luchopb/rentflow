@@ -112,3 +112,6 @@ ADD COLUMN imm_instalaciones VARCHAR(100) DEFAULT NULL,
 ADD COLUMN imm_adicional_mercantil VARCHAR(100) DEFAULT NULL,
 ADD COLUMN convenios VARCHAR(100) DEFAULT NULL
 AFTER contribucion_inmobiliaria;
+
+
+ALTER TABLE pagos ADD COLUMN tipo_pago ENUM('Efectivo', 'Transferencia') NULL AFTER concepto;

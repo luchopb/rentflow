@@ -37,11 +37,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
   $comentario = $_POST['comentario'] ?? '';
   $comprobante = $_FILES['comprobante'] ?? null;
   $concepto = $_POST['concepto'] ?? '';
+  $tipo_pago = $_POST['tipo_pago'] ?? ''; // Obtener el tipo de pago
 
   if (!$periodo) $errors[] = "El período es obligatorio.";
   if (!$fecha_pago) $errors[] = "La fecha es obligatoria.";
   if ($importe <= 0) $errors[] = "El importe debe ser mayor que cero.";
   if (!$concepto) $errors[] = "El concepto es obligatorio.";
+  if (!$tipo_pago) $errors[] = "El tipo de pago es obligatorio."; // Validar tipo de pago
 
   // Manejo de archivo de comprobante
   if ($comprobante && $comprobante['error'] === UPLOAD_ERR_OK) {
@@ -57,8 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
 
   if (empty($errors)) {
     // Insert new payment
-    $stmt = $pdo->prepare("INSERT INTO pagos (contrato_id, periodo, fecha, importe, comentario, comprobante, concepto) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$contrato_id, $periodo, $fecha_pago, $importe, $comentario, $basename ?? null, $concepto]);
+    $stmt = $pdo->prepare("INSERT INTO pagos (contrato_id, periodo, fecha, importe, comentario, comprobante, concepto, tipo_pago) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$contrato_id, $periodo, $fecha_pago, $importe, $comentario, $basename ?? null, $concepto, $tipo_pago]);
     $message = "Pago registrado correctamente.";
     header("Location: pagos.php?contrato_id=$contrato_id&msg=" . urlencode($message));
     exit();
@@ -80,7 +82,6 @@ for ($i = -3; $i <= 3; $i++) {
 }
 
 include 'includes/header_nav.php';
-
 ?>
 
 <main class="container container-main py-4">
@@ -139,6 +140,22 @@ include 'includes/header_nav.php';
             <label for="importe" class="form-label">Importe *</label>
             <input type="number" step="0.01" min="0" class="form-control" id="importe" name="importe" value="<?= htmlspecialchars($contrato['importe']) ?>" required>
           </div>
+          
+          <!-- Nuevo campo para Tipo de Pago -->
+          <div class="mb-3">
+            <label class="form-label">Tipo de Pago *</label>
+            <div>
+              <div class="form-check form-check-inline">
+                <input class="btn-check form-check-input" type="radio" name="tipo_pago" id="tipo_pago_efectivo" value="Efectivo" required>
+                <label class="btn form-check-label" for="tipo_pago_efectivo">Efectivo</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="btn-check form-check-input" type="radio" name="tipo_pago" id="tipo_pago_transferencia" value="Transferencia" required>
+                <label class="btn form-check-label" for="tipo_pago_transferencia">Transferencia</label>
+              </div>
+            </div>
+          </div>
+
           <div class="mb-3">
             <label for="comentario" class="form-label">Comentario</label>
             <textarea class="form-control" id="comentario" name="comentario" rows="3"></textarea>
