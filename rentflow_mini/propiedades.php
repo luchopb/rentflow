@@ -422,7 +422,7 @@ include 'includes/header_nav.php';
       <p>No hay propiedades registradas.</p>
     <?php else: ?>
       <div class="table-responsive">
-        <table class="table table-striped">
+        <table class="table align-middle table-striped">
           <thead>
             <tr>
               <td>ID</td>
