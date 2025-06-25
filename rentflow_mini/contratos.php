@@ -106,11 +106,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errors[] = "La fecha de inicio debe ser anterior a la fecha de fin.";
   }
 
+  // Verificar si la fecha de fin es menor a hoy
+  if ($fecha_fin && (strtotime($fecha_fin) < time())) {
+    $estado = 'finalizado'; // Marcar como finalizado
+  }
+
   if (empty($errors)) {
     if ($edit_id > 0) {
       // Actualizar contrato con documentos
       $stmt = $pdo->prepare("UPDATE contratos SET inquilino_id=?, propiedad_id=?, fecha_inicio=?, fecha_fin=?, importe=?, garantia=?, corredor=?, estado=?, documentos=? WHERE id=?");
       $stmt->execute([$inquilino_id, $propiedad_id, $fecha_inicio, $fecha_fin, $importe, $garantia, $corredor, $estado, $docs_json, $edit_id]);
+      
+      // Si el estado es finalizado, marcar la propiedad como libre
+      if ($estado === 'finalizado') {
+        $pdo->prepare("UPDATE propiedades SET estado = 'libre' WHERE id = ?")->execute([$propiedad_id]);
+      }
+      
       $message = "Contrato actualizado correctamente.";
     } else {
       // Insertar nuevo contrato con documentos
@@ -118,8 +129,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $stmt->execute([$inquilino_id, $propiedad_id, $fecha_inicio, $fecha_fin, $importe, $garantia, $corredor, $estado, $docs_json]);
       $new_id = $pdo->lastInsertId();
 
-      // Actualizar estado propiedad a "alquilado"
-      $pdo->prepare("UPDATE propiedades SET estado = 'alquilado' WHERE id = ?")->execute([$propiedad_id]);
+      // Actualizar estado propiedad a "alquilado" solo si no está finalizado
+      if ($estado !== 'finalizado') {
+        $pdo->prepare("UPDATE propiedades SET estado = 'alquilado' WHERE id = ?")->execute([$propiedad_id]);
+      }
 
       $message = "Contrato creado correctamente.";
     }
@@ -165,7 +178,6 @@ $contratos = $pdo->query("SELECT
   JOIN propiedades p ON c.propiedad_id = p.id
   ORDER BY c.id DESC")->fetchAll();
 
-
 // Add property filter to include the property being edited
 if ($edit_id > 0) {
   $stmt = $pdo->prepare("SELECT id, nombre, estado, precio FROM propiedades WHERE id = ?");
@@ -175,7 +187,6 @@ if ($edit_id > 0) {
     $propiedades[] = $propiedad_edit;
   }
 }
-
 
 // Añadimos función estado_label con badges coloreados
 function estado_label($e)
