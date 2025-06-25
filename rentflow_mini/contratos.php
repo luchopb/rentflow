@@ -40,6 +40,7 @@ $estado = 'activo';
 
 $documentos_subidos = [];
 $documentos_guardados = [];
+$docs_json = '[]'; // Inicializamos con array vacío en JSON
 
 if ($propiedad_id) {
   $stmt_precio = $pdo->prepare("SELECT precio FROM propiedades WHERE id = ?");
@@ -93,6 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   $todos_documentos = array_merge($documentos_guardados, $documentos_subidos);
+  $docs_json = json_encode($todos_documentos);
 
   if (!$inquilino_id) $errors[] = "Debe seleccionar un inquilino.";
   if (!$propiedad_id) $errors[] = "Debe seleccionar una propiedad.";
@@ -105,7 +107,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   if (empty($errors)) {
-    $docs_json = json_encode($todos_documentos);
     if ($edit_id > 0) {
       // Actualizar contrato con documentos
       $stmt = $pdo->prepare("UPDATE contratos SET inquilino_id=?, propiedad_id=?, fecha_inicio=?, fecha_fin=?, importe=?, garantia=?, corredor=?, estado=?, documentos=? WHERE id=?");
@@ -116,23 +117,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $stmt = $pdo->prepare("INSERT INTO contratos (inquilino_id, propiedad_id, fecha_inicio, fecha_fin, importe, garantia, corredor, estado, documentos) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
       $stmt->execute([$inquilino_id, $propiedad_id, $fecha_inicio, $fecha_fin, $importe, $garantia, $corredor, $estado, $docs_json]);
       $new_id = $pdo->lastInsertId();
-
-      // Programar pagos durante la duración del contrato
-      /*$start = new DateTime($fecha_inicio);
-      $end = new DateTime($fecha_fin);
-      // Empezar el primer día del mes actual
-      $start->modify('first day of this month');
-      // Crear períodos hasta la fecha de fin
-      $interval = new DateInterval('P1M');
-      $period = new DatePeriod($start, $interval, $end);
-      foreach ($period as $dt) {
-        $mes = intval($dt->format('m'));
-        $anio = intval($dt->format('Y'));
-        $periodo = $dt->format('Y-m'); // Formato AÑO-MES
-        $fecha_programada = $dt->format('Y-m-01'); // Siempre primer día del mes
-        $pdo->prepare("INSERT INTO pagos (contrato_id, fecha, mes, anio, periodo, importe, pagado, concepto) VALUES (?, ?, ?, ?, ?, ?, 0, 'Debe')")
-          ->execute([$new_id, $fecha_programada, $mes, $anio, $periodo, -$importe]);
-      }*/
 
       // Actualizar estado propiedad a "alquilado"
       $pdo->prepare("UPDATE propiedades SET estado = 'alquilado' WHERE id = ?")->execute([$propiedad_id]);
@@ -207,7 +191,6 @@ function estado_label($e)
 }
 
 include 'includes/header_nav.php';
-
 ?>
 
 <main class="container container-main py-4">
@@ -227,7 +210,6 @@ include 'includes/header_nav.php';
     <?= ($edit_id || !empty($errors) || $propiedad_id_param) ? 'Ocultar' : 'Agregar Nuevo Contrato' ?>
   </button>
 
-    
   <div class="collapse <?= ($edit_id || !empty($errors) || $propiedad_id_param) ? 'show' : '' ?>" id="formContratoCollapse">
     <div class="card p-4 mb-4 mt-3">
       <h3><?= $edit_id ? "Editar Contrato" : "Nuevo Contrato" ?></h3>
