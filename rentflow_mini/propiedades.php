@@ -163,7 +163,8 @@ function estado_label($e)
 // Consulta con búsqueda
 $busqueda = clean_input($_GET['search'] ?? '');
 $params = [];
-$sql = "SELECT p.*, c.id AS contrato_id, i.nombre AS inquilino_nombre, i.id AS inquilino_id
+$sql = "SELECT p.*, c.id AS contrato_id, i.nombre AS inquilino_nombre, i.id AS inquilino_id, 
+        (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') AS fecha_ultimo_pago
         FROM propiedades p 
         LEFT JOIN contratos c ON c.propiedad_id = p.id 
           AND c.estado = 'activo' 
@@ -178,7 +179,6 @@ $sql .= " ORDER BY p.id DESC";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $propiedades = $stmt->fetchAll();
-
 
 include 'includes/header_nav.php';
 
@@ -422,7 +422,7 @@ include 'includes/header_nav.php';
       <p>No hay propiedades registradas.</p>
     <?php else: ?>
       <div class="table-responsive">
-        <table class="table align-middle table-striped">
+        <table class="table table-striped">
           <thead>
             <tr>
               <td>ID</td>
@@ -446,13 +446,27 @@ include 'includes/header_nav.php';
                   <?php if ($p['contrato_id'] && $p['inquilino_nombre']): ?>
                     <a href="inquilinos.php?edit=<?= intval($p['inquilino_id']) ?>" class="text-decoration-none text-dark">
                       <b><?= htmlspecialchars($p['inquilino_nombre']) ?></b>
-                    </a><br>
-                    <a href="pagos.php?contrato_id=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-success">
-                      Pagos
                     </a>
-                    <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-success">
-                      Contrato
-                    </a>
+                    <small class="d-block">
+                      <?php if($p['fecha_ultimo_pago']): ?>
+                        <?php
+                          $ultimo_pago = date('m/Y', strtotime($p['fecha_ultimo_pago']));
+                          $periodo_actual = date('m/Y');
+                          $badge_class = ($ultimo_pago === $periodo_actual) ? 'bg-success' : 'bg-warning text-dark';
+                        ?>
+                        <span class="badge <?= $badge_class ?>"><i class="bi bi-coin"></i> <?= $ultimo_pago ?></span>
+                      <?php else: ?>
+                        <span class="badge bg-danger">Sin pago</span>
+                      <?php endif; ?>
+                    </small>
+                    <div class="text-nowrap mt-2">
+                      <a href="pagos.php?contrato_id=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-success">
+                        Pagos
+                      </a>
+                      <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-success">
+                        Contrato
+                      </a>
+                    </div>
                   <?php else: ?>
                     <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-success btn-sm" style="white-space: nowrap;">Crear contrato</a>
                   <?php endif; ?>
