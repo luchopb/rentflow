@@ -355,53 +355,101 @@ include 'includes/header_nav.php';
                 <div class="accordion-body px-1">
                   <div class="mb-3">
                     <label for="ose" class="form-label">OSE</label>
-                    <input type="number" class="form-control" id="ose" name="ose" step="1" min="0" value="<?= htmlspecialchars($edit_data['ose'] ?? '') ?>" />
+                    <div class="input-group">
+                      <input type="number" class="form-control" id="ose" name="ose" step="1" min="0" value="<?= htmlspecialchars($edit_data['ose'] ?? '') ?>" />
+                      <?php if ($edit_id): ?>
+                        <a href="https://facturas.ose.com.uy/SGCv10WebClient/inicio.faces" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                      <?php endif; ?>
+                    </div>
                   </div>
 
                   <div class="mb-3">
                     <label for="ute" class="form-label">UTE</label>
-                    <input type="number" class="form-control" id="ute" name="ute" step="1" min="0" value="<?= htmlspecialchars($edit_data['ute'] ?? '') ?>" />
+                    <div class="input-group">
+                      <input type="number" class="form-control" id="ute" name="ute" step="1" min="0" value="<?= htmlspecialchars($edit_data['ute'] ?? '') ?>" />
+                      <?php if ($edit_id): ?>
+                        <a href="https://www.ute.com.uy/imprima-su-factura" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                      <?php endif; ?>
+                    </div>
                   </div>
 
                   <div class="mb-3">
                     <label for="anep" class="form-label">ANEP</label>
-                    <input type="text" class="form-control" id="anep" name="anep" value="<?= htmlspecialchars($edit_data['anep'] ?? '') ?>" />
+                    <div class="input-group">
+                      <input type="text" class="form-control" id="anep" name="anep" value="<?= htmlspecialchars($edit_data['anep'] ?? '') ?>" />
+                      <?php if ($edit_id): ?>
+                        <a href="https://dgi-anep.organismos.uy/paso1?0" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                      <?php endif; ?>
+                    </div>
                   </div>
 
                   <div class="mb-3">
                     <label for="padron" class="form-label">Padrón</label>
-                    <input type="number" class="form-control" id="padron" name="padron" step="1" min="0" value="<?= htmlspecialchars($edit_data['padron'] ?? '') ?>" />
+                    <div class="input-group">
+                      <input type="number" class="form-control" id="padron" name="padron" step="1" min="0" value="<?= htmlspecialchars($edit_data['padron'] ?? '') ?>" />
+                    </div>
                   </div>
 
                   <div class="mb-3">
-                    <label for="contribucion_inmobiliaria" class="form-label">IMM Contribución Inmobiliaria</label>
-                    <input type="number" class="form-control" step="1" id="contribucion_inmobiliaria" name="contribucion_inmobiliaria" value="<?= htmlspecialchars($edit_data['contribucion_inmobiliaria'] ?? '') ?>" />
+                    <label for="contribucion_inmobiliaria" class="form-label">IMM Contribución Inmobiliaria (Propietario)</label>
+                    <div class="input-group">
+                      <input type="number" class="form-control" step="1" id="contribucion_inmobiliaria" name="contribucion_inmobiliaria" value="<?= htmlspecialchars($edit_data['contribucion_inmobiliaria'] ?? '') ?>" />
+                      <?php if ($edit_id): ?>
+                        <a href="https://www.montevideo.gub.uy/fwtc/pages/contribucion.xhtml" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                      <?php endif; ?>
+                    </div>
                   </div>
                   
                   <div class="mb-3">
                     <label for="imm_tasa_general" class="form-label">IMM Tasa general</label>
-                    <input type="number" class="form-control" id="imm_tasa_general" name="imm_tasa_general" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_tasa_general'] ?? '') ?>" />
+                    <div class="input-group">
+                      <input type="number" class="form-control" id="imm_tasa_general" name="imm_tasa_general" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_tasa_general'] ?? '') ?>" />
+                      <?php if ($edit_id): ?>
+                        <a href="https://www.montevideo.gub.uy/fwtc/pages/tributosDomiciliarios.xhtml" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                      <?php endif; ?>
+                    </div>
                   </div>
 
                   <div class="mb-3">
                     <label for="imm_tarifa_saneamiento" class="form-label">IMM Tarifa de saneamiento</label>
-                    <input type="number" class="form-control" id="imm_tarifa_saneamiento" name="imm_tarifa_saneamiento" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_tarifa_saneamiento'] ?? '') ?>" />
+                    <div class="input-group">
+                      <input type="number" class="form-control" id="imm_tarifa_saneamiento" name="imm_tarifa_saneamiento" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_tarifa_saneamiento'] ?? '') ?>" />
+                      <?php if ($edit_id): ?>
+                        <a href="https://www.montevideo.gub.uy/fwtc/pages/saneamiento.xhtml" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                      <?php endif; ?>
+                    </div>
                   </div>
 
                   <div class="mb-3">
                     <label for="imm_instalaciones" class="form-label">IMM Instalaciones mecánicas eléctricas</label>
-                    <input type="number" class="form-control" id="imm_instalaciones" name="imm_instalaciones" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_instalaciones'] ?? '') ?>" />
+                    <div class="input-group">
+                      <input type="number" class="form-control" id="imm_instalaciones" name="imm_instalaciones" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_instalaciones'] ?? '') ?>" />
+                      <?php if ($edit_id): ?>
+                        <a href="https://www.montevideo.gub.uy/fwtc/pages/tributosDomiciliarios.xhtml" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                      <?php endif; ?>
+                    </div>
                   </div>
 
                   <div class="mb-3">
                     <label for="imm_adicional_mercantil" class="form-label">IMM Adicional mercantil</label>
-                    <input type="number" class="form-control" id="imm_adicional_mercantil" name="imm_adicional_mercantil" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_adicional_mercantil'] ?? '') ?>" />
+                    <div class="input-group">
+                      <input type="number" class="form-control" id="imm_adicional_mercantil" name="imm_adicional_mercantil" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_adicional_mercantil'] ?? '') ?>" />
+                      <?php if ($edit_id): ?>
+                        <a href="https://www.montevideo.gub.uy/fwtc/pages/tributosDomiciliarios.xhtml" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                      <?php endif; ?>
+                    </div>
                   </div>
 
                   <div class="mb-3">
                     <label for="convenios" class="form-label">Convenios</label>
-                    <input type="number" class="form-control" id="convenios" name="convenios" step="1" min="0" value="<?= htmlspecialchars($edit_data['convenios'] ?? '') ?>" />
+                    <div class="input-group">
+                      <input type="number" class="form-control" id="convenios" name="convenios" step="1" min="0" value="<?= htmlspecialchars($edit_data['convenios'] ?? '') ?>" />
+                      <?php if ($edit_id): ?>
+                        <a href="https://www.montevideo.gub.uy/fwtc/pages/convenios.xhtml" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                      <?php endif; ?>
+                    </div>
                   </div>
+
                 </div>
               </div>
             </div>
