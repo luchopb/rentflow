@@ -9,6 +9,7 @@ $message = '';
 $propiedad_id = '';
 $errors = [];
 $busqueda = clean_input($_GET['search'] ?? '');
+$filtro_tipo = clean_input($_GET['filtro_tipo'] ?? '');
 
 // Verificar si se debe mostrar el formulario de nueva propiedad
 $show_form = isset($_GET['add']) && $_GET['add'] === 'true';
@@ -160,8 +161,9 @@ function estado_label($e)
   }
 }
 
-// Consulta con búsqueda
+// Consulta con búsqueda y filtros
 $busqueda = clean_input($_GET['search'] ?? '');
+$filtro_tipo = clean_input($_GET['filtro_tipo'] ?? '');
 $params = [];
 $sql = "SELECT p.*, c.id AS contrato_id, i.nombre AS inquilino_nombre, i.id AS inquilino_id, 
         (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') AS fecha_ultimo_pago
@@ -170,15 +172,102 @@ $sql = "SELECT p.*, c.id AS contrato_id, i.nombre AS inquilino_nombre, i.id AS i
           AND c.estado = 'activo' 
           AND CURDATE() BETWEEN c.fecha_inicio AND c.fecha_fin 
         LEFT JOIN inquilinos i ON c.inquilino_id = i.id";
+
+$where_conditions = [];
 if ($busqueda) {
-  $sql .= " WHERE p.nombre LIKE ? OR p.direccion LIKE ? OR p.local LIKE ? OR i.nombre LIKE ?";
+  $where_conditions[] = "(p.nombre LIKE ? OR p.direccion LIKE ? OR p.local LIKE ? OR i.nombre LIKE ?)";
   $like_search = '%' . $busqueda . '%';
-  $params = [$like_search, $like_search, $like_search, $like_search];
+  $params = array_merge($params, [$like_search, $like_search, $like_search, $like_search]);
 }
+
+if ($filtro_tipo) {
+  $where_conditions[] = "p.tipo = ?";
+  $params[] = $filtro_tipo;
+}
+
+if (!empty($where_conditions)) {
+  $sql .= " WHERE " . implode(' AND ', $where_conditions);
+}
+
 $sql .= " ORDER BY p.id DESC";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $propiedades = $stmt->fetchAll();
+
+// Contador por tipo de propiedad (filtrado)
+$tipos = ['Local', 'Apartamento', 'Cochera', 'Depósito'];
+$contador_tipos = [];
+
+// Contador total filtrado
+$sql_total = "SELECT COUNT(*) as total FROM propiedades p 
+              LEFT JOIN contratos c ON c.propiedad_id = p.id 
+                AND c.estado = 'activo' 
+                AND CURDATE() BETWEEN c.fecha_inicio AND c.fecha_fin 
+              LEFT JOIN inquilinos i ON c.inquilino_id = i.id";
+
+$where_conditions_count = [];
+$params_count = [];
+
+if ($busqueda) {
+  $where_conditions_count[] = "(p.nombre LIKE ? OR p.direccion LIKE ? OR p.local LIKE ? OR i.nombre LIKE ?)";
+  $like_search = '%' . $busqueda . '%';
+  $params_count = array_merge($params_count, [$like_search, $like_search, $like_search, $like_search]);
+}
+
+if ($filtro_tipo) {
+  $where_conditions_count[] = "p.tipo = ?";
+  $params_count[] = $filtro_tipo;
+}
+
+if (!empty($where_conditions_count)) {
+  $sql_total .= " WHERE " . implode(' AND ', $where_conditions_count);
+}
+
+$stmt_total = $pdo->prepare($sql_total);
+$stmt_total->execute($params_count);
+$total_propiedades = $stmt_total->fetch()['total'];
+
+// Contador por tipo (aplicando los mismos filtros)
+foreach ($tipos as $tipo) {
+  $sql_count = "SELECT COUNT(*) as total FROM propiedades p 
+                LEFT JOIN contratos c ON c.propiedad_id = p.id 
+                  AND c.estado = 'activo' 
+                  AND CURDATE() BETWEEN c.fecha_inicio AND c.fecha_fin 
+                LEFT JOIN inquilinos i ON c.inquilino_id = i.id";
+  
+  $where_conditions_count = [];
+  $params_count = [];
+  
+  if ($busqueda) {
+    $where_conditions_count[] = "(p.nombre LIKE ? OR p.direccion LIKE ? OR p.local LIKE ? OR i.nombre LIKE ?)";
+    $like_search = '%' . $busqueda . '%';
+    $params_count = array_merge($params_count, [$like_search, $like_search, $like_search, $like_search]);
+  }
+  
+  // Si hay filtro de tipo, solo contar ese tipo específico
+  if ($filtro_tipo) {
+    if ($filtro_tipo === $tipo) {
+      $where_conditions_count[] = "p.tipo = ?";
+      $params_count[] = $tipo;
+    } else {
+      // Para otros tipos, establecer contador en 0 cuando hay filtro específico
+      $contador_tipos[$tipo] = 0;
+      continue;
+    }
+  } else {
+    // Si no hay filtro de tipo, contar todos los tipos
+    $where_conditions_count[] = "p.tipo = ?";
+    $params_count[] = $tipo;
+  }
+  
+  if (!empty($where_conditions_count)) {
+    $sql_count .= " WHERE " . implode(' AND ', $where_conditions_count);
+  }
+  
+  $stmt_count = $pdo->prepare($sql_count);
+  $stmt_count->execute($params_count);
+  $contador_tipos[$tipo] = $stmt_count->fetch()['total'];
+}
 
 include 'includes/header_nav.php';
 
@@ -195,22 +284,6 @@ include 'includes/header_nav.php';
       <?php endif;?>
     </div>
   <?php endif; ?>
-
-  <form method="GET" class="mb-4" role="search" aria-label="Buscar propiedades">
-    <div class="input-group" style="max-width:480px;">
-      <input
-        type="search"
-        name="search"
-        class="form-control"
-        placeholder="Buscar por nombre, dirección, local o inquilino"
-        value="<?= htmlspecialchars($busqueda) ?>"
-        aria-label="Buscar propiedades" autocomplete="off" />
-      <button class="btn btn-primary" type="submit" aria-label="Buscar">Buscar</button>
-      <?php if ($busqueda): ?>
-        <a href="propiedades.php" class="btn btn-outline-secondary" aria-label="Limpiar búsqueda">Limpiar</a>
-      <?php endif; ?>
-    </div>
-  </form>
 
   <button class="btn btn-outline-dark mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formPropiedadCollapse" aria-expanded="<?= $edit_id || !empty($errors) ? 'true' : 'false' ?>" aria-controls="formPropiedadCollapse" style="font-weight:600;">
     <?= $show_form || $edit_id || !empty($errors) ? 'Ocultar' : 'Agregar Nueva Propiedad' ?>
@@ -463,9 +536,48 @@ include 'includes/header_nav.php';
       </div>
     </div>
   </div>
+  
+  <form method="GET" class="mb-4" role="search" aria-label="Buscar propiedades">
+    <div class="row g-3" style="max-width:800px;">
+      <div class="col-md-4">
+        <input
+          type="search"
+          name="search"
+          class="form-control"
+          placeholder="Buscar por nombre, dirección, local o inquilino"
+          value="<?= htmlspecialchars($busqueda) ?>"
+          aria-label="Buscar propiedades" autocomplete="off" />
+      </div>
+      <div class="col-md-4">
+        <select name="filtro_tipo" class="form-select" aria-label="Filtrar por tipo">
+          <option value="">Todos los tipos</option>
+          <?php foreach ($tipos as $tipo): ?>
+            <option value="<?= htmlspecialchars($tipo) ?>" <?= $filtro_tipo === $tipo ? 'selected' : '' ?>>
+              <?= htmlspecialchars($tipo) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <div class="input-group">
+          <button class="btn btn-primary" type="submit" aria-label="Buscar">Buscar</button>
+          <?php if ($busqueda || $filtro_tipo): ?>
+            <a href="propiedades.php" class="btn btn-outline-secondary" aria-label="Limpiar búsqueda">Limpiar filtros</a>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div>
+  </form>
+
 
   <section>
     <h2 class="fw-semibold mb-3">Listado de Propiedades</h2>
+    <div class="mb-3">
+      <span class="badge bg-primary">Total: <?= $total_propiedades ?></span>
+      <?php foreach ($tipos as $tipo): ?>
+        <span class="badge bg-secondary"><?= htmlspecialchars($tipo) ?>: <?= $contador_tipos[$tipo] ?></span>
+      <?php endforeach; ?>
+    </div>
     <?php if (count($propiedades) === 0): ?>
       <p>No hay propiedades registradas.</p>
     <?php else: ?>
