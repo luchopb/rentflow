@@ -63,6 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $imm_instalaciones = clean_input($_POST['imm_instalaciones'] ?? '');
   $imm_adicional_mercantil = clean_input($_POST['imm_adicional_mercantil'] ?? '');
   $convenios = clean_input($_POST['convenios'] ?? '');
+  $propietario_id = intval($_POST['propietario_id'] ?? 0);
 
   $gallery_images = json_decode($_POST['existing_images'] ?? '[]', true) ?: [];
   $attached_docs = json_decode($_POST['existing_docs'] ?? '[]', true) ?: [];
@@ -114,20 +115,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fecha_hora = date('Y-m-d H:i:s');
 
     if ($edit_id > 0) {
-      $stmt = $pdo->prepare("UPDATE propiedades SET nombre=?, tipo=?, direccion=?, imagenes=?, documentos=?, galeria=?, local=?, precio=?, incluye_gc=?, gastos_comunes=?, estado=?, anep=?, contribucion_inmobiliaria=?, comentarios=?, ose=?, ute=?, padron=?, imm_tasa_general=?, imm_tarifa_saneamiento=?, imm_instalaciones=?, imm_adicional_mercantil=?, convenios=?, usuario_id=?, fecha_modificacion=? WHERE id=?");
-      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $anep, $contribucion_inmobiliaria, $comentarios, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_saneamiento, $imm_instalaciones, $imm_adicional_mercantil, $convenios, $usuario_id, $fecha_hora, $edit_id]);
+      $stmt = $pdo->prepare("UPDATE propiedades SET nombre=?, tipo=?, direccion=?, imagenes=?, documentos=?, galeria=?, local=?, precio=?, incluye_gc=?, gastos_comunes=?, estado=?, anep=?, contribucion_inmobiliaria=?, comentarios=?, ose=?, ute=?, padron=?, imm_tasa_general=?, imm_tarifa_saneamiento=?, imm_instalaciones=?, imm_adicional_mercantil=?, convenios=?, propietario_id=?, usuario_id=?, fecha_modificacion=? WHERE id=?");
+      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $anep, $contribucion_inmobiliaria, $comentarios, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_saneamiento, $imm_instalaciones, $imm_adicional_mercantil, $convenios, $propietario_id, $usuario_id, $fecha_hora, $edit_id]);
       $propiedad_id = $edit_id;
       $message = "Propiedad actualizada correctamente.";
     } else {
-      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,documentos,galeria,local,precio,incluye_gc,gastos_comunes,estado,anep,contribucion_inmobiliaria,comentarios,ose,ute,padron,imm_tasa_general,imm_tarifa_saneamiento,imm_instalaciones,imm_adicional_mercantil,convenios,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $anep, $contribucion_inmobiliaria, $comentarios, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_saneamiento, $imm_instalaciones, $imm_adicional_mercantil, $convenios, $usuario_id, $fecha_hora]);
+      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,documentos,galeria,local,precio,incluye_gc,gastos_comunes,estado,anep,contribucion_inmobiliaria,comentarios,ose,ute,padron,imm_tasa_general,imm_tarifa_saneamiento,imm_instalaciones,imm_adicional_mercantil,convenios,propietario_id,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $anep, $contribucion_inmobiliaria, $comentarios, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_saneamiento, $imm_instalaciones, $imm_adicional_mercantil, $convenios, $propietario_id, $usuario_id, $fecha_hora]);
       $propiedad_id = $pdo->lastInsertId();
       $message = "Propiedad creada correctamente.";
     }
     header("Location: propiedades.php?msg=" . urlencode($message) . "&propiedad_id=" . urlencode($propiedad_id));
     exit();
   } else {
-    $edit_data = compact('nombre', 'tipo', 'direccion', 'galeria', 'local', 'precio', 'incluye_gc', 'gastos_comunes', 'estado', 'anep', 'contribucion_inmobiliaria', 'comentarios', 'ose', 'ute', 'padron', 'imm_tasa_general', 'imm_tarifa_saneamiento', 'imm_instalaciones', 'imm_adicional_mercantil', 'convenios');
+    $edit_data = compact('nombre', 'tipo', 'direccion', 'galeria', 'local', 'precio', 'incluye_gc', 'gastos_comunes', 'estado', 'anep', 'contribucion_inmobiliaria', 'comentarios', 'ose', 'ute', 'padron', 'imm_tasa_general', 'imm_tarifa_saneamiento', 'imm_instalaciones', 'imm_adicional_mercantil', 'convenios', 'propietario_id');
     $edit_data['imagenes_arr'] = $gallery_images;
     $edit_data['documentos_arr'] = $attached_docs;
   }
@@ -140,6 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($edit_data) {
       $edit_data['imagenes_arr'] = json_decode($edit_data['imagenes'], true) ?: [];
       $edit_data['documentos_arr'] = json_decode($edit_data['documentos'], true) ?: [];
+      $edit_data['propietario_id'] = $edit_data['propietario_id'] ?? '';
     }
   }
 }
@@ -372,6 +374,32 @@ include 'includes/header_nav.php';
                 }
                 ?>
               </select>
+            </div>
+
+            <!-- Campo Propietario -->
+            <div class="mb-3">
+              <label for="propietario_id" class="form-label">Propietario *</label>
+              <select class="form-select" id="propietario_id" name="propietario_id" required>
+                <?php
+                try {
+                  $propietarios = $pdo->query("SELECT id, nombre FROM propietarios ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+                  if (count($propietarios) === 0) {
+                    echo '<option value="">No hay propietarios cargados</option>';
+                  } else {
+                    foreach ($propietarios as $prop) {
+                      $sel = ($edit_data['propietario_id'] ?? '') == $prop['id'] ? "selected" : "";
+                      echo "<option value=\"{$prop['id']}\" $sel>{$prop['nombre']}</option>";
+                    }
+                  }
+                } catch (Exception $e) {
+                  echo '<option value="">Tabla propietarios no existe</option>';
+                }
+                ?>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <a href="propietarios.php?add=true" target="_blank" class="btn btn-outline-primary btn-sm">Agregar nuevo propietario</a>
             </div>
 
             <div class="mb-3">

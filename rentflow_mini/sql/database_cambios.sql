@@ -13,6 +13,7 @@ CREATE TABLE propiedades (
     contribucion_inmobiliaria VARCHAR(100),
     comentarios TEXT,
     imagenes TEXT,
+    propietario_id INT NULL
 );
 
 CREATE TABLE inquilinos (
@@ -57,7 +58,17 @@ CREATE TABLE usuarios (
     rol ENUM('admin', 'usuario_normal')
 );
 
+CREATE TABLE propietarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL
+);
 
+INSERT INTO propietarios (nombre) VALUES
+('Raul Pérez (de todos)'),
+('A Medias (Raúl y Todos)'),
+('Luis Pérez'),
+('Viviana Pérez'),
+('Cristina Di Candia');
 
 -- Agregar columna para almacenar el ID del usuario que creó la propiedad
 ALTER TABLE propiedades
@@ -115,3 +126,15 @@ AFTER contribucion_inmobiliaria;
 
 
 ALTER TABLE pagos ADD COLUMN tipo_pago ENUM('Efectivo', 'Transferencia') NULL AFTER concepto;
+
+-- ALTER TABLE propiedades ADD CONSTRAINT fk_propietario FOREIGN KEY (propietario_id) REFERENCES propietarios(id);
+
+ALTER TABLE propiedades ADD COLUMN propietario_id INT NULL AFTER estado;
+
+ALTER TABLE propiedades ADD COLUMN usuario_id INT NOT NULL AFTER propietario_id;
+
+ALTER TABLE propiedades ADD COLUMN fecha_creacion DATETIME NULL AFTER usuario_id;
+
+ALTER TABLE propiedades ADD COLUMN fecha_modificacion DATETIME NULL AFTER fecha_creacion;
+
+
