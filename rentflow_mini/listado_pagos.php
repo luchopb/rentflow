@@ -472,8 +472,8 @@ include 'includes/header_nav.php';
                                     <span class="badge bg-info"><?= htmlspecialchars($pago['concepto']) ?></span>
                                 </td>
                                 <td>
-                                    <span class="badge bg-<?= $pago['tipo_pago'] === 'Efectivo' ? 'success' : 'warning' ?>">
-                                        <?= htmlspecialchars($pago['tipo_pago']) ?>
+                                    <span class="badge bg-<?= ($pago['tipo_pago'] ?? '') === 'Efectivo' ? 'success' : 'warning' ?>">
+                                        <?= htmlspecialchars($pago['tipo_pago'] ?? '') ?>
                                     </span>
                                 </td>
                                 <td>
