@@ -25,7 +25,7 @@
     </a>
     
     <!-- Botón Pagos -->
-    <a href="pagos.php" class="nav-link text-center px-2">
+    <a href="listado_pagos.php" class="nav-link text-center px-2">
       <i class="bi bi-cash-coin d-block fs-5"></i>
       <span class="d-block small">Pagos</span>
     </a>
