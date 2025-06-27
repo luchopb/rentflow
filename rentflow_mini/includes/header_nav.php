@@ -58,8 +58,8 @@ $search = clean_input($_GET['search'] ?? '');
           <li class="nav-item"><a class="nav-link <?= ($_SERVER['SCRIPT_NAME'] ?? '') === '/propiedades.php' ? 'active' : '' ?>" href="propiedades.php">Propiedades</a></li>
           <li class="nav-item"><a class="nav-link <?= ($_SERVER['SCRIPT_NAME'] ?? '') === '/inquilinos.php' ? 'active' : '' ?>" href="inquilinos.php">Inquilinos</a></li>
           <li class="nav-item"><a class="nav-link <?= ($_SERVER['SCRIPT_NAME'] ?? '') === '/contratos.php' ? 'active' : '' ?>" href="contratos.php">Contratos</a></li>
-          <li class="nav-item"><a class="nav-link <?= ($_SERVER['SCRIPT_NAME'] ?? '') === '/pagos.php' ? 'active' : '' ?>" href="pagos.php">Pagos</a></li>
-          <li class="nav-item"><a class="nav-link" href="logout.php">Cerrar sesión</a></li>
+          <li class="nav-item"><a class="nav-link <?= ($_SERVER['SCRIPT_NAME'] ?? '') === '/listado_pagos.php' ? 'active' : '' ?>" href="listado_pagos.php">Pagos</a></li>
+          <li class="nav-item"><a class="nav-link" href="logout.php">Salir</a></li>
         </ul>
 
         <form action="propiedades.php" method="GET" class="" role="search" aria-label="Buscar propiedades">
