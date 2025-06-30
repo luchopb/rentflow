@@ -415,12 +415,20 @@ include 'includes/header_nav.php';
 
             <?php if (!empty($edit_data['imagenes_arr'])): ?>
               <div class="mb-3" id="image-preview-container">
-                <?php foreach ($edit_data['imagenes_arr'] as $img): ?>
+                <?php foreach ($edit_data['imagenes_arr'] as $idx => $img): ?>
                   <div class="img-preview" data-img="<?= htmlspecialchars($img) ?>">
                     <button type="button" class="btn-remove-image" title="Eliminar imagen" onclick="removeImage('<?= htmlspecialchars($img) ?>')">&times;</button>
-                    <img src="uploads/<?= htmlspecialchars($img) ?>" alt="" style="max-height:80px; max-width:100px; border-radius:0.5rem;" />
+                    <img src="uploads/<?= htmlspecialchars($img) ?>" alt="" style="max-height:80px; max-width:100px; border-radius:0.5rem; cursor:pointer;" onclick="openGalleryModal(<?= $idx ?>)" />
                   </div>
                 <?php endforeach; ?>
+              </div>
+
+              <!-- Modal Galería de Imágenes -->
+              <div id="galleryModal" class="gallery-modal" style="display:none;">
+                <span class="gallery-close" onclick="closeGalleryModal()">&times;</span>
+                <img class="gallery-modal-content" id="galleryModalImg" src="" alt="Imagen" />
+                <button type="button" class="gallery-nav gallery-prev" onclick="galleryPrev(event)">&#10094;</button>
+                <button type="button" class="gallery-nav gallery-next" onclick="galleryNext(event)">&#10095;</button>
               </div>
             <?php endif; ?>
 
@@ -712,6 +720,47 @@ include 'includes/header_nav.php';
   const toggleBtn = document.querySelector('button[data-bs-target="#formPropiedadCollapse"]');
   collapseEl.addEventListener('show.bs.collapse', () => toggleBtn.textContent = 'Ocultar');
   collapseEl.addEventListener('hide.bs.collapse', () => toggleBtn.textContent = 'Agregar Nueva Propiedad');
+
+  <?php if (!empty($edit_data['imagenes_arr'])): ?>
+  // Galería de imágenes en modal
+  const galleryImages = <?= json_encode($edit_data['imagenes_arr']) ?>;
+  let currentGalleryIdx = 0;
+
+  function openGalleryModal(idx) {
+    currentGalleryIdx = idx;
+    const modal = document.getElementById('galleryModal');
+    const modalImg = document.getElementById('galleryModalImg');
+    modalImg.src = 'uploads/' + galleryImages[currentGalleryIdx];
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeGalleryModal() {
+    document.getElementById('galleryModal').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  function galleryPrev(e) {
+    e.stopPropagation();
+    currentGalleryIdx = (currentGalleryIdx - 1 + galleryImages.length) % galleryImages.length;
+    document.getElementById('galleryModalImg').src = 'uploads/' + galleryImages[currentGalleryIdx];
+  }
+
+  function galleryNext(e) {
+    e.stopPropagation();
+    currentGalleryIdx = (currentGalleryIdx + 1) % galleryImages.length;
+    document.getElementById('galleryModalImg').src = 'uploads/' + galleryImages[currentGalleryIdx];
+  }
+
+  // Cerrar modal al hacer click fuera de la imagen
+  document.getElementById('galleryModal').addEventListener('click', function(e) {
+    if (e.target === this) closeGalleryModal();
+  });
+  // Cerrar con ESC
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeGalleryModal();
+  });
+  <?php endif; ?>
 </script>
 
 <?php
