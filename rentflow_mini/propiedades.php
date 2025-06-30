@@ -386,6 +386,7 @@ include 'includes/header_nav.php';
                   if (count($propietarios) === 0) {
                     echo '<option value="">No hay propietarios cargados</option>';
                   } else {
+                    echo '<option value="">Seleccione...</option>';
                     foreach ($propietarios as $prop) {
                       $sel = ($edit_data['propietario_id'] ?? '') == $prop['id'] ? "selected" : "";
                       echo "<option value=\"{$prop['id']}\" $sel>{$prop['nombre']}</option>";
@@ -603,7 +604,9 @@ include 'includes/header_nav.php';
     <div class="mb-3">
       <span class="badge bg-primary">Total: <?= $total_propiedades ?></span>
       <?php foreach ($tipos as $tipo): ?>
-        <span class="badge bg-secondary"><?= htmlspecialchars($tipo) ?>: <?= $contador_tipos[$tipo] ?></span>
+        <?php if ($contador_tipos[$tipo] > 0): ?>
+          <span class="badge bg-secondary"><?= htmlspecialchars($tipo) ?>: <?= $contador_tipos[$tipo] ?></span>
+        <?php endif; ?>
       <?php endforeach; ?>
     </div>
     <?php if (count($propiedades) === 0): ?>
@@ -613,7 +616,7 @@ include 'includes/header_nav.php';
         <table class="table align-middle">
           <thead>
             <tr>
-              <td></td>
+              <td class="p-0"></td>
               <th>Propiedad</th>
               <th>Contrato</th>
             </tr>
@@ -621,17 +624,17 @@ include 'includes/header_nav.php';
           <tbody>
             <?php foreach ($propiedades as $p): ?>
               <tr>
-                <td>
+                <td class="p-0">
                   <div class="rounded-circle">
                     <?php if (!empty($p['imagenes'])): 
                       $imagenes = json_decode($p['imagenes'], true);
                       if (!empty($imagenes[0])): ?>
                         <img src="uploads/<?= htmlspecialchars($imagenes[0]) ?>">
                       <?php else: ?>
-                        <i class="bi bi-<?= $p['tipo'] === 'Cochera' ? 'car-front' : 'house' ?>"></i>
+                        <i class="bi bi-<?= $p['tipo'] === 'Cochera' ? 'car-front-fill' : 'house-door-fill' ?>"></i>
                       <?php endif; ?>
                     <?php else: ?>
-                      <i class="bi bi-<?= $p['tipo'] === 'Cochera' ? 'car-front' : 'house' ?>"></i>
+                      <i class="bi bi-<?= $p['tipo'] === 'Cochera' ? 'car-front-fill' : 'house-door-fill' ?>"></i>
                     <?php endif; ?>
                   </div>
                 </td>

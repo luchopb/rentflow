@@ -56,10 +56,10 @@ a.nav-link.active {
 
 .btn-remove-image {
     position: absolute;
-    top: 2px;
-    right: 2px;
+    top: -2px;
+    right: -2px;
     border-radius: 50%;
-    padding: 0 6px 2px 6px;
+    padding: 2px 6px 4px 6px;
     line-height: 1;
     font-weight: bold;
     font-size: 1rem;
@@ -83,14 +83,14 @@ a.nav-link.active {
 }
 
 .rounded-circle {
-    border: 2px solid #dee2e6;
-    width: 40px;
-    height: 40px;
+    /* border: 2px solid #dee2e6; */
+    width: 50px;
+    height: 50px;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f0f0f0;
+    background: #bfbfbf;
 }
 
 .rounded-circle img {
@@ -100,8 +100,8 @@ a.nav-link.active {
 }
 
 .rounded-circle i {
-    font-size: 1.2rem;
-    color: #8b8b8b;
+    font-size: 1.5rem;
+    color: #ffffff;
 }
 
 /* Menú inferior mobile */
