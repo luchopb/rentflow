@@ -610,10 +610,10 @@ include 'includes/header_nav.php';
       <p>No hay propiedades registradas.</p>
     <?php else: ?>
       <div class="table-responsive">
-        <table class="table align-middle table-striped">
+        <table class="table align-middle">
           <thead>
             <tr>
-              <td>ID</td>
+              <td></td>
               <th>Propiedad</th>
               <th>Contrato</th>
             </tr>
@@ -621,7 +621,20 @@ include 'includes/header_nav.php';
           <tbody>
             <?php foreach ($propiedades as $p): ?>
               <tr>
-                <td><?= intval($p['id'])?></td>
+                <td>
+                  <div class="rounded-circle">
+                    <?php if (!empty($p['imagenes'])): 
+                      $imagenes = json_decode($p['imagenes'], true);
+                      if (!empty($imagenes[0])): ?>
+                        <img src="uploads/<?= htmlspecialchars($imagenes[0]) ?>">
+                      <?php else: ?>
+                        <i class="bi bi-<?= $p['tipo'] === 'Cochera' ? 'car-front' : 'house' ?>"></i>
+                      <?php endif; ?>
+                    <?php else: ?>
+                      <i class="bi bi-<?= $p['tipo'] === 'Cochera' ? 'car-front' : 'house' ?>"></i>
+                    <?php endif; ?>
+                  </div>
+                </td>
                 <td>
                   <b><a href="propiedades.php?edit=<?= intval($p['id']) ?>" class="text-decoration-none text-dark">
                       <?= htmlspecialchars($p['nombre']) ?></b> (<?= htmlspecialchars($p['tipo']) ?>)</a><br>
