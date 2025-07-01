@@ -148,6 +148,17 @@ $filtro_periodo = $_GET['periodo'] ?? '';
 $filtro_concepto = $_GET['concepto'] ?? '';
 $filtro_tipo_pago = $_GET['tipo_pago'] ?? '';
 
+// Si no se envió ningún filtro de fecha, filtrar por el mes actual
+if (empty($_GET['fecha_desde']) && empty($_GET['fecha_hasta']) && empty($_GET['periodo'])) {
+    $primer_dia = date('Y-m-01');
+    $ultimo_dia = date('Y-m-t');
+    $filtro_fecha_desde = $primer_dia;
+    $filtro_fecha_hasta = $ultimo_dia;
+    // Simular que el usuario envió estos filtros para que se reflejen en el formulario
+    $_GET['fecha_desde'] = $primer_dia;
+    $_GET['fecha_hasta'] = $ultimo_dia;
+}
+
 // Construir la consulta base
 $sql_base = "
     SELECT 
@@ -318,31 +329,37 @@ include 'includes/header_nav.php';
     <!-- Desglose por tipo de pago -->
     <?php if (!empty($desglose_tipo)): ?>
     <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Desglose por Tipo de Pago</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <?php foreach ($desglose_tipo as $tipo => $datos): ?>
-                        <div class="col-md-4 mb-3">
-                            <div class="border rounded p-3">
-                                <h6 class="text-muted"><?= htmlspecialchars($tipo) ?></h6>
-                                <div class="d-flex justify-content-between">
-                                    <span>Cantidad: <strong><?= $datos['cantidad'] ?></strong></span>
-                                    <span>Total: <strong>$<?= number_format($datos['monto'], 2, ',', '.') ?></strong></span>
-                                </div>
-                                <div class="progress mt-2" style="height: 5px;">
-                                    <div class="progress-bar" style="width: <?= $monto_total > 0 ? ($datos['monto'] / $monto_total) * 100 : 0 ?>%"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">Desglose por Tipo de Pago</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered table-striped align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Tipo de Pago</th>
+                    <th>Cantidad</th>
+                    <th>Total</th>
+                    <th>Porcentaje</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php foreach ($desglose_tipo as $tipo => $datos): ?>
+                  <tr>
+                    <td><?= htmlspecialchars($tipo) ?></td>
+                    <td><?= $datos['cantidad'] ?></td>
+                    <td>$<?= number_format($datos['monto'], 2, ',', '.') ?></td>
+                    <td><?= $monto_total > 0 ? round(($datos['monto'] / $monto_total) * 100, 2) : 0 ?>%</td>
+                  </tr>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
             </div>
+          </div>
         </div>
+      </div>
     </div>
     <?php endif; ?>
 

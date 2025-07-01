@@ -123,10 +123,15 @@ a.nav-link.active {
     .mobile-navbar .nav-link {
         color: #ffffff;
         transition: all 0.2s ease;
+        width: 70px;
+        height: 60px;
+        padding: 10px;
+        padding-top: 5px;
     }
 
     .mobile-navbar .nav-link:hover, .mobile-navbar .nav-link.active {
-        color: #ffffff;
+        color: #68e6ff;
+        background: #0067ff;
     }
 
     .mobile-navbar .nav-link i {
