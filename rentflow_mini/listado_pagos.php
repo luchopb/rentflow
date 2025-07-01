@@ -61,10 +61,14 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     // Aplicar los mismos filtros para la exportación
     $sql_export = "
         SELECT 
+            p.id as pago_id,
             p.fecha,
             p.periodo,
+            prop.id as propiedad_id,
             prop.nombre as propiedad,
             prop.direccion,
+            c.id as contrato_id,
+            i.id as inquilino_id,
             i.nombre as inquilino,
             i.telefono,
             p.concepto,
@@ -127,10 +131,14 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     
     // Headers del CSV
     fputcsv($output, [
+        'ID Pago',
         'Fecha',
         'Período',
+        'ID Propiedad',
         'Propiedad',
         'Dirección',
+        'ID Contrato',
+        'ID Inquilino',
         'Inquilino',
         'Teléfono',
         'Concepto',
@@ -142,15 +150,19 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     // Datos
     foreach ($pagos_export as $pago) {
         fputcsv($output, [
+            $pago['pago_id'],
             $pago['fecha'],
             $pago['periodo'],
+            $pago['propiedad_id'],
             $pago['propiedad'],
             $pago['direccion'],
+            $pago['contrato_id'],
+            $pago['inquilino_id'],
             $pago['inquilino'],
             $pago['telefono'],
             $pago['concepto'],
             $pago['tipo_pago'],
-            number_format($pago['importe'], 2, ',', '.'),
+            $pago['importe'],
             $pago['comentario']
         ], ';');
     }
@@ -435,7 +447,7 @@ include 'includes/header_nav.php';
                 <div class="col-12">
                     <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
                     <a href="listado_pagos.php" class="btn btn-outline-secondary">Borrar Filtros</a>
-                    <a href="listado_pagos.php?export=csv&<?= http_build_query($_GET) ?>" class="btn btn-success float-end"><i class="bi bi-file-earmark-excel"></i>
+                    <a href="listado_pagos.php?export=csv&<?= http_build_query($_GET) ?>" class="btn btn-outline-success float-end"><i class="bi bi-file-earmark-excel"></i>
                         Exportar CSV
                     </a>
                 </div>
