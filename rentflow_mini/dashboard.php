@@ -117,7 +117,7 @@ $ratio_pagos = $total_contratos > 0 ? round(($pagos_recibidos / $total_contratos
       </a>
     </div>
     <div class="col-md-4 h-100">
-      <a href="contratos.php" class="text-decoration-none">
+      <a href="listado_pagos.php" class="text-decoration-none">
         <div class="card text-bg-info h-100 mb-3">
           <div class="card-body d-flex flex-column justify-content-between">
             <h5 class="card-title">Pagos del Mes</h5>
