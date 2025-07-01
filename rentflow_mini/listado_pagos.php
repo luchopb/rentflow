@@ -65,8 +65,8 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
         $params_export[] = "%$filtro_propiedad%";
     }
     if ($filtro_propietario) {
-        $sql_export .= " AND prop.nombre LIKE ?";
-        $params_export[] = "%$filtro_propietario%";
+        $sql_export .= " AND prop.propietario_id = ?";
+        $params_export[] = $filtro_propietario;
     }
     if ($filtro_fecha_desde) {
         $sql_export .= " AND p.fecha >= ?";
@@ -161,6 +161,7 @@ $sql_base = "
         p.comprobante,
         c.id as contrato_id,
         c.importe as renta_mensual,
+        prop.id as propiedad_id,
         prop.nombre as propiedad_nombre,
         prop.direccion as propiedad_direccion,
         i.nombre as inquilino_nombre,
@@ -181,8 +182,8 @@ if ($filtro_propiedad) {
 }
 
 if ($filtro_propietario) {
-    $sql_base .= " AND prop.nombre LIKE ?";
-    $params[] = "%$filtro_propietario%";
+    $sql_base .= " AND prop.propietario_id = ?";
+    $params[] = $filtro_propietario;
 }
 
 if ($filtro_fecha_desde) {
@@ -362,18 +363,10 @@ include 'includes/header_nav.php';
                     <select class="form-select" id="propietario" name="propietario">
                         <option value="">Todos los propietarios</option>
                         <?php 
-                        // Obtener lista de propietarios
-                        $stmt_propietarios = $pdo->prepare("SELECT DISTINCT prop.id, prop.nombre FROM propietarios prop 
-                                                          JOIN propiedades p ON prop.id = p.propietario_id 
-                                                          JOIN contratos c ON p.id = c.propiedad_id 
-                                                          JOIN pagos pag ON c.id = pag.contrato_id 
-                                                          ORDER BY prop.nombre");
-                        $stmt_propietarios->execute();
+                        $stmt_propietarios = $pdo->query("SELECT id, nombre FROM propietarios ORDER BY nombre");
                         $propietarios = $stmt_propietarios->fetchAll(PDO::FETCH_ASSOC);
-                        
                         foreach ($propietarios as $propietario): ?>
-                        <option value="<?= htmlspecialchars($propietario['nombre']) ?>" 
-                                <?= $filtro_propietario === $propietario['nombre'] ? 'selected' : '' ?>>
+                        <option value="<?= htmlspecialchars($propietario['id']) ?>" <?= $filtro_propietario == $propietario['id'] ? 'selected' : '' ?>>
                             <?= htmlspecialchars($propietario['nombre']) ?>
                         </option>
                         <?php endforeach; ?>
@@ -500,7 +493,7 @@ include 'includes/header_nav.php';
                                     <?php if ($pago['comprobante']): ?>
                                         <a href="uploads/<?= htmlspecialchars($pago['comprobante']) ?>" 
                                            target="_blank" class="btn btn-sm btn-outline-primary">
-                                            Ver
+                                            Comprobante
                                         </a>
                                     <?php else: ?>
                                         <span class="text-muted">Sin comprobante</span>
@@ -510,7 +503,7 @@ include 'includes/header_nav.php';
                                     <div class="btn-group" role="group">
                                         <a href="pagos.php?contrato_id=<?= $pago['contrato_id'] ?>" 
                                            class="btn btn-sm btn-outline-secondary" title="Ver contrato">
-                                            Ver
+                                            Detalle
                                         </a>
                                         <button type="button" class="btn btn-sm btn-outline-danger" 
                                                 onclick="eliminarPago(<?= $pago['id'] ?>)" title="Eliminar">

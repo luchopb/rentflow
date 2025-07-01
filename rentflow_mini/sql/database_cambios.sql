@@ -137,4 +137,8 @@ ALTER TABLE propiedades ADD COLUMN fecha_creacion DATETIME NULL AFTER usuario_id
 
 ALTER TABLE propiedades ADD COLUMN fecha_modificacion DATETIME NULL AFTER fecha_creacion;
 
+-- Agregar usuario_id y fecha_creacion a la tabla pagos
+ALTER TABLE pagos ADD COLUMN usuario_id INT NULL AFTER contrato_id;
+ALTER TABLE pagos ADD COLUMN fecha_creacion DATETIME NULL AFTER fecha;
+
 

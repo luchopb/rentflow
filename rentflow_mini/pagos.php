@@ -15,7 +15,7 @@ $message = '';
 $errors = [];
 
 // Obtener información del contrato
-$stmt = $pdo->prepare("SELECT c.*, i.nombre as inquilino_nombre, p.nombre as propiedad_nombre FROM contratos c JOIN inquilinos i ON c.inquilino_id = i.id JOIN propiedades p ON c.propiedad_id = p.id WHERE c.id = ?");
+$stmt = $pdo->prepare("SELECT c.*, i.nombre as inquilino_nombre, p.nombre as propiedad_nombre, p.tipo as propiedad_tipo, p.direccion as propiedad_direccion FROM contratos c JOIN inquilinos i ON c.inquilino_id = i.id JOIN propiedades p ON c.propiedad_id = p.id WHERE c.id = ?");
 $stmt->execute([$contrato_id]);
 $contrato = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -37,13 +37,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
   $comentario = $_POST['comentario'] ?? '';
   $comprobante = $_FILES['comprobante'] ?? null;
   $concepto = $_POST['concepto'] ?? '';
-  $tipo_pago = $_POST['tipo_pago'] ?? ''; // Obtener el tipo de pago
+  $tipo_pago = $_POST['tipo_pago'] ?? '';
+  $usuario_id = $_SESSION['user_id'] ?? null;
+  $fecha_creacion = date('Y-m-d H:i:s');
 
   if (!$periodo) $errors[] = "El período es obligatorio.";
   if (!$fecha_pago) $errors[] = "La fecha es obligatoria.";
   if ($importe <= 0) $errors[] = "El importe debe ser mayor que cero.";
   if (!$concepto) $errors[] = "El concepto es obligatorio.";
-  if (!$tipo_pago) $errors[] = "El tipo de pago es obligatorio."; // Validar tipo de pago
+  if (!$tipo_pago) $errors[] = "El tipo de pago es obligatorio.";
 
   // Manejo de archivo de comprobante
   if ($comprobante && $comprobante['error'] === UPLOAD_ERR_OK) {
@@ -58,9 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
   }
 
   if (empty($errors)) {
-    // Insert new payment
-    $stmt = $pdo->prepare("INSERT INTO pagos (contrato_id, periodo, fecha, importe, comentario, comprobante, concepto, tipo_pago) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$contrato_id, $periodo, $fecha_pago, $importe, $comentario, $basename ?? null, $concepto, $tipo_pago]);
+    $stmt = $pdo->prepare("INSERT INTO pagos (contrato_id, usuario_id, periodo, fecha, fecha_creacion, importe, comentario, comprobante, concepto, tipo_pago) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$contrato_id, $usuario_id, $periodo, $fecha_pago, $fecha_creacion, $importe, $comentario, $basename ?? null, $concepto, $tipo_pago]);
     $message = "Pago registrado correctamente.";
     header("Location: pagos.php?contrato_id=$contrato_id&msg=" . urlencode($message));
     exit();
@@ -88,9 +89,11 @@ include 'includes/header_nav.php';
 
   <h1>Pagos</h1>
   <p>
-    Contrato: <a href="contratos.php?edit=<?= $contrato_id ?>" class="text-decoration-none text-dark"><strong>#<?= $contrato_id?></strong></a><br>
+    Contrato: <a href="contratos.php?edit=<?= $contrato_id ?>" class="text-decoration-none text-dark"><strong>#<?= $contrato_id ?></strong></a><br>
     Inquilino: <a href="inquilinos.php?edit=<?= intval($contrato['inquilino_id']) ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['inquilino_nombre']) ?></strong></a><br>
-    Propiedad: <a href="propiedades.php?edit=<?= htmlspecialchars($contrato['propiedad_id'] ?? '') ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['propiedad_nombre']) ?></strong></a>
+    Propiedad: <a href="propiedades.php?edit=<?= htmlspecialchars($contrato['propiedad_id'] ?? '') ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['propiedad_nombre']) ?></strong></a><br>
+    Tipo: <strong><?= htmlspecialchars($contrato['propiedad_tipo'] ?? '') ?></strong><br>
+    Dirección: <strong><?= htmlspecialchars($contrato['propiedad_direccion'] ?? '') ?></strong>
   </p>
 
   <?php if ($message): ?>
@@ -140,21 +143,23 @@ include 'includes/header_nav.php';
             <label for="importe" class="form-label">Importe *</label>
             <input type="number" step="0.01" min="0" class="form-control" id="importe" name="importe" value="<?= htmlspecialchars($contrato['importe']) ?>" required>
           </div>
-          
+
           <!-- Nuevo campo para Tipo de Pago -->
           <div class="mb-3">
-            <label class="form-label">Tipo de Pago *</label>
-            <div>
-              <div class="form-check form-check-inline">
-                <input class="btn-check form-check-input" type="radio" name="tipo_pago" id="tipo_pago_efectivo" value="Efectivo" required>
-                <label class="btn form-check-label" for="tipo_pago_efectivo">Efectivo</label>
-              </div>
-              <div class="form-check form-check-inline">
-                <input class="btn-check form-check-input" type="radio" name="tipo_pago" id="tipo_pago_transferencia" value="Transferencia" required>
-                <label class="btn form-check-label" for="tipo_pago_transferencia">Transferencia</label>
-              </div>
-            </div>
+            <label for="tipo_pago" class="form-label">Tipo de Pago *</label>
+            <select name="tipo_pago" id="tipo_pago" class="form-select" required>
+              <option value="">Seleccione...</option>
+              <option value="Efectivo">Efectivo</option>
+              <option value="Efectivo (Sobre)">Efectivo (Sobre)</option>
+              <option value="Transferencia">Transferencia</option>
+              <option value="Transferencia Papá">Transferencia Papá</option>
+              <option value="Depósito RedPagos">Depósito RedPagos</option>
+              <option value="Depósito Abitab">Depósito Abitab</option>
+              <option value="Depósito Cuenta Papá">Depósito Cuenta Papá</option>
+              <option value="Depósito Cuenta Papá">Depósito Cuenta Lucho</option>
+            </select>
           </div>
+
 
           <div class="mb-3">
             <label for="comentario" class="form-label">Comentario</label>
@@ -186,15 +191,18 @@ include 'includes/header_nav.php';
           <?php foreach ($pagos_list as $pago): ?>
             <tr>
               <td>
-                <b><?= htmlspecialchars($pago['periodo']) ?></b> <br> 
-                <small><nobr><?= htmlspecialchars($pago['fecha']) ?></nobr></small>
+                <b><?= htmlspecialchars($pago['periodo']) ?></b> <br>
+                <small>
+                  <nobr><?= htmlspecialchars($pago['fecha']) ?></nobr>
+                </small>
               </td>
               <td>
                 <?= htmlspecialchars($pago['concepto']) ?> <br> $<?= number_format($pago['importe'], 2, ",", ".") ?><br>
+                <span class="badge bg-info"><?= htmlspecialchars($pago['tipo_pago'] ?? '') ?></span><br>
                 <small><?= htmlspecialchars($pago['comentario']) ?><br>
-                <?php if ($pago['comprobante']): ?>
-                  <a href="uploads/<?= htmlspecialchars($pago['comprobante']) ?>" target="_blank">Ver Comprobante</a>
-                <?php endif; ?>
+                  <?php if ($pago['comprobante']): ?>
+                    <a href="uploads/<?= htmlspecialchars($pago['comprobante']) ?>" target="_blank">Ver Comprobante</a>
+                  <?php endif; ?>
                 </small>
               </td>
               <td>

@@ -168,7 +168,8 @@ $busqueda = clean_input($_GET['search'] ?? '');
 $filtro_tipo = clean_input($_GET['filtro_tipo'] ?? '');
 $params = [];
 $sql = "SELECT p.*, c.id AS contrato_id, i.nombre AS inquilino_nombre, i.id AS inquilino_id, 
-        (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') AS fecha_ultimo_pago
+        (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') AS fecha_ultimo_pago,
+        (SELECT tipo_pago FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual' AND periodo = (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') LIMIT 1) AS tipo_ultimo_pago
         FROM propiedades p 
         LEFT JOIN contratos c ON c.propiedad_id = p.id 
           AND c.estado = 'activo' 
@@ -665,8 +666,9 @@ include 'includes/header_nav.php';
                           $ultimo_pago = date('m/Y', strtotime($p['fecha_ultimo_pago']));
                           $periodo_actual = date('m/Y');
                           $badge_class = ($ultimo_pago === $periodo_actual) ? 'bg-success' : 'bg-warning text-dark';
+                          $tipo_pago = $p['tipo_ultimo_pago'] ?? '';
                         ?>
-                        <span class="badge <?= $badge_class ?>"><i class="bi bi-coin"></i> <?= $ultimo_pago ?></span>
+                        <span class="badge <?= $badge_class ?>"><?= $ultimo_pago ?><?= $tipo_pago ? ' ' . htmlspecialchars($tipo_pago) : '' ?></span>
                       <?php else: ?>
                         <span class="badge bg-danger">Sin pago</span>
                       <?php endif; ?>

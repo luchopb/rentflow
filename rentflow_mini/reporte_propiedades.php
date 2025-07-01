@@ -15,18 +15,18 @@ SELECT
   pa.id AS pago_id, pa.concepto, pa.fecha, pa.periodo, pa.tipo_pago, pa.importe AS pago_importe, pa.comprobante
 FROM propiedades p
 LEFT JOIN propietarios pr ON pr.id = p.propietario_id
-LEFT JOIN contratos c ON c.propiedad_id = p.id AND c.estado = 'activo' AND CURDATE() BETWEEN c.fecha_inicio AND c.fecha_fin
+LEFT JOIN contratos c ON c.propiedad_id = p.id 
+    -- AND c.estado = 'activo' 
+    -- AND CURDATE() BETWEEN c.fecha_inicio AND c.fecha_fin
 LEFT JOIN inquilinos i ON c.inquilino_id = i.id
-LEFT JOIN (
-  SELECT x.* FROM pagos x
-  INNER JOIN (
-    SELECT contrato_id, MAX(fecha) AS max_fecha FROM pagos GROUP BY contrato_id
-  ) y ON x.contrato_id = y.contrato_id AND x.fecha = y.max_fecha
-) pa ON pa.contrato_id = c.id
-ORDER BY p.id DESC
+LEFT JOIN pagos pa ON pa.contrato_id = c.id
+ORDER BY p.id DESC, pa.fecha DESC
 ";
+
+
 $stmt = $pdo->query($sql);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 
 function bg($n) {
   $colors = ['#e3f2fd', '#e8f5e9', '#fff3e0', '#f3e5f5'];
@@ -34,12 +34,29 @@ function bg($n) {
 }
 
 function archivos($arr, $dir = 'uploads/') {
-  $files = is_array($arr) ? $arr : (json_decode($arr ?? '[]', true) ?: []);
-  $out = '';
-  foreach ($files as $f) {
-    $out .= '<a href="' . $dir . htmlspecialchars($f) . '" target="_blank">' . htmlspecialchars($f) . '</a><br>';
+  // Si está vacío, retornar guión
+  if (empty($arr)) {
+    return '';
   }
-  return $out ?: '-';
+  
+  // Si es un string JSON válido, intentar decodificarlo
+  if (is_string($arr)) {
+    $decoded = json_decode($arr, true);
+    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+      // Es un JSON válido con array, recorrer y crear links
+      $out = '';
+      foreach ($decoded as $archivo) {
+        $out .= '<a href="' . $dir . htmlspecialchars($archivo) . '" target="_blank">' . htmlspecialchars($archivo) . '</a> ';
+      }
+      return $out;
+    } else {
+      // No es JSON válido, mostrar como string simple
+      return '<a href="' . $dir . htmlspecialchars($arr) . '" target="_blank">' . htmlspecialchars($arr) . '</a>';
+    }
+  }
+
+  // Si no se pudo procesar, retornar el valor original como string
+  return htmlspecialchars($arr);
 }
 ?>
 <!DOCTYPE html>
@@ -49,16 +66,16 @@ function archivos($arr, $dir = 'uploads/') {
   <title><?= htmlspecialchars($page_title) ?></title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
-    .bg-prop { background: #e3f2fd; }
-    .bg-owner { background: #fffde7; }
-    .bg-inq { background: #e8f5e9; }
-    .bg-ctr { background: #fff3e0; }
-    .bg-pay { background: #f3e5f5; }
+    .bg-prop { background-color:rgb(181, 224, 255) !important; }
+    .bg-owner { background-color:rgb(255, 249, 178) !important; }
+    .bg-inq { background-color:rgb(183, 255, 189) !important; }
+    .bg-ctr { background-color:rgb(255, 229, 186) !important; }
+    .bg-pay { background-color:rgb(246, 191, 255) !important; }
     th, td { vertical-align: middle !important; }
     .nowrap { white-space: nowrap; }
   </style>
 </head>
-<body class="container py-4">
+<body class="container-fluid px-4 py-4">
   <h1 class="mb-4">Reporte de Propiedades</h1>
   <a href="#" class="btn btn-success mb-3" onclick="exportTableToExcel('tabla_reporte', 'reporte_propiedades')">Exportar a Excel</a>
   <div class="table-responsive">

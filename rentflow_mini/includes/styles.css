@@ -51,7 +51,7 @@ a.nav-link:hover, a.nav-link:focus {
 
 a.nav-link.active {
     color: #FFFFFF;
-    border-bottom: 2px solid #FFEB3B;
+    /* border-bottom: 2px solid #FFEB3B; */
 }
 
 .btn-remove-image {
@@ -226,13 +226,13 @@ a.nav-link.active {
         color: #fff;
         font-size: 1.1rem;
         padding: 0.7rem 1.5rem;
-        border-radius: 0.3rem;
+        /* border-radius: 0.3rem; */
         margin-bottom: 0.2rem;
     }
 
     .sidebar-nav .nav-link.active, .sidebar-nav .nav-link:hover {
-        background: #fff;
-        color: #0d6efd;
+        background: #4691ff;
+        color: #ffffff;
     }
 
     .sidebar-nav .sidebar-search {
