@@ -6,6 +6,26 @@ $page_title = 'Listado de Pagos - Inmobiliaria';
 $message = '';
 $errors = [];
 
+// Parámetros de filtro - declarar antes del manejo de exportación
+$filtro_propiedad = $_GET['propiedad'] ?? '';
+$filtro_propietario = $_GET['propietario'] ?? '';
+$filtro_fecha_desde = $_GET['fecha_desde'] ?? '';
+$filtro_fecha_hasta = $_GET['fecha_hasta'] ?? '';
+$filtro_periodo = $_GET['periodo'] ?? '';
+$filtro_concepto = $_GET['concepto'] ?? '';
+$filtro_tipo_pago = $_GET['tipo_pago'] ?? '';
+
+// Si no se envió ningún filtro de fecha, filtrar por el mes actual
+if (empty($_GET['fecha_desde']) && empty($_GET['fecha_hasta']) && empty($_GET['periodo'])) {
+    $primer_dia = date('Y-m-01');
+    $ultimo_dia = date('Y-m-t');
+    $filtro_fecha_desde = $primer_dia;
+    $filtro_fecha_hasta = $ultimo_dia;
+    // Simular que el usuario envió estos filtros para que se reflejen en el formulario
+    $_GET['fecha_desde'] = $primer_dia;
+    $_GET['fecha_hasta'] = $ultimo_dia;
+}
+
 // Manejo de eliminación de pagos
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     $pago_id = intval($_GET['delete']);
@@ -139,26 +159,6 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     exit();
 }
 
-// Parámetros de filtro
-$filtro_propiedad = $_GET['propiedad'] ?? '';
-$filtro_propietario = $_GET['propietario'] ?? '';
-$filtro_fecha_desde = $_GET['fecha_desde'] ?? '';
-$filtro_fecha_hasta = $_GET['fecha_hasta'] ?? '';
-$filtro_periodo = $_GET['periodo'] ?? '';
-$filtro_concepto = $_GET['concepto'] ?? '';
-$filtro_tipo_pago = $_GET['tipo_pago'] ?? '';
-
-// Si no se envió ningún filtro de fecha, filtrar por el mes actual
-if (empty($_GET['fecha_desde']) && empty($_GET['fecha_hasta']) && empty($_GET['periodo'])) {
-    $primer_dia = date('Y-m-01');
-    $ultimo_dia = date('Y-m-t');
-    $filtro_fecha_desde = $primer_dia;
-    $filtro_fecha_hasta = $ultimo_dia;
-    // Simular que el usuario envió estos filtros para que se reflejen en el formulario
-    $_GET['fecha_desde'] = $primer_dia;
-    $_GET['fecha_hasta'] = $ultimo_dia;
-}
-
 // Construir la consulta base
 $sql_base = "
     SELECT 
@@ -269,7 +269,7 @@ include 'includes/header_nav.php';
 <main class="container container-main py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Listado de Pagos</h1>
-        <a href="pagos.php" class="btn btn-outline-primary">Nuevo Pago</a>
+        <a href="pagos.php" class="btn btn-success"><i class="bi bi-plus-circle"></i> Registrar Nuevo Pago</a>
     </div>
 
     <?php if ($message): ?>
@@ -433,9 +433,9 @@ include 'includes/header_nav.php';
                     </select>
                 </div>
                 <div class="col-12">
-                    <button type="submit" class="btn btn-primary">Filtrar</button>
-                    <a href="listado_pagos.php" class="btn btn-outline-secondary">Limpiar Filtros</a>
-                    <a href="listado_pagos.php?export=csv<?= http_build_query($_GET) ?>" class="btn btn-outline-success">
+                    <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
+                    <a href="listado_pagos.php" class="btn btn-outline-secondary">Borrar Filtros</a>
+                    <a href="listado_pagos.php?export=csv&<?= http_build_query($_GET) ?>" class="btn btn-success float-end"><i class="bi bi-file-earmark-excel"></i>
                         Exportar CSV
                     </a>
                 </div>

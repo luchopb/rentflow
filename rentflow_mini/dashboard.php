@@ -103,8 +103,8 @@ $ratio_pagos = $total_contratos > 0 ? round(($pagos_recibidos / $total_contratos
             </div>
             <div class="small mt-2">
               <?php foreach ($propiedades_por_tipo as $tipo): ?>
-                <?php 
-                  $ratio_tipo = $tipo['total'] > 0 ? round(($tipo['ocupadas'] / $tipo['total']) * 100) : 0;
+                <?php
+                $ratio_tipo = $tipo['total'] > 0 ? round(($tipo['ocupadas'] / $tipo['total']) * 100) : 0;
                 ?>
                 <div class="d-flex justify-content-between">
                   <span class="text-capitalize"><?= htmlspecialchars($tipo['tipo']) ?>:</span>
@@ -138,16 +138,25 @@ $ratio_pagos = $total_contratos > 0 ? round(($pagos_recibidos / $total_contratos
         <tr>
           <th>ID</th>
           <th>Contrato</th>
-          <th>Pago <?php 
-              $fecha = new DateTime("$anio_actual-$mes_actual-01");
-              $meses = [
-                  1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
-                  5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
-                  9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
-              ];
-              $nombre_mes = $meses[(int)$fecha->format('n')];
-              echo ucfirst($nombre_mes) . ' ' . $anio_actual;
-          ?></th>
+          <th>Pago <?php
+                    $fecha = new DateTime("$anio_actual-$mes_actual-01");
+                    $meses = [
+                      1 => 'Enero',
+                      2 => 'Febrero',
+                      3 => 'Marzo',
+                      4 => 'Abril',
+                      5 => 'Mayo',
+                      6 => 'Junio',
+                      7 => 'Julio',
+                      8 => 'Agosto',
+                      9 => 'Septiembre',
+                      10 => 'Octubre',
+                      11 => 'Noviembre',
+                      12 => 'Diciembre'
+                    ];
+                    $nombre_mes = $meses[(int)$fecha->format('n')];
+                    echo ucfirst($nombre_mes) . ' ' . $anio_actual;
+                    ?></th>
         </tr>
       </thead>
       <tbody>
