@@ -159,7 +159,7 @@ a.nav-link.active {
 
 .table-responsive {
     border-radius: 0.75rem;
-    overflow: hidden;
+    /* overflow: hidden; */
 }
 
 .badge {

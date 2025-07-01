@@ -359,8 +359,25 @@ include 'includes/header_nav.php';
                 </div>
                 <div class="col-md-3">
                     <label for="propietario" class="form-label">Propietario</label>
-                    <input type="text" class="form-control" id="propietario" name="propietario" 
-                           value="<?= htmlspecialchars($filtro_propietario) ?>" placeholder="Buscar propietario...">
+                    <select class="form-select" id="propietario" name="propietario">
+                        <option value="">Todos los propietarios</option>
+                        <?php 
+                        // Obtener lista de propietarios
+                        $stmt_propietarios = $pdo->prepare("SELECT DISTINCT prop.id, prop.nombre FROM propietarios prop 
+                                                          JOIN propiedades p ON prop.id = p.propietario_id 
+                                                          JOIN contratos c ON p.id = c.propiedad_id 
+                                                          JOIN pagos pag ON c.id = pag.contrato_id 
+                                                          ORDER BY prop.nombre");
+                        $stmt_propietarios->execute();
+                        $propietarios = $stmt_propietarios->fetchAll(PDO::FETCH_ASSOC);
+                        
+                        foreach ($propietarios as $propietario): ?>
+                        <option value="<?= htmlspecialchars($propietario['nombre']) ?>" 
+                                <?= $filtro_propietario === $propietario['nombre'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($propietario['nombre']) ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 <div class="col-md-2">
                     <label for="fecha_desde" class="form-label">Fecha Desde</label>

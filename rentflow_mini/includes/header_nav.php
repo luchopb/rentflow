@@ -58,6 +58,7 @@ $search = clean_input($_GET['search'] ?? '');
     <ul class="nav flex-column">
       <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'dashboard.php' ? 'active' : '' ?>" href="dashboard.php">Dashboard</a></li>
       <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'propiedades.php' ? 'active' : '' ?>" href="propiedades.php">Propiedades</a></li>
+      <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'reporte_propiedades.php' ? 'active' : '' ?>" href="reporte_propiedades.php">Reporte Propiedades</a></li>
       <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'inquilinos.php' ? 'active' : '' ?>" href="inquilinos.php">Inquilinos</a></li>
       <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'contratos.php' ? 'active' : '' ?>" href="contratos.php">Contratos</a></li>
       <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'listado_pagos.php' ? 'active' : '' ?>" href="listado_pagos.php">Pagos</a></li>
@@ -78,6 +79,7 @@ $search = clean_input($_GET['search'] ?? '');
         <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'dashboard.php' ? 'active' : '' ?>" href="dashboard.php">Dashboard</a></li>
           <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'propiedades.php' ? 'active' : '' ?>" href="propiedades.php">Propiedades</a></li>
+          <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'reporte_propiedades.php' ? 'active' : '' ?>" href="reporte_propiedades.php">Reporte Propiedades</a></li>
           <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'inquilinos.php' ? 'active' : '' ?>" href="inquilinos.php">Inquilinos</a></li>
           <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'contratos.php' ? 'active' : '' ?>" href="contratos.php">Contratos</a></li>
           <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'listado_pagos.php' ? 'active' : '' ?>" href="listado_pagos.php">Pagos</a></li>
