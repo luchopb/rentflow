@@ -499,8 +499,13 @@ include 'includes/header_nav.php';
                                     <span class="badge bg-info"><?= htmlspecialchars($pago['concepto']) ?></span>
                                 </td>
                                 <td>
-                                    <span class="badge bg-<?= ($pago['tipo_pago'] ?? '') === 'Efectivo' ? 'success' : 'warning' ?>">
-                                        <?= htmlspecialchars($pago['tipo_pago'] ?? '') ?>
+                                    <?php
+                                        // Si el tipo de pago contiene la palabra "efectivo" (sin importar mayúsculas/minúsculas), mostrar en verde, sino en gris
+                                        $tipo_pago = $pago['tipo_pago'] ?? '';
+                                        $clase_color = stripos($tipo_pago, 'efectivo') !== false ? 'success' : 'secondary';
+                                    ?>
+                                    <span class="badge bg-<?= $clase_color ?>">
+                                        <?= htmlspecialchars($tipo_pago) ?>
                                     </span>
                                 </td>
                                 <td>
