@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
 }
 
 // Obtener pagos para este contrato
-$pagos = $pdo->prepare("SELECT * FROM pagos WHERE contrato_id = ? ORDER BY periodo ASC");
+$pagos = $pdo->prepare("SELECT * FROM pagos WHERE contrato_id = ? ORDER BY periodo DESC, fecha DESC");
 $pagos->execute([$contrato_id]);
 $pagos_list = $pagos->fetchAll();
 
@@ -184,7 +184,7 @@ include 'includes/header_nav.php';
           <tr>
             <th>Fecha</th>
             <th>Concepto</th>
-            <th>Acciones</th>
+            <!--<th>Acciones</th>-->
           </tr>
         </thead>
         <tbody>
@@ -197,7 +197,7 @@ include 'includes/header_nav.php';
                 </small>
               </td>
               <td>
-                <?= htmlspecialchars($pago['concepto']) ?> <br> $<?= number_format($pago['importe'], 2, ",", ".") ?><br>
+                <b><?= htmlspecialchars($pago['concepto']) ?></b> <br> $<?= number_format($pago['importe'], 2, ",", ".") ?><br>
                 <span class="badge bg-info"><?= htmlspecialchars($pago['tipo_pago'] ?? '') ?></span><br>
                 <small><?= htmlspecialchars($pago['comentario']) ?><br>
                   <?php if ($pago['comprobante']): ?>
@@ -205,9 +205,9 @@ include 'includes/header_nav.php';
                   <?php endif; ?>
                 </small>
               </td>
-              <td>
+              <!--<td>
                 <a href="pagos.php?delete=<?= intval($pago['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este pago?')">Eliminar</a>
-              </td>
+              </td>-->
             </tr>
           <?php endforeach; ?>
         </tbody>

@@ -29,12 +29,12 @@ if (empty($_GET['fecha_desde']) && empty($_GET['fecha_hasta']) && empty($_GET['p
 // Manejo de eliminación de pagos
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     $pago_id = intval($_GET['delete']);
-    
+
     // Verificar que el pago existe
     $stmt = $pdo->prepare("SELECT p.*, p.comprobante FROM pagos p WHERE p.id = ?");
     $stmt->execute([$pago_id]);
     $pago_a_eliminar = $stmt->fetch(PDO::FETCH_ASSOC);
-    
+
     if ($pago_a_eliminar) {
         // Eliminar el archivo de comprobante si existe
         if ($pago_a_eliminar['comprobante']) {
@@ -43,7 +43,7 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
                 unlink($archivo_comprobante);
             }
         }
-        
+
         // Eliminar el pago de la base de datos
         $stmt = $pdo->prepare("DELETE FROM pagos WHERE id = ?");
         if ($stmt->execute([$pago_id])) {
@@ -81,9 +81,9 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
         JOIN inquilinos i ON c.inquilino_id = i.id
         WHERE 1=1
     ";
-    
+
     $params_export = [];
-    
+
     if ($filtro_propiedad) {
         $sql_export .= " AND prop.nombre LIKE ?";
         $params_export[] = "%$filtro_propiedad%";
@@ -112,23 +112,23 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
         $sql_export .= " AND p.tipo_pago = ?";
         $params_export[] = $filtro_tipo_pago;
     }
-    
+
     $sql_export .= " ORDER BY p.fecha DESC";
-    
+
     $stmt_export = $pdo->prepare($sql_export);
     $stmt_export->execute($params_export);
     $pagos_export = $stmt_export->fetchAll(PDO::FETCH_ASSOC);
-    
+
     // Configurar headers para descarga CSV
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="pagos_' . date('Y-m-d_H-i-s') . '.csv"');
-    
+
     // Crear archivo CSV
     $output = fopen('php://output', 'w');
-    
+
     // BOM para UTF-8
-    fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-    
+    fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
     // Headers del CSV
     fputcsv($output, [
         'ID Pago',
@@ -146,7 +146,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
         'Importe',
         'Comentario'
     ], ';');
-    
+
     // Datos
     foreach ($pagos_export as $pago) {
         fputcsv($output, [
@@ -166,7 +166,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
             $pago['comentario']
         ], ';');
     }
-    
+
     fclose($output);
     exit();
 }
@@ -187,6 +187,7 @@ $sql_base = "
         prop.id as propiedad_id,
         prop.nombre as propiedad_nombre,
         prop.direccion as propiedad_direccion,
+        i.id as inquilino_id,
         i.nombre as inquilino_nombre,
         i.telefono as inquilino_telefono
     FROM pagos p
@@ -340,39 +341,39 @@ include 'includes/header_nav.php';
 
     <!-- Desglose por tipo de pago -->
     <?php if (!empty($desglose_tipo)): ?>
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-header">
-            <h5 class="mb-0">Desglose por Tipo de Pago</h5>
-          </div>
-          <div class="card-body">
-            <div class="table-responsive">
-              <table class="table table-sm table-bordered table-striped align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th>Tipo de Pago</th>
-                    <th>Cantidad</th>
-                    <th>Total</th>
-                    <th>Porcentaje</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <?php foreach ($desglose_tipo as $tipo => $datos): ?>
-                  <tr>
-                    <td><?= htmlspecialchars($tipo) ?></td>
-                    <td><?= $datos['cantidad'] ?></td>
-                    <td>$<?= number_format($datos['monto'], 2, ',', '.') ?></td>
-                    <td><?= $monto_total > 0 ? round(($datos['monto'] / $monto_total) * 100, 2) : 0 ?>%</td>
-                  </tr>
-                  <?php endforeach; ?>
-                </tbody>
-              </table>
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Desglose por Tipo de Pago</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered table-striped align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo de Pago</th>
+                                        <th>Cantidad</th>
+                                        <th>Total</th>
+                                        <th>Porcentaje</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($desglose_tipo as $tipo => $datos): ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars($tipo) ?></td>
+                                            <td><?= $datos['cantidad'] ?></td>
+                                            <td>$<?= number_format($datos['monto'], 2, ',', '.') ?></td>
+                                            <td><?= $monto_total > 0 ? round(($datos['monto'] / $monto_total) * 100, 2) : 0 ?>%</td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
     <?php endif; ?>
 
     <!-- Filtros -->
@@ -384,41 +385,41 @@ include 'includes/header_nav.php';
             <form method="GET" class="row g-3">
                 <div class="col-md-3">
                     <label for="propiedad" class="form-label">Propiedad</label>
-                    <input type="text" class="form-control" id="propiedad" name="propiedad" 
-                           value="<?= htmlspecialchars($filtro_propiedad) ?>" placeholder="Buscar propiedad...">
+                    <input type="text" class="form-control" id="propiedad" name="propiedad"
+                        value="<?= htmlspecialchars($filtro_propiedad) ?>" placeholder="Buscar propiedad...">
                 </div>
                 <div class="col-md-3">
                     <label for="propietario" class="form-label">Propietario</label>
                     <select class="form-select" id="propietario" name="propietario">
                         <option value="">Todos los propietarios</option>
-                        <?php 
+                        <?php
                         $stmt_propietarios = $pdo->query("SELECT id, nombre FROM propietarios ORDER BY nombre");
                         $propietarios = $stmt_propietarios->fetchAll(PDO::FETCH_ASSOC);
                         foreach ($propietarios as $propietario): ?>
-                        <option value="<?= htmlspecialchars($propietario['id']) ?>" <?= $filtro_propietario == $propietario['id'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($propietario['nombre']) ?>
-                        </option>
+                            <option value="<?= htmlspecialchars($propietario['id']) ?>" <?= $filtro_propietario == $propietario['id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($propietario['nombre']) ?>
+                            </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="col-md-2">
                     <label for="fecha_desde" class="form-label">Fecha Desde</label>
-                    <input type="date" class="form-control" id="fecha_desde" name="fecha_desde" 
-                           value="<?= htmlspecialchars($filtro_fecha_desde) ?>">
+                    <input type="date" class="form-control" id="fecha_desde" name="fecha_desde"
+                        value="<?= htmlspecialchars($filtro_fecha_desde) ?>">
                 </div>
                 <div class="col-md-2">
                     <label for="fecha_hasta" class="form-label">Fecha Hasta</label>
-                    <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta" 
-                           value="<?= htmlspecialchars($filtro_fecha_hasta) ?>">
+                    <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta"
+                        value="<?= htmlspecialchars($filtro_fecha_hasta) ?>">
                 </div>
                 <div class="col-md-2">
                     <label for="periodo" class="form-label">Período</label>
                     <select class="form-select" id="periodo" name="periodo">
                         <option value="">Todos</option>
                         <?php foreach ($periodos as $periodo): ?>
-                        <option value="<?= $periodo ?>" <?= $filtro_periodo === $periodo ? 'selected' : '' ?>>
-                            <?= $periodo ?>
-                        </option>
+                            <option value="<?= $periodo ?>" <?= $filtro_periodo === $periodo ? 'selected' : '' ?>>
+                                <?= $periodo ?>
+                            </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -427,9 +428,9 @@ include 'includes/header_nav.php';
                     <select class="form-select" id="concepto" name="concepto">
                         <option value="">Todos</option>
                         <?php foreach ($conceptos as $concepto): ?>
-                        <option value="<?= $concepto ?>" <?= $filtro_concepto === $concepto ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($concepto) ?>
-                        </option>
+                            <option value="<?= $concepto ?>" <?= $filtro_concepto === $concepto ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($concepto) ?>
+                            </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -438,9 +439,9 @@ include 'includes/header_nav.php';
                     <select class="form-select" id="tipo_pago" name="tipo_pago">
                         <option value="">Todos</option>
                         <?php foreach ($tipos_pago as $tipo): ?>
-                        <option value="<?= $tipo ?>" <?= $filtro_tipo_pago === $tipo ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($tipo) ?>
-                        </option>
+                            <option value="<?= $tipo ?>" <?= $filtro_tipo_pago === $tipo ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($tipo) ?>
+                            </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -484,68 +485,78 @@ include 'includes/header_nav.php';
                         </thead>
                         <tbody>
                             <?php foreach ($pagos as $pago): ?>
-                            <tr>
-                                <td>
-                                    <strong><?= date('d/m/Y', strtotime($pago['fecha'])) ?></strong>
-                                </td>
-                                <td>
-                                    <span class="badge bg-primary"><?= htmlspecialchars($pago['periodo']) ?></span>
-                                </td>
-                                <td>
-                                    <div>
-                                        <strong><?= htmlspecialchars($pago['propiedad_nombre']) ?></strong>
-                                        <?php if ($pago['propiedad_direccion']): ?>
-                                            <br><small class="text-muted"><?= htmlspecialchars($pago['propiedad_direccion']) ?></small>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div>
-                                        <strong><?= htmlspecialchars($pago['inquilino_nombre']) ?></strong>
-                                        <?php if ($pago['inquilino_telefono']): ?>
-                                            <br><small class="text-muted"><?= htmlspecialchars($pago['inquilino_telefono']) ?></small>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-info"><?= htmlspecialchars($pago['concepto']) ?></span>
-                                </td>
-                                <td>
-                                    <?php
+                                <tr>
+                                    <td>
+                                        <strong><?= date('d/m/Y', strtotime($pago['fecha'])) ?></strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary"><?= htmlspecialchars($pago['periodo']) ?></span>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>
+                                                <a href="propiedades.php?edit=<?= intval($pago['propiedad_id']) ?>" class="text-decoration-none text-dark">
+                                                    <?= htmlspecialchars($pago['propiedad_nombre']) ?>
+                                                </a>
+                                            </strong>
+                                            <?php if ($pago['propiedad_direccion']): ?>
+                                                <br><small class="text-muted"><?= htmlspecialchars($pago['propiedad_direccion']) ?></small>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>
+                                                <a href="inquilinos.php?edit=<?= intval($pago['inquilino_id']) ?>" class="text-decoration-none text-dark">
+                                                    <?= htmlspecialchars($pago['inquilino_nombre']) ?>
+                                                </a>
+                                            </strong>
+                                            <?php if ($pago['inquilino_telefono']): ?>
+                                                <br><small class="text-muted"><?= htmlspecialchars($pago['inquilino_telefono']) ?></small>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info"><?= htmlspecialchars($pago['concepto']) ?></span>
+                                    </td>
+                                    <td>
+                                        <?php
                                         // Si el tipo de pago contiene la palabra "efectivo" (sin importar mayúsculas/minúsculas), mostrar en verde, sino en gris
                                         $tipo_pago = $pago['tipo_pago'] ?? '';
                                         $clase_color = stripos($tipo_pago, 'efectivo') !== false ? 'success' : 'secondary';
-                                    ?>
-                                    <span class="badge bg-<?= $clase_color ?>">
-                                        <?= htmlspecialchars($tipo_pago) ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <strong class="text-success">$<?= number_format($pago['importe'], 2, ',', '.') ?></strong>
-                                </td>
-                                <td>
-                                    <?php if ($pago['comprobante']): ?>
-                                        <a href="uploads/<?= htmlspecialchars($pago['comprobante']) ?>" 
-                                           target="_blank" class="btn btn-sm btn-outline-primary">
-                                            Comprobante
-                                        </a>
-                                    <?php else: ?>
-                                        <span class="text-muted">Sin comprobante</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="pagos.php?contrato_id=<?= $pago['contrato_id'] ?>" 
-                                           class="btn btn-sm btn-outline-secondary" title="Ver contrato">
-                                            Detalle
-                                        </a>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                onclick="eliminarPago(<?= $pago['id'] ?>)" title="Eliminar">
-                                            Eliminar
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                                        ?>
+                                        <span class="badge bg-<?= $clase_color ?>">
+                                            <?= htmlspecialchars($tipo_pago) ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">$<?= number_format($pago['importe'], 2, ',', '.') ?></strong>
+                                    </td>
+                                    <td>
+                                        <?php if ($pago['comprobante']): ?>
+                                            <a href="uploads/<?= htmlspecialchars($pago['comprobante']) ?>"
+                                                target="_blank" class="btn btn-sm btn-outline-secondary">
+                                                Comprobante
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="text-muted">Sin comprobante</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="pagos.php?contrato_id=<?= $pago['contrato_id'] ?>"
+                                                class="btn btn-sm btn-outline-success" title="Ver contrato">
+                                                Detalle
+                                            </a>
+                                            <?php if ($_SESSION['user_role'] === 'admin'): ?>
+                                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                                    onclick="eliminarPago(<?= $pago['id'] ?>)" title="Eliminar">
+                                                    Eliminar
+                                                </button>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
@@ -556,26 +567,26 @@ include 'includes/header_nav.php';
 </main>
 
 <script>
-function eliminarPago(pagoId) {
-    if (confirm('¿Está seguro de que desea eliminar este pago? Esta acción no se puede deshacer.')) {
-        window.location.href = 'listado_pagos.php?delete=' + pagoId;
+    function eliminarPago(pagoId) {
+        if (confirm('¿Está seguro de que desea eliminar este pago? Esta acción no se puede deshacer.')) {
+            window.location.href = 'listado_pagos.php?delete=' + pagoId;
+        }
     }
-}
 
-// Auto-submit del formulario cuando cambien los filtros
-document.addEventListener('DOMContentLoaded', function() {
-    const filterInputs = document.querySelectorAll('select[name], input[name]');
-    filterInputs.forEach(input => {
-        input.addEventListener('change', function() {
-            // Solo auto-submit para selects, no para inputs de texto
-            if (this.tagName === 'SELECT') {
-                this.closest('form').submit();
-            }
+    // Auto-submit del formulario cuando cambien los filtros
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterInputs = document.querySelectorAll('select[name], input[name]');
+        filterInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                // Solo auto-submit para selects, no para inputs de texto
+                if (this.tagName === 'SELECT') {
+                    this.closest('form').submit();
+                }
+            });
         });
     });
-});
 </script>
 
 <?php
 include 'includes/footer.php';
-?> 
+?>
