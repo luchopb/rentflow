@@ -305,7 +305,7 @@ include 'includes/header_nav.php';
 
     <!-- Indicadores -->
     <div class="row mb-4">
-        <div class="col-md-3">
+        <div class="col-md-3 mb-2">
             <div class="card bg-primary text-white">
                 <div class="card-body">
                     <h5 class="card-title">Total Pagos</h5>
@@ -313,7 +313,7 @@ include 'includes/header_nav.php';
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 mb-2">
             <div class="card bg-success text-white">
                 <div class="card-body">
                     <h5 class="card-title">Monto Total</h5>
@@ -321,7 +321,7 @@ include 'includes/header_nav.php';
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 mb-2">
             <div class="card bg-info text-white">
                 <div class="card-body">
                     <h5 class="card-title">Promedio</h5>
@@ -329,7 +329,7 @@ include 'includes/header_nav.php';
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 mb-2">
             <div class="card bg-warning text-dark">
                 <div class="card-body">
                     <h5 class="card-title">Tipos de Pago</h5>

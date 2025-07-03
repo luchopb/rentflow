@@ -177,6 +177,16 @@ include 'includes/header_nav.php';
         </button>
     </div>
 
+    <?php if ($message): ?>
+        <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
+    <?php endif; ?>
+
+    <?php if (!empty($errors)): ?>
+        <div class="alert alert-danger">
+            <ul><?php foreach ($errors as $e) echo "<li>" . htmlspecialchars($e) . "</li>"; ?></ul>
+        </div>
+    <?php endif; ?>
+
     <!-- Formulario de gasto -->
     <div class="collapse <?= $show_form ? 'show' : '' ?>" id="formGastoCollapse">
         <div class="card mb-4">
@@ -293,7 +303,7 @@ include 'includes/header_nav.php';
             </div>
         </div>
         <div class="col-md-3 mb-2">
-            <div class="card text-white bg-warning h-100">
+            <div class="card text-dark bg-warning h-100">
                 <div class="card-body">
                     <h5 class="card-text">Tipos de Concepto</h5>
                     <h3 class="card-title"><?= $tipos_concepto ?></h3>
@@ -301,16 +311,6 @@ include 'includes/header_nav.php';
             </div>
         </div>
     </div>
-
-    <?php if ($message): ?>
-        <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
-    <?php endif; ?>
-
-    <?php if (!empty($errors)): ?>
-        <div class="alert alert-danger">
-            <ul><?php foreach ($errors as $e) echo "<li>" . htmlspecialchars($e) . "</li>"; ?></ul>
-        </div>
-    <?php endif; ?>
 
     <!-- Formulario de búsqueda y filtros -->
     <div class="card mb-4">

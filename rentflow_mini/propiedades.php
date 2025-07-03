@@ -55,6 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $anep = clean_input($_POST['anep'] ?? '');
   $contribucion_inmobiliaria = clean_input($_POST['contribucion_inmobiliaria'] ?? '');
   $comentarios = clean_input($_POST['comentarios'] ?? '');
+  $link_mercadolibre = clean_input($_POST['link_mercadolibre'] ?? '');
+  $link_otras = clean_input($_POST['link_otras'] ?? '');
   $ose = clean_input($_POST['ose'] ?? '');
   $ute = clean_input($_POST['ute'] ?? '');
   $padron = clean_input($_POST['padron'] ?? '');
@@ -115,20 +117,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fecha_hora = date('Y-m-d H:i:s');
 
     if ($edit_id > 0) {
-      $stmt = $pdo->prepare("UPDATE propiedades SET nombre=?, tipo=?, direccion=?, imagenes=?, documentos=?, galeria=?, local=?, precio=?, incluye_gc=?, gastos_comunes=?, estado=?, anep=?, contribucion_inmobiliaria=?, comentarios=?, ose=?, ute=?, padron=?, imm_tasa_general=?, imm_tarifa_saneamiento=?, imm_instalaciones=?, imm_adicional_mercantil=?, convenios=?, propietario_id=?, usuario_id=?, fecha_modificacion=? WHERE id=?");
-      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $anep, $contribucion_inmobiliaria, $comentarios, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_saneamiento, $imm_instalaciones, $imm_adicional_mercantil, $convenios, $propietario_id, $usuario_id, $fecha_hora, $edit_id]);
+      $stmt = $pdo->prepare("UPDATE propiedades SET nombre=?, tipo=?, direccion=?, imagenes=?, documentos=?, galeria=?, local=?, precio=?, incluye_gc=?, gastos_comunes=?, estado=?, anep=?, contribucion_inmobiliaria=?, comentarios=?, link_mercadolibre=?, link_otras=?, ose=?, ute=?, padron=?, imm_tasa_general=?, imm_tarifa_saneamiento=?, imm_instalaciones=?, imm_adicional_mercantil=?, convenios=?, propietario_id=?, usuario_id=?, fecha_modificacion=? WHERE id=?");
+      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $anep, $contribucion_inmobiliaria, $comentarios, $link_mercadolibre, $link_otras, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_saneamiento, $imm_instalaciones, $imm_adicional_mercantil, $convenios, $propietario_id, $usuario_id, $fecha_hora, $edit_id]);
       $propiedad_id = $edit_id;
       $message = "Propiedad actualizada correctamente.";
     } else {
-      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,documentos,galeria,local,precio,incluye_gc,gastos_comunes,estado,anep,contribucion_inmobiliaria,comentarios,ose,ute,padron,imm_tasa_general,imm_tarifa_saneamiento,imm_instalaciones,imm_adicional_mercantil,convenios,propietario_id,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $anep, $contribucion_inmobiliaria, $comentarios, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_saneamiento, $imm_instalaciones, $imm_adicional_mercantil, $convenios, $propietario_id, $usuario_id, $fecha_hora]);
+      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,documentos,galeria,local,precio,incluye_gc,gastos_comunes,estado,anep,contribucion_inmobiliaria,comentarios,link_mercadolibre,link_otras,ose,ute,padron,imm_tasa_general,imm_tarifa_saneamiento,imm_instalaciones,imm_adicional_mercantil,convenios,propietario_id,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+      $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $anep, $contribucion_inmobiliaria, $comentarios, $link_mercadolibre, $link_otras, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_saneamiento, $imm_instalaciones, $imm_adicional_mercantil, $convenios, $propietario_id, $usuario_id, $fecha_hora]);
       $propiedad_id = $pdo->lastInsertId();
       $message = "Propiedad creada correctamente.";
     }
     header("Location: propiedades.php?msg=" . urlencode($message) . "&propiedad_id=" . urlencode($propiedad_id));
     exit();
   } else {
-    $edit_data = compact('nombre', 'tipo', 'direccion', 'galeria', 'local', 'precio', 'incluye_gc', 'gastos_comunes', 'estado', 'anep', 'contribucion_inmobiliaria', 'comentarios', 'ose', 'ute', 'padron', 'imm_tasa_general', 'imm_tarifa_saneamiento', 'imm_instalaciones', 'imm_adicional_mercantil', 'convenios', 'propietario_id');
+    $edit_data = compact('nombre', 'tipo', 'direccion', 'galeria', 'local', 'precio', 'incluye_gc', 'gastos_comunes', 'estado', 'anep', 'contribucion_inmobiliaria', 'comentarios', 'link_mercadolibre', 'link_otras', 'ose', 'ute', 'padron', 'imm_tasa_general', 'imm_tarifa_saneamiento', 'imm_instalaciones', 'imm_adicional_mercantil', 'convenios', 'propietario_id');
     $edit_data['imagenes_arr'] = $gallery_images;
     $edit_data['documentos_arr'] = $attached_docs;
   }
@@ -407,6 +409,26 @@ include 'includes/header_nav.php';
             <div class="mb-3">
               <label for="comentarios" class="form-label">Comentarios</label>
               <textarea class="form-control" id="comentarios" name="comentarios" rows="3"><?= htmlspecialchars($edit_data['comentarios'] ?? '') ?></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label for="link_mercadolibre" class="form-label">Link MercadoLibre</label>
+              <div class="input-group">
+                <input type="url" class="form-control" id="link_mercadolibre" name="link_mercadolibre" value="<?= htmlspecialchars($edit_data['link_mercadolibre'] ?? '') ?>" />
+                <?php if (!empty($edit_data['link_mercadolibre'])): ?>
+                  <a href="<?= htmlspecialchars($edit_data['link_mercadolibre']) ?>" target="_blank" class="btn btn-outline-primary">Abrir</a>
+                <?php endif; ?>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="link_otras" class="form-label">Link Otras plataformas</label>
+              <div class="input-group">
+                <input type="url" class="form-control" id="link_otras" name="link_otras" value="<?= htmlspecialchars($edit_data['link_otras'] ?? '') ?>" />
+                <?php if (!empty($edit_data['link_otras'])): ?>
+                  <a href="<?= htmlspecialchars($edit_data['link_otras']) ?>" target="_blank" class="btn btn-outline-primary">Abrir</a>
+                <?php endif; ?>
+              </div>
             </div>
 
             <div class="mb-3">
