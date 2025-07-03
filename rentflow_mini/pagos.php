@@ -82,6 +82,24 @@ for ($i = -3; $i <= 3; $i++) {
   $periodos[] = $fecha->format('Y-m');
 }
 
+// Manejo de eliminación de pago
+if (isset($_GET['delete']) && $_SESSION['user_role'] === 'admin') {
+  $delete_id = intval($_GET['delete']);
+  // Buscar comprobante para eliminar archivo
+  $stmt = $pdo->prepare("SELECT comprobante FROM pagos WHERE id = ? AND contrato_id = ?");
+  $stmt->execute([$delete_id, $contrato_id]);
+  $row = $stmt->fetch();
+  if ($row && $row['comprobante']) {
+    $upload_dir = __DIR__ . '/uploads/';
+    $path = $upload_dir . basename($row['comprobante']);
+    if (is_file($path)) unlink($path);
+  }
+  $pdo->prepare("DELETE FROM pagos WHERE id = ? AND contrato_id = ?")->execute([$delete_id, $contrato_id]);
+  $message = "Pago eliminado correctamente.";
+  header("Location: pagos.php?contrato_id=$contrato_id&msg=" . urlencode($message));
+  exit();
+}
+
 include 'includes/header_nav.php';
 ?>
 
@@ -108,7 +126,7 @@ include 'includes/header_nav.php';
 
   <!-- Botón para mostrar/ocultar el formulario de nuevo pago -->
   <button class="btn btn-outline-dark mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formPagoCollapse" aria-expanded="<?= $add_pago ? 'true' : 'false' ?>" aria-controls="formPagoCollapse" style="font-weight:600;">
-    <?= $add_pago ? 'Ocultar' : 'Nuevo Pago' ?>
+    <?= $add_pago ? 'Ocultar' : 'Agregar Nuevo Pago' ?>
   </button>
 
   <div class="collapse <?= $add_pago ? 'show' : '' ?>" id="formPagoCollapse">
@@ -184,7 +202,7 @@ include 'includes/header_nav.php';
           <tr>
             <th>Fecha</th>
             <th>Concepto</th>
-            <!--<th>Acciones</th>-->
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -205,9 +223,11 @@ include 'includes/header_nav.php';
                   <?php endif; ?>
                 </small>
               </td>
-              <!--<td>
-                <a href="pagos.php?delete=<?= intval($pago['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este pago?')">Eliminar</a>
-              </td>-->
+              <td>
+                <?php if ($_SESSION['user_role'] === 'admin'): ?>
+                  <a href="pagos.php?contrato_id=<?= $contrato_id ?>&delete=<?= intval($pago['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este pago?')">Eliminar</a>
+                <?php endif; ?>
+              </td>
             </tr>
           <?php endforeach; ?>
         </tbody>

@@ -235,7 +235,7 @@ if ($filtro_tipo_pago) {
     $params[] = $filtro_tipo_pago;
 }
 
-$sql_base .= " ORDER BY p.fecha DESC";
+$sql_base .= " ORDER BY p.fecha DESC, p.id DESC";
 
 // Ejecutar consulta
 $stmt = $pdo->prepare($sql_base);
