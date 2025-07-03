@@ -414,7 +414,7 @@ include 'includes/header_nav.php';
                                     <td>
                                         <?php if ($gasto['comprobante']): ?>
                                             <a href="uploads/<?= htmlspecialchars($gasto['comprobante']) ?>" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver comprobante">
-                                                <i class="bi bi-file-earmark"></i> Comprobante
+                                                Comprobante
                                             </a><br>
                                         <?php endif; ?>
                                         <small><?= htmlspecialchars($gasto['usuario_nombre'] ?? 'Usuario') ?></small><br>
