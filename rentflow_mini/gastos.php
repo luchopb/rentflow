@@ -12,7 +12,7 @@ $filtro_concepto = clean_input($_GET['filtro_concepto'] ?? '');
 $propiedad_id = intval($_GET['propiedad_id'] ?? 0);
 
 // Verificar si se debe mostrar el formulario de nuevo gasto
-$show_form = isset($_GET['add']) && $_GET['add'] === 'true';
+$show_form = (isset($_GET['add']) && $_GET['add'] === 'true') || $edit_id > 0;
 
 // Eliminar gasto
 if ($delete_id) {
@@ -119,6 +119,10 @@ $stmt = $pdo->prepare("SELECT id, nombre, direccion FROM propiedades ORDER BY no
 $stmt->execute();
 $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Filtros de fecha
+$fecha_desde = $_GET['fecha_desde'] ?? date('Y-m-01');
+$fecha_hasta = $_GET['fecha_hasta'] ?? date('Y-m-t');
+
 // Consulta con búsqueda y filtros
 $params = [];
 $sql = "SELECT g.*, p.nombre as propiedad_nombre, p.direccion as propiedad_direccion, u.username as usuario_nombre 
@@ -132,28 +136,35 @@ if ($busqueda) {
     $like_search = '%' . $busqueda . '%';
     $params = array_merge($params, [$like_search, $like_search, $like_search, $like_search]);
 }
-
 if ($filtro_concepto) {
     $where_conditions[] = "g.concepto = ?";
     $params[] = $filtro_concepto;
 }
-
 if ($propiedad_id) {
     $where_conditions[] = "g.propiedad_id = ?";
     $params[] = $propiedad_id;
 }
-
+if ($fecha_desde) {
+    $where_conditions[] = "g.fecha >= ?";
+    $params[] = $fecha_desde;
+}
+if ($fecha_hasta) {
+    $where_conditions[] = "g.fecha <= ?";
+    $params[] = $fecha_hasta;
+}
 if (!empty($where_conditions)) {
     $sql .= " WHERE " . implode(' AND ', $where_conditions);
 }
-
 $sql .= " ORDER BY g.fecha DESC, g.id DESC";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $gastos = $stmt->fetchAll();
 
-// Calcular totales
+// Estadísticas
 $total_gastos = array_sum(array_column($gastos, 'importe'));
+$cantidad_gastos = count($gastos);
+$promedio_gastos = $cantidad_gastos > 0 ? $total_gastos / $cantidad_gastos : 0;
+$tipos_concepto = count(array_unique(array_column($gastos, 'concepto')));
 
 include 'includes/header_nav.php';
 ?>
@@ -165,16 +176,6 @@ include 'includes/header_nav.php';
             <?= $show_form ? 'Ocultar' : 'Agregar Nuevo Gasto' ?>
         </button>
     </div>
-
-    <?php if ($message): ?>
-        <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
-    <?php endif; ?>
-
-    <?php if (!empty($errors)): ?>
-        <div class="alert alert-danger">
-            <ul><?php foreach ($errors as $e) echo "<li>" . htmlspecialchars($e) . "</li>"; ?></ul>
-        </div>
-    <?php endif; ?>
 
     <!-- Formulario de gasto -->
     <div class="collapse <?= $show_form ? 'show' : '' ?>" id="formGastoCollapse">
@@ -265,13 +266,63 @@ include 'includes/header_nav.php';
         </div>
     </div>
 
+    <!-- Indicadores estadísticos -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-2">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body">
+                    <h5 class="card-text">Total Gastos</h3>
+                        <h3 class="card-title"><?= $cantidad_gastos ?></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-2">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body">
+                    <h5 class="card-text">Monto Total</h3>
+                        <h3 class="card-title">$<?= number_format($total_gastos, 2, ',', '.') ?></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-2">
+            <div class="card text-white bg-info h-100">
+                <div class="card-body">
+                    <h5 class="card-text">Promedio</h3>
+                        <h3 class="card-title">$<?= number_format($promedio_gastos, 2, ',', '.') ?></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-2">
+            <div class="card text-white bg-warning h-100">
+                <div class="card-body">
+                    <h5 class="card-text">Tipos de Concepto</h5>
+                    <h3 class="card-title"><?= $tipos_concepto ?></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <?php if ($message): ?>
+        <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
+    <?php endif; ?>
+
+    <?php if (!empty($errors)): ?>
+        <div class="alert alert-danger">
+            <ul><?php foreach ($errors as $e) echo "<li>" . htmlspecialchars($e) . "</li>"; ?></ul>
+        </div>
+    <?php endif; ?>
+
     <!-- Formulario de búsqueda y filtros -->
     <div class="card mb-4">
         <div class="card-body">
             <form method="GET" class="row g-3">
-                <div class="col-md-4">
-                    <label for="search" class="form-label">Buscar</label>
-                    <input type="text" class="form-control" id="search" name="search" value="<?= htmlspecialchars($busqueda) ?>" placeholder="Buscar por concepto, observaciones, propiedad...">
+                <div class="col-md-3">
+                    <label for="fecha_desde" class="form-label">Fecha desde</label>
+                    <input type="date" class="form-control" id="fecha_desde" name="fecha_desde" value="<?= htmlspecialchars($fecha_desde) ?>">
+                </div>
+                <div class="col-md-3">
+                    <label for="fecha_hasta" class="form-label">Fecha hasta</label>
+                    <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta" value="<?= htmlspecialchars($fecha_hasta) ?>">
                 </div>
                 <div class="col-md-3">
                     <label for="filtro_concepto" class="form-label">Concepto</label>
@@ -295,14 +346,13 @@ include 'includes/header_nav.php';
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary me-2">Filtrar</button>
-                    <a href="gastos.php" class="btn btn-outline-secondary">Limpiar</a>
+                <div class="col-md-12 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
+                    <a href="gastos.php" class="btn btn-outline-secondary">Borrar Filtros</a>
                 </div>
             </form>
         </div>
     </div>
-
 
     <!-- Tabla de gastos -->
     <?php if (count($gastos) === 0): ?>
@@ -325,8 +375,8 @@ include 'includes/header_nav.php';
                                 <th>Importe</th>
                                 <th>Forma de Pago</th>
                                 <th>Propiedad</th>
-                                <th>Usuario</th>
-                                <th>Acciones</th>
+                                <th>Comprobante</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -342,7 +392,7 @@ include 'includes/header_nav.php';
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <strong class="text-danger">- $<?= number_format($gasto['importe'], 2, ',', '.') ?></strong>
+                                        <strong class="text-danger">-$<?= number_format($gasto['importe'], 2, ',', '.') ?></strong>
                                     </td>
                                     <td>
                                         <span class="badge bg-<?= $gasto['forma_pago'] === 'Efectivo' ? 'success' : 'info' ?>">
@@ -351,31 +401,36 @@ include 'includes/header_nav.php';
                                     </td>
                                     <td>
                                         <?php if ($gasto['propiedad_nombre']): ?>
-                                            <a href="propiedades.php?edit=<?= $gasto['propiedad_id'] ?>" class="text-decoration-none">
-                                                <?= htmlspecialchars($gasto['propiedad_nombre']) ?>
-                                            </a>
+                                            <strong>
+                                                <a href="propiedades.php?edit=<?= $gasto['propiedad_id'] ?>" class="text-decoration-none text-dark">
+                                                    <?= htmlspecialchars($gasto['propiedad_nombre']) ?>
+                                                </a>
+                                            </strong>
                                             <br><small class="text-muted"><?= htmlspecialchars($gasto['propiedad_direccion']) ?></small>
                                         <?php else: ?>
-                                            <span class="text-muted">Sin propiedad</span>
+                                            <small class="text-muted">Sin propiedad</small>
                                         <?php endif; ?>
                                     </td>
                                     <td>
+                                        <?php if ($gasto['comprobante']): ?>
+                                            <a href="uploads/<?= htmlspecialchars($gasto['comprobante']) ?>" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver comprobante">
+                                                <i class="bi bi-file-earmark"></i> Comprobante
+                                            </a><br>
+                                        <?php endif; ?>
                                         <small><?= htmlspecialchars($gasto['usuario_nombre'] ?? 'Usuario') ?></small><br>
                                         <small class="text-muted"><?= date('d/m/Y H:i', strtotime($gasto['fecha_creacion'])) ?></small>
+
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <a href="gastos.php?edit=<?= $gasto['id'] ?>" class="btn btn-outline-primary" title="Editar">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <?php if ($gasto['comprobante']): ?>
-                                                <a href="uploads/<?= htmlspecialchars($gasto['comprobante']) ?>" target="_blank" class="btn btn-outline-info" title="Ver comprobante">
-                                                    <i class="bi bi-file-earmark"></i>
+                                            <?php if ($_SESSION['user_role'] === 'admin'): ?>
+                                                <a href="gastos.php?edit=<?= $gasto['id'] ?>" class="btn btn-outline-primary" title="Editar">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="gastos.php?delete=<?= $gasto['id'] ?>" class="btn btn-outline-danger" title="Eliminar" onclick="return confirm('¿Está seguro de eliminar este gasto?')">
+                                                    <i class="bi bi-trash"></i>
                                                 </a>
                                             <?php endif; ?>
-                                            <a href="gastos.php?delete=<?= $gasto['id'] ?>" class="btn btn-outline-danger" title="Eliminar" onclick="return confirm('¿Está seguro de eliminar este gasto?')">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
                                         </div>
                                     </td>
                                 </tr>

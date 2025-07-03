@@ -127,11 +127,12 @@ a.nav-link.active {
         height: 60px;
         padding: 10px;
         padding-top: 5px;
+        border-radius: 7px;
     }
 
     .mobile-navbar .nav-link:hover, .mobile-navbar .nav-link.active {
-        color: #68e6ff;
-        background: #0067ff;
+        color: #fff700;
+        background: #2980ff;
     }
 
     .mobile-navbar .nav-link i {

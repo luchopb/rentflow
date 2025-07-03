@@ -108,7 +108,7 @@ include 'includes/header_nav.php';
 
   <!-- Botón para mostrar/ocultar el formulario de nuevo pago -->
   <button class="btn btn-outline-dark mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formPagoCollapse" aria-expanded="<?= $add_pago ? 'true' : 'false' ?>" aria-controls="formPagoCollapse" style="font-weight:600;">
-    <?= $add_pago ? 'Ocultar' : 'Agregar Nuevo Pago' ?>
+    <?= $add_pago ? 'Ocultar' : 'Nuevo Pago' ?>
   </button>
 
   <div class="collapse <?= $add_pago ? 'show' : '' ?>" id="formPagoCollapse">
