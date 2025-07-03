@@ -282,7 +282,7 @@ include 'includes/header_nav.php';
 <main class="container container-main py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Listado de Pagos</h1>
-        <a href="pagos.php" class="btn btn-success"><i class="bi bi-plus-circle"></i> Registrar Nuevo Pago</a>
+        <a href="pagos.php" class="btn btn-outline-dark" style="font-weight:600;"> Agregar Nuevo Pago</a>
     </div>
 
     <?php if ($message): ?>

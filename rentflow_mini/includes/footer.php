@@ -29,6 +29,12 @@
       <i class="bi bi-cash-coin d-block fs-5"></i>
       <span class="d-block small">Pagos</span>
     </a>
+    
+    <!-- Botón Gastos -->
+    <a href="gastos.php" class="nav-link text-center px-2">
+      <i class="bi bi-cash-stack d-block fs-5"></i>
+      <span class="d-block small">Gastos</span>
+    </a>
   </div>
 </nav>
 
