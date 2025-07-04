@@ -15,7 +15,7 @@ $message = '';
 $errors = [];
 
 // Obtener información del contrato
-$stmt = $pdo->prepare("SELECT c.*, i.nombre as inquilino_nombre, p.nombre as propiedad_nombre, p.tipo as propiedad_tipo, p.direccion as propiedad_direccion FROM contratos c JOIN inquilinos i ON c.inquilino_id = i.id JOIN propiedades p ON c.propiedad_id = p.id WHERE c.id = ?");
+$stmt = $pdo->prepare("SELECT c.*, i.nombre as inquilino_nombre, i.vehiculo, i.matricula, i.telefono, p.nombre as propiedad_nombre, p.tipo as propiedad_tipo, p.direccion as propiedad_direccion FROM contratos c JOIN inquilinos i ON c.inquilino_id = i.id JOIN propiedades p ON c.propiedad_id = p.id WHERE c.id = ?");
 $stmt->execute([$contrato_id]);
 $contrato = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -108,7 +108,7 @@ include 'includes/header_nav.php';
   <h1>Pagos</h1>
   <p>
     Contrato: <a href="contratos.php?edit=<?= $contrato_id ?>" class="text-decoration-none text-dark"><strong>#<?= $contrato_id ?></strong></a><br>
-    Inquilino: <a href="inquilinos.php?edit=<?= intval($contrato['inquilino_id']) ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['inquilino_nombre']) ?></strong></a><br>
+    Inquilino: <a href="inquilinos.php?edit=<?= intval($contrato['inquilino_id']) ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['inquilino_nombre']) ?></strong> <?= htmlspecialchars($contrato['vehiculo']) ?> <?= htmlspecialchars($contrato['matricula']) ?> <?= htmlspecialchars($contrato['telefono']) ?></a><br>
     Propiedad: <a href="propiedades.php?edit=<?= htmlspecialchars($contrato['propiedad_id'] ?? '') ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['propiedad_nombre']) ?></strong></a><br>
     Tipo: <strong><?= htmlspecialchars($contrato['propiedad_tipo'] ?? '') ?></strong><br>
     Dirección: <strong><?= htmlspecialchars($contrato['propiedad_direccion'] ?? '') ?></strong>

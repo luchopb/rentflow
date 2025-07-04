@@ -71,7 +71,7 @@ function archivos($arr, $dir = 'uploads/') {
     .bg-inq { background-color:rgb(183, 255, 189) !important; }
     .bg-ctr { background-color:rgb(255, 229, 186) !important; }
     .bg-pay { background-color:rgb(246, 191, 255) !important; }
-    th, td { vertical-align: middle !important; }
+    th, td { vertical-align: middle !important; font-size: 12px; }
     .nowrap { white-space: nowrap; }
   </style>
 </head>
@@ -79,7 +79,7 @@ function archivos($arr, $dir = 'uploads/') {
   <h1 class="mb-4">Reporte de Propiedades</h1>
   <a href="#" class="btn btn-success mb-3" onclick="exportTableToExcel('tabla_reporte', 'reporte_propiedades')">Exportar a Excel</a>
   <div class="table-responsive">
-    <table class="table table-bordered align-middle" id="tabla_reporte">
+    <table class="table table-bordered align-middle border-dark" id="tabla_reporte">
       <thead>
         <tr>
           <th class="bg-prop">ID Propiedad</th>

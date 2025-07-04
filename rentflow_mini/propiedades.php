@@ -10,6 +10,9 @@ $propiedad_id = '';
 $errors = [];
 $busqueda = clean_input($_GET['search'] ?? '');
 $filtro_tipo = clean_input($_GET['filtro_tipo'] ?? '');
+$filtro_propietario = intval($_GET['filtro_propietario'] ?? 0);
+$filtro_estado = clean_input($_GET['filtro_estado'] ?? '');
+$filtro_contrato = clean_input($_GET['filtro_contrato'] ?? '');
 
 // Verificar si se debe mostrar el formulario de nueva propiedad
 $show_form = isset($_GET['add']) && $_GET['add'] === 'true';
@@ -168,6 +171,9 @@ function estado_label($e)
 // Consulta con búsqueda y filtros
 $busqueda = clean_input($_GET['search'] ?? '');
 $filtro_tipo = clean_input($_GET['filtro_tipo'] ?? '');
+$filtro_propietario = intval($_GET['filtro_propietario'] ?? 0);
+$filtro_estado = clean_input($_GET['filtro_estado'] ?? '');
+$filtro_contrato = clean_input($_GET['filtro_contrato'] ?? '');
 $params = [];
 $sql = "SELECT p.*, c.id AS contrato_id, i.nombre AS inquilino_nombre, i.id AS inquilino_id, 
         (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') AS fecha_ultimo_pago,
@@ -184,12 +190,24 @@ if ($busqueda) {
   $like_search = '%' . $busqueda . '%';
   $params = array_merge($params, [$like_search, $like_search, $like_search, $like_search]);
 }
-
 if ($filtro_tipo) {
   $where_conditions[] = "p.tipo = ?";
   $params[] = $filtro_tipo;
 }
-
+if ($filtro_propietario) {
+  $where_conditions[] = "p.propietario_id = ?";
+  $params[] = $filtro_propietario;
+}
+if ($filtro_estado) {
+  $where_conditions[] = "p.estado = ?";
+  $params[] = $filtro_estado;
+}
+if ($filtro_contrato === 'vigente') {
+  $where_conditions[] = "c.id IS NOT NULL";
+}
+if ($filtro_contrato === 'sin') {
+  $where_conditions[] = "c.id IS NULL";
+}
 if (!empty($where_conditions)) {
   $sql .= " WHERE " . implode(' AND ', $where_conditions);
 }
@@ -222,6 +240,23 @@ if ($busqueda) {
 if ($filtro_tipo) {
   $where_conditions_count[] = "p.tipo = ?";
   $params_count[] = $filtro_tipo;
+}
+
+if ($filtro_propietario) {
+  $where_conditions_count[] = "p.propietario_id = ?";
+  $params_count[] = $filtro_propietario;
+}
+
+if ($filtro_estado) {
+  $where_conditions_count[] = "p.estado = ?";
+  $params_count[] = $filtro_estado;
+}
+
+if ($filtro_contrato === 'vigente') {
+  $where_conditions_count[] = "c.id IS NOT NULL";
+}
+if ($filtro_contrato === 'sin') {
+  $where_conditions_count[] = "c.id IS NULL";
 }
 
 if (!empty($where_conditions_count)) {
@@ -263,6 +298,23 @@ foreach ($tipos as $tipo) {
     // Si no hay filtro de tipo, contar todos los tipos
     $where_conditions_count[] = "p.tipo = ?";
     $params_count[] = $tipo;
+  }
+
+  if ($filtro_propietario) {
+    $where_conditions_count[] = "p.propietario_id = ?";
+    $params_count[] = $filtro_propietario;
+  }
+
+  if ($filtro_estado) {
+    $where_conditions_count[] = "p.estado = ?";
+    $params_count[] = $filtro_estado;
+  }
+
+  if ($filtro_contrato === 'vigente') {
+    $where_conditions_count[] = "c.id IS NOT NULL";
+  }
+  if ($filtro_contrato === 'sin') {
+    $where_conditions_count[] = "c.id IS NULL";
   }
 
   if (!empty($where_conditions_count)) {
@@ -601,37 +653,75 @@ include 'includes/header_nav.php';
     </div>
   </div>
 
-  <form method="GET" class="mb-4" role="search" aria-label="Buscar propiedades">
-    <div class="row g-3" style="max-width:800px;">
-      <div class="col-md-4">
-        <input
-          type="search"
-          name="search"
-          class="form-control"
-          placeholder="Buscar por nombre, dirección, local o inquilino"
-          value="<?= htmlspecialchars($busqueda) ?>"
-          aria-label="Buscar propiedades" autocomplete="off" />
-      </div>
-      <div class="col-md-4">
-        <select name="filtro_tipo" class="form-select" aria-label="Filtrar por tipo">
-          <option value="">Todos los tipos</option>
-          <?php foreach ($tipos as $tipo): ?>
-            <option value="<?= htmlspecialchars($tipo) ?>" <?= $filtro_tipo === $tipo ? 'selected' : '' ?>>
-              <?= htmlspecialchars($tipo) ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <div class="input-group">
-          <button class="btn btn-primary" type="submit" aria-label="Buscar">Buscar</button>
-          <?php if ($busqueda || $filtro_tipo): ?>
-            <a href="propiedades.php" class="btn btn-outline-secondary" aria-label="Limpiar búsqueda">Limpiar filtros</a>
-          <?php endif; ?>
-        </div>
-      </div>
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">Filtros</h5>
     </div>
-  </form>
+    <div class="card-body">
+      <form method="GET" role="search" aria-label="Buscar propiedades">
+        <div class="row g-3" style="max-width:1200px;">
+          <div class="col-md-3">
+            <label for="search" class="form-label">Buscar</label>
+            <input
+              type="search"
+              name="search"
+              class="form-control"
+              placeholder="Nombre, dirección, local o inquilino..."
+              value="<?= htmlspecialchars($busqueda) ?>"
+              aria-label="Buscar propiedades" autocomplete="off" />
+          </div>
+          <div class="col-md-3">
+            <label for="filtro_propietario" class="form-label">Propietario</label>
+            <select name="filtro_propietario" class="form-select" aria-label="Filtrar por propietario">
+              <option value="0">Todos</option>
+              <?php
+              $propietarios = $pdo->query("SELECT id, nombre FROM propietarios ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+              foreach ($propietarios as $prop): ?>
+                <option value="<?= $prop['id'] ?>" <?= $filtro_propietario == $prop['id'] ? 'selected' : '' ?>>
+                  <?= htmlspecialchars($prop['nombre']) ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="filtro_tipo" class="form-label">Tipo de propiedad</label>
+            <select name="filtro_tipo" class="form-select" aria-label="Filtrar por tipo">
+              <option value="">Todos</option>
+              <?php foreach ($tipos as $tipo): ?>
+                <option value="<?= htmlspecialchars($tipo) ?>" <?= $filtro_tipo === $tipo ? 'selected' : '' ?>>
+                  <?= htmlspecialchars($tipo) ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="filtro_estado" class="form-label">Estado</label>
+            <select name="filtro_estado" class="form-select" aria-label="Filtrar por estado">
+              <option value="">Todos</option>
+              <option value="libre" <?= $filtro_estado === 'libre' ? 'selected' : '' ?>>Libre</option>
+              <option value="alquilado" <?= $filtro_estado === 'alquilado' ? 'selected' : '' ?>>Alquilado</option>
+              <option value="uso propio" <?= $filtro_estado === 'uso propio' ? 'selected' : '' ?>>Uso Propio</option>
+              <option value="en venta" <?= $filtro_estado === 'en venta' ? 'selected' : '' ?>>En Venta</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="filtro_contrato" class="form-label">Contrato</label>
+            <select name="filtro_contrato" class="form-select" aria-label="Filtrar por contrato">
+              <option value="">Todos</option>
+              <option value="vigente" <?= $filtro_contrato === 'vigente' ? 'selected' : '' ?>>Vigente</option>
+              <option value="sin" <?= $filtro_contrato === 'sin' ? 'selected' : '' ?>>Sin contrato</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <button class="btn btn-primary" type="submit" aria-label="Buscar">Aplicar Filtros</button>
+            <?php if ($busqueda || $filtro_tipo || $filtro_propietario || $filtro_estado || $filtro_contrato): ?>
+              <a href="propiedades.php" class="btn btn-outline-secondary" aria-label="Limpiar búsqueda">Borrar filtros</a>
+            <?php endif; ?>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 
 
   <section>
