@@ -361,7 +361,24 @@ include 'includes/header_nav.php';
                         <nobr>$ <?= number_format($c['importe'], 2, ",", ".") ?></nobr><br>
                         <?= date('d/m/Y', strtotime($c['fecha_inicio'])) ?> a <?= date('d/m/Y', strtotime($c['fecha_fin'])) ?>
                       </small>
-                    </a>
+                    </a><br>
+                    <?php
+                    $docs = [];
+                    if (!empty($c['documentos'])) {
+                      $docs = json_decode($c['documentos'], true);
+                      if (!is_array($docs)) $docs = [];
+                    }
+                    foreach ($docs as $doc) {
+                      $ext = strtolower(pathinfo($doc, PATHINFO_EXTENSION));
+                      if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) {
+                        echo '<a href="uploads/' . htmlspecialchars($doc) . '" target="_blank" class="vista-previa">';
+                        echo '<img src="uploads/' . htmlspecialchars($doc) . '" alt="img">';
+                        echo '</a>';
+                      } else {
+                        echo '<a href="uploads/' . htmlspecialchars($doc) . '" target="_blank" title="Ver documento" class="vista-previa"><i class="bi bi-paperclip"></i></a>';
+                      }
+                    }
+                    ?>
                   </td>
                   <td>
                     <a href="pagos.php?contrato_id=<?= intval($c['id']) ?>" class="btn btn-sm btn-success">Pagos</a>

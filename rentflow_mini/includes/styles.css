@@ -88,9 +88,9 @@ a.nav-link.active {
     height: 50px;
     overflow: hidden;
     display: flex;
+    background: #bfbfbf;
     align-items: center;
     justify-content: center;
-    background: #bfbfbf;
 }
 
 .rounded-circle img {
@@ -102,6 +102,31 @@ a.nav-link.active {
 .rounded-circle i {
     font-size: 1.5rem;
     color: #ffffff;
+}
+
+.vista-previa {
+    display: inline-block;
+    overflow: hidden;
+    width:32px;
+    height:32px;
+    object-fit:cover;
+    border-radius:50%;
+    /* border:1px solid #ccc; */
+    background-color: #d7d7d7;
+    margin-right: 3px;
+}
+
+.vista-previa img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.vista-previa i {
+    font-size: 1.2rem;
+    color: #3F51B5;
+    padding: 1px 6px;
+    display: block;
 }
 
 /* Menú inferior mobile */

@@ -119,7 +119,7 @@ include 'includes/header_nav.php';
       <a href="contratos.php?inquilino_id=<?= $inquilino_id ?>" class="btn btn-success mb-3">Crear Contrato</a>
     <?php endif; ?>
   <?php endif; ?>
-  
+
   <?php if ($errors): ?>
     <div class="alert alert-danger">
       <ul><?php foreach ($errors as $e) echo "<li>" . htmlspecialchars($e) . "</li>"; ?></ul>
@@ -206,7 +206,26 @@ include 'includes/header_nav.php';
               <?php foreach ($inquilinos as $i): ?>
                 <tr>
                   <td><?= htmlspecialchars($i['id']) ?></td>
-                  <td><a href="inquilinos.php?edit=<?= intval($i['id']) ?>" class="text-decoration-none text-dark"><b><?= htmlspecialchars($i['nombre']) ?></b><br> <?= htmlspecialchars($i['cedula']) ?></a></td>
+                  <td>
+                    <a href="inquilinos.php?edit=<?= intval($i['id']) ?>" class="text-decoration-none text-dark"><b><?= htmlspecialchars($i['nombre']) ?></b><br> <?= htmlspecialchars($i['cedula']) ?></a><br>
+                    <?php
+                    $docs = [];
+                    if (!empty($i['documentos'])) {
+                      $docs = json_decode($i['documentos'], true);
+                      if (!is_array($docs)) $docs = [];
+                    }
+                    foreach ($docs as $doc) {
+                      $ext = strtolower(pathinfo($doc, PATHINFO_EXTENSION));
+                      if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) {
+                        echo '<a href="uploads/' . htmlspecialchars($doc) . '" target="_blank" class="vista-previa">';
+                        echo '<img src="uploads/' . htmlspecialchars($doc) . '" alt="img">';
+                        echo '</a>';
+                      } else {
+                        echo '<a href="uploads/' . htmlspecialchars($doc) . '" target="_blank" title="Ver documento" class="vista-previa"><i class="bi bi-paperclip"></i></a>';
+                      }
+                    }
+                    ?>
+                  </td>
                   <td>
                     <?= htmlspecialchars($i['telefono']) ?><br>
                     <?= htmlspecialchars($i['vehiculo']) ?>
