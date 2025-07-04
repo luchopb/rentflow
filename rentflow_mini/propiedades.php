@@ -219,7 +219,7 @@ if ($filtro_ultimo_pago === 'con') {
 }
 if ($filtro_ultimo_pago === 'sin') {
   $mes_actual = date('Y-m');
-  $where_conditions[] = "c.id IS NOT NULL AND ((SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') IS NULL OR (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') <> ?)";
+  $where_conditions[] = "((SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') IS NULL OR (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') <> ?)";
   $params[] = $mes_actual;
 }
 if (!empty($where_conditions)) {
@@ -277,7 +277,7 @@ if ($filtro_ultimo_pago === 'con') {
   $params_count[] = date('Y-m');
 }
 if ($filtro_ultimo_pago === 'sin') {
-  $where_conditions_count[] = "c.id IS NOT NULL AND ((SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') IS NULL OR (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') <> ?)";
+  $where_conditions_count[] = "((SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') IS NULL OR (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') <> ?)";
   $params_count[] = date('Y-m');
 }
 
@@ -343,7 +343,7 @@ foreach ($tipos as $tipo) {
     $params_count[] = date('Y-m');
   }
   if ($filtro_ultimo_pago === 'sin') {
-    $where_conditions_count[] = "c.id IS NOT NULL AND ((SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') IS NULL OR (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') <> ?)";
+    $where_conditions_count[] = "((SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') IS NULL OR (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') <> ?)";
     $params_count[] = date('Y-m');
   }
 
@@ -502,7 +502,7 @@ include 'includes/header_nav.php';
               <div class="input-group">
                 <input type="url" class="form-control" id="link_mercadolibre" name="link_mercadolibre" value="<?= htmlspecialchars($edit_data['link_mercadolibre'] ?? '') ?>" />
                 <?php if (!empty($edit_data['link_mercadolibre'])): ?>
-                  <a href="<?= htmlspecialchars($edit_data['link_mercadolibre']) ?>" target="_blank" class="btn btn-outline-primary">Abrir</a>
+                  <a href="<?= htmlspecialchars($edit_data['link_mercadolibre']) ?>" target="_blank" class="btn btn-info">Abrir</a>
                 <?php endif; ?>
               </div>
             </div>
@@ -512,7 +512,7 @@ include 'includes/header_nav.php';
               <div class="input-group">
                 <input type="url" class="form-control" id="link_otras" name="link_otras" value="<?= htmlspecialchars($edit_data['link_otras'] ?? '') ?>" />
                 <?php if (!empty($edit_data['link_otras'])): ?>
-                  <a href="<?= htmlspecialchars($edit_data['link_otras']) ?>" target="_blank" class="btn btn-outline-primary">Abrir</a>
+                  <a href="<?= htmlspecialchars($edit_data['link_otras']) ?>" target="_blank" class="btn btn-info">Abrir</a>
                 <?php endif; ?>
               </div>
             </div>
@@ -566,8 +566,8 @@ include 'includes/header_nav.php';
           <div class="accordion accordion-flush mb-4" id="additionalDataAccordion">
             <div class="accordion-item">
               <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#additionalDataContent">
-                  Ver más datos...
+                <button class="btn btn-primary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#additionalDataContent">
+                  Ver más datos <i class="bi bi-plus"></i>
                 </button>
               </h2>
               <div id="additionalDataContent" class="accordion-collapse collapse" data-bs-parent="#additionalDataAccordion">
@@ -577,7 +577,7 @@ include 'includes/header_nav.php';
                     <div class="input-group">
                       <input type="number" class="form-control" id="ose" name="ose" step="1" min="0" value="<?= htmlspecialchars($edit_data['ose'] ?? '') ?>" />
                       <?php if ($edit_id): ?>
-                        <a href="https://facturas.ose.com.uy/SGCv10WebClient/inicio.faces" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                        <a href="https://facturas.ose.com.uy/SGCv10WebClient/inicio.faces" target="_blank" class="btn btn-info">Consultar</a>
                       <?php endif; ?>
                     </div>
                   </div>
@@ -587,7 +587,7 @@ include 'includes/header_nav.php';
                     <div class="input-group">
                       <input type="number" class="form-control" id="ute" name="ute" step="1" min="0" value="<?= htmlspecialchars($edit_data['ute'] ?? '') ?>" />
                       <?php if ($edit_id): ?>
-                        <a href="https://www.ute.com.uy/imprima-su-factura" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                        <a href="https://www.ute.com.uy/imprima-su-factura" target="_blank" class="btn btn-info">Consultar</a>
                       <?php endif; ?>
                     </div>
                   </div>
@@ -597,7 +597,7 @@ include 'includes/header_nav.php';
                     <div class="input-group">
                       <input type="text" class="form-control" id="anep" name="anep" value="<?= htmlspecialchars($edit_data['anep'] ?? '') ?>" />
                       <?php if ($edit_id): ?>
-                        <a href="https://dgi-anep.organismos.uy/paso1?0" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                        <a href="https://dgi-anep.organismos.uy/paso1?0" target="_blank" class="btn btn-info">Consultar</a>
                       <?php endif; ?>
                     </div>
                   </div>
@@ -614,7 +614,7 @@ include 'includes/header_nav.php';
                     <div class="input-group">
                       <input type="number" class="form-control" step="1" id="contribucion_inmobiliaria" name="contribucion_inmobiliaria" value="<?= htmlspecialchars($edit_data['contribucion_inmobiliaria'] ?? '') ?>" />
                       <?php if ($edit_id): ?>
-                        <a href="https://www.montevideo.gub.uy/fwtc/pages/contribucion.xhtml" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                        <a href="https://www.montevideo.gub.uy/fwtc/pages/contribucion.xhtml" target="_blank" class="btn btn-info">Consultar</a>
                       <?php endif; ?>
                     </div>
                   </div>
@@ -624,7 +624,7 @@ include 'includes/header_nav.php';
                     <div class="input-group">
                       <input type="number" class="form-control" id="imm_tasa_general" name="imm_tasa_general" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_tasa_general'] ?? '') ?>" />
                       <?php if ($edit_id): ?>
-                        <a href="https://www.montevideo.gub.uy/fwtc/pages/tributosDomiciliarios.xhtml" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                        <a href="https://www.montevideo.gub.uy/fwtc/pages/tributosDomiciliarios.xhtml" target="_blank" class="btn btn-info">Consultar</a>
                       <?php endif; ?>
                     </div>
                   </div>
@@ -634,7 +634,7 @@ include 'includes/header_nav.php';
                     <div class="input-group">
                       <input type="number" class="form-control" id="imm_tarifa_saneamiento" name="imm_tarifa_saneamiento" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_tarifa_saneamiento'] ?? '') ?>" />
                       <?php if ($edit_id): ?>
-                        <a href="https://www.montevideo.gub.uy/fwtc/pages/saneamiento.xhtml" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                        <a href="https://www.montevideo.gub.uy/fwtc/pages/saneamiento.xhtml" target="_blank" class="btn btn-info">Consultar</a>
                       <?php endif; ?>
                     </div>
                   </div>
@@ -644,7 +644,7 @@ include 'includes/header_nav.php';
                     <div class="input-group">
                       <input type="number" class="form-control" id="imm_instalaciones" name="imm_instalaciones" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_instalaciones'] ?? '') ?>" />
                       <?php if ($edit_id): ?>
-                        <a href="https://www.montevideo.gub.uy/fwtc/pages/tributosDomiciliarios.xhtml" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                        <a href="https://www.montevideo.gub.uy/fwtc/pages/tributosDomiciliarios.xhtml" target="_blank" class="btn btn-info">Consultar</a>
                       <?php endif; ?>
                     </div>
                   </div>
@@ -654,7 +654,7 @@ include 'includes/header_nav.php';
                     <div class="input-group">
                       <input type="number" class="form-control" id="imm_adicional_mercantil" name="imm_adicional_mercantil" step="1" min="0" value="<?= htmlspecialchars($edit_data['imm_adicional_mercantil'] ?? '') ?>" />
                       <?php if ($edit_id): ?>
-                        <a href="https://www.montevideo.gub.uy/fwtc/pages/tributosDomiciliarios.xhtml" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                        <a href="https://www.montevideo.gub.uy/fwtc/pages/tributosDomiciliarios.xhtml" target="_blank" class="btn btn-info">Consultar</a>
                       <?php endif; ?>
                     </div>
                   </div>
@@ -664,7 +664,7 @@ include 'includes/header_nav.php';
                     <div class="input-group">
                       <input type="number" class="form-control" id="convenios" name="convenios" step="1" min="0" value="<?= htmlspecialchars($edit_data['convenios'] ?? '') ?>" />
                       <?php if ($edit_id): ?>
-                        <a href="https://www.montevideo.gub.uy/fwtc/pages/convenios.xhtml" target="_blank" class="btn btn-outline-primary">Consultar</a>
+                        <a href="https://www.montevideo.gub.uy/fwtc/pages/convenios.xhtml" target="_blank" class="btn btn-info">Consultar</a>
                       <?php endif; ?>
                     </div>
                   </div>
@@ -687,10 +687,10 @@ include 'includes/header_nav.php';
   <?php if (!($edit_id || !empty($errors) || $show_form)): ?>
 
     <div class="card mb-4">
-      <div class="card-header">
+      <div class="card-header" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#filtrosCollapse" aria-expanded="true" aria-controls="filtrosCollapse">
         <h5 class="mb-0">Filtros</h5>
       </div>
-      <div class="card-body">
+      <div id="filtrosCollapse" class="card-body collapse">
         <form method="GET" role="search" aria-label="Buscar propiedades">
           <div class="row g-3" style="max-width:1200px;">
             <div class="col-md-4">

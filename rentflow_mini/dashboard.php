@@ -51,6 +51,40 @@ $pagos_recibidos = count($pagos_mes_actual);
 $pagos_pendientes = $total_contratos - $pagos_recibidos;
 $ratio_pagos = $total_contratos > 0 ? round(($pagos_recibidos / $total_contratos) * 100) : 0;
 
+// Obtener contratos por vencer en los próximos 60 días
+$stmt_vencer = $pdo->prepare("
+    SELECT c.id, p.nombre AS propiedad_nombre, p.id AS propiedad_id, i.nombre AS inquilino_nombre, c.fecha_fin,
+           DATEDIFF(c.fecha_fin, CURDATE()) AS dias_restantes
+    FROM contratos c
+    JOIN propiedades p ON c.propiedad_id = p.id
+    LEFT JOIN inquilinos i ON c.inquilino_id = i.id
+    WHERE c.estado = 'activo'
+      AND c.fecha_fin BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 60 DAY)
+    ORDER BY c.fecha_fin ASC
+");
+$stmt_vencer->execute();
+$contratos_por_vencer = $stmt_vencer->fetchAll(PDO::FETCH_ASSOC);
+
+// Obtener contratos vencidos sin renovación en los últimos 30 días
+$stmt_vencidos = $pdo->prepare("
+    SELECT c1.id, p.nombre AS propiedad_nombre, p.id AS propiedad_id, i.nombre AS inquilino_nombre, c1.fecha_fin,
+           DATEDIFF(CURDATE(), c1.fecha_fin) AS dias_vencido
+    FROM contratos c1
+    JOIN propiedades p ON c1.propiedad_id = p.id
+    LEFT JOIN inquilinos i ON c1.inquilino_id = i.id
+    WHERE c1.estado = 'finalizado'
+      AND c1.fecha_fin BETWEEN DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND CURDATE()
+      AND NOT EXISTS (
+        SELECT 1 FROM contratos c2
+        WHERE c2.propiedad_id = c1.propiedad_id
+          AND c2.estado = 'activo'
+          AND c2.fecha_inicio > c1.fecha_fin
+      )
+    ORDER BY c1.fecha_fin DESC
+");
+$stmt_vencidos->execute();
+$contratos_vencidos = $stmt_vencidos->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <main class="container container-main">
@@ -130,6 +164,54 @@ $ratio_pagos = $total_contratos > 0 ? round(($pagos_recibidos / $total_contratos
       </a>
     </div>
   </div>
+
+  <!-- Reporte: Contratos por vencer -->
+  <section class="mt-4">
+    <h2 class="fw-semibold">Contratos por vencer <small>(próximos 60 días)</small></h2>
+    <?php if (count($contratos_por_vencer) === 0): ?>
+      <p>No hay contratos por vencer en los próximos 60 días.</p>
+    <?php else: ?>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <tbody>
+            <?php foreach ($contratos_por_vencer as $c): ?>
+              <tr>
+                <td>
+                  <a href="contratos.php?edit=<?= intval($c['id']) ?>" class="text-decoration-none text-dark"><b><?= htmlspecialchars($c['propiedad_nombre']) ?></b> <?= htmlspecialchars($c['inquilino_nombre'] ?? 'N/A') ?><br>
+                    Vence: <?= date('d/m/Y', strtotime($c['fecha_fin'])) ?></a>
+                </td>
+                <td><span class="badge bg-danger">En <?= $c['dias_restantes'] ?> días</span></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php endif; ?>
+  </section>
+
+  <!-- Reporte: Contratos vencidos sin renovación -->
+  <section class="mt-4">
+    <h2 class="fw-semibold">Contratos vencidos sin renovación <small>(últimos 30 días)</small></h2>
+    <?php if (count($contratos_vencidos) === 0): ?>
+      <p>No hay contratos vencidos sin renovación en los últimos 30 días.</p>
+    <?php else: ?>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <tbody>
+            <?php foreach ($contratos_vencidos as $c): ?>
+              <tr>
+                <td>
+                  <a href="contratos.php?edit=<?= intval($c['id']) ?>" class="text-decoration-none text-dark"><b><?= htmlspecialchars($c['propiedad_nombre']) ?></b> <?= htmlspecialchars($c['inquilino_nombre'] ?? 'N/A') ?><br>
+                    Vencido: <?= date('d/m/Y', strtotime($c['fecha_fin'])) ?></a>
+                </td>
+                <td><span class="badge bg-warning">Hace <?= $c['dias_vencido'] ?> días</span></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php endif; ?>
+  </section>
 
   <section class="mt-5">
     <h2 class="fw-semibold">Pagos Mensuales</h2>

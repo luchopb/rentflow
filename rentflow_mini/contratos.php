@@ -118,12 +118,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       // Actualizar contrato con documentos
       $stmt = $pdo->prepare("UPDATE contratos SET inquilino_id=?, propiedad_id=?, fecha_inicio=?, fecha_fin=?, importe=?, garantia=?, corredor=?, estado=?, documentos=? WHERE id=?");
       $stmt->execute([$inquilino_id, $propiedad_id, $fecha_inicio, $fecha_fin, $importe, $garantia, $corredor, $estado, $docs_json, $edit_id]);
-      
+
       // Si el estado es finalizado, marcar la propiedad como libre
       if ($estado === 'finalizado') {
         $pdo->prepare("UPDATE propiedades SET estado = 'libre' WHERE id = ?")->execute([$propiedad_id]);
       }
-      
+
       $message = "Contrato actualizado correctamente.";
     } else {
       // Insertar nuevo contrato con documentos
@@ -353,13 +353,14 @@ include 'includes/header_nav.php';
             <tbody>
               <?php foreach ($contratos as $c): ?>
                 <tr>
-                  <td><?= htmlspecialchars($c['id'])?></td>
+                  <td><?= htmlspecialchars($c['id']) ?></td>
                   <td>
                     <a href="contratos.php?edit=<?= intval($c['id']) ?>" class="text-decoration-none text-dark"><b><?= htmlspecialchars($c['propiedad_nombre']) ?></b> <?= htmlspecialchars($c['inquilino_nombre']) ?><br>
                       <?= estado_label($c['estado']) ?>
                       <small>
-                        <nobr>$ <?= number_format($c['importe'], 2, ",", ".") ?></nobr>
-                      </small><br>
+                        <nobr>$ <?= number_format($c['importe'], 2, ",", ".") ?></nobr><br>
+                        <?= date('d/m/Y', strtotime($c['fecha_inicio'])) ?> a <?= date('d/m/Y', strtotime($c['fecha_fin'])) ?>
+                      </small>
                     </a>
                   </td>
                   <td>
