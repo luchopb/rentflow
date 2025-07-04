@@ -683,179 +683,181 @@ include 'includes/header_nav.php';
     </div>
   </div>
 
-  <div class="card mb-4">
-    <div class="card-header">
-      <h5 class="mb-0">Filtros</h5>
-    </div>
-    <div class="card-body">
-      <form method="GET" role="search" aria-label="Buscar propiedades">
-        <div class="row g-3" style="max-width:1200px;">
-          <div class="col-md-4">
-            <label for="search" class="form-label">Buscar</label>
-            <input
-              type="search"
-              name="search"
-              class="form-control"
-              placeholder="Nombre, dirección, local o inquilino..."
-              value="<?= htmlspecialchars($busqueda) ?>"
-              aria-label="Buscar propiedades" autocomplete="off" />
-          </div>
-          <div class="col-md-4 col-6">
-            <label for="filtro_propietario" class="form-label">Propietario</label>
-            <select name="filtro_propietario" class="form-select" aria-label="Filtrar por propietario">
-              <option value="0">Todos</option>
-              <?php
-              $propietarios = $pdo->query("SELECT id, nombre FROM propietarios ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
-              foreach ($propietarios as $prop): ?>
-                <option value="<?= $prop['id'] ?>" <?= $filtro_propietario == $prop['id'] ? 'selected' : '' ?>>
-                  <?= htmlspecialchars($prop['nombre']) ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="col-md-4 col-6">
-            <label for="filtro_tipo" class="form-label">Tipo de propiedad</label>
-            <select name="filtro_tipo" class="form-select" aria-label="Filtrar por tipo">
-              <option value="">Todos</option>
-              <?php foreach ($tipos as $tipo): ?>
-                <option value="<?= htmlspecialchars($tipo) ?>" <?= $filtro_tipo === $tipo ? 'selected' : '' ?>>
-                  <?= htmlspecialchars($tipo) ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="col-md-4 col-6">
-            <label for="filtro_estado" class="form-label">Estado</label>
-            <select name="filtro_estado" class="form-select" aria-label="Filtrar por estado">
-              <option value="">Todos</option>
-              <option value="libre" <?= $filtro_estado === 'libre' ? 'selected' : '' ?>>Libre</option>
-              <option value="alquilado" <?= $filtro_estado === 'alquilado' ? 'selected' : '' ?>>Alquilado</option>
-              <option value="uso propio" <?= $filtro_estado === 'uso propio' ? 'selected' : '' ?>>Uso Propio</option>
-              <option value="en venta" <?= $filtro_estado === 'en venta' ? 'selected' : '' ?>>En Venta</option>
-            </select>
-          </div>
-          <div class="col-md-4 col-6">
-            <label for="filtro_contrato" class="form-label">Contrato</label>
-            <select name="filtro_contrato" class="form-select" aria-label="Filtrar por contrato">
-              <option value="">Todos</option>
-              <option value="vigente" <?= $filtro_contrato === 'vigente' ? 'selected' : '' ?>>Vigente</option>
-              <option value="sin" <?= $filtro_contrato === 'sin' ? 'selected' : '' ?>>Sin contrato</option>
-            </select>
-          </div>
-          <div class="col-md-4 col-6">
-            <label for="filtro_ultimo_pago" class="form-label">Último Pago</label>
-            <select name="filtro_ultimo_pago" class="form-select" aria-label="Filtrar por último pago">
-              <option value="">Todos</option>
-              <option value="con" <?= $filtro_ultimo_pago === 'con' ? 'selected' : '' ?>>Con pago este mes</option>
-              <option value="sin" <?= $filtro_ultimo_pago === 'sin' ? 'selected' : '' ?>>Sin pago este mes</option>
-            </select>
-          </div>
-          <div class="col-12">
-            <button class="btn btn-primary" type="submit" aria-label="Buscar">Aplicar Filtros</button>
-            <?php if ($busqueda || $filtro_tipo || $filtro_propietario || $filtro_estado || $filtro_contrato || $filtro_ultimo_pago): ?>
-              <a href="propiedades.php" class="btn btn-outline-secondary" aria-label="Limpiar búsqueda">Borrar filtros</a>
-            <?php endif; ?>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
 
+  <?php if (!($edit_id || !empty($errors) || $show_form)): ?>
 
-  <section>
-    <h2 class="fw-semibold mb-3">Listado de Propiedades</h2>
-    <div class="mb-3">
-      <span class="badge bg-primary">Total: <?= $total_propiedades ?></span>
-      <?php foreach ($tipos as $tipo): ?>
-        <?php if ($contador_tipos[$tipo] > 0): ?>
-          <span class="badge bg-secondary"><?= htmlspecialchars($tipo) ?>: <?= $contador_tipos[$tipo] ?></span>
-        <?php endif; ?>
-      <?php endforeach; ?>
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">Filtros</h5>
+      </div>
+      <div class="card-body">
+        <form method="GET" role="search" aria-label="Buscar propiedades">
+          <div class="row g-3" style="max-width:1200px;">
+            <div class="col-md-4">
+              <label for="search" class="form-label">Buscar</label>
+              <input
+                type="search"
+                name="search"
+                class="form-control"
+                placeholder="Nombre, dirección, local o inquilino..."
+                value="<?= htmlspecialchars($busqueda) ?>"
+                aria-label="Buscar propiedades" autocomplete="off" />
+            </div>
+            <div class="col-md-4 col-6">
+              <label for="filtro_propietario" class="form-label">Propietario</label>
+              <select name="filtro_propietario" class="form-select" aria-label="Filtrar por propietario">
+                <option value="0">Todos</option>
+                <?php
+                $propietarios = $pdo->query("SELECT id, nombre FROM propietarios ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($propietarios as $prop): ?>
+                  <option value="<?= $prop['id'] ?>" <?= $filtro_propietario == $prop['id'] ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($prop['nombre']) ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-md-4 col-6">
+              <label for="filtro_tipo" class="form-label">Tipo de propiedad</label>
+              <select name="filtro_tipo" class="form-select" aria-label="Filtrar por tipo">
+                <option value="">Todos</option>
+                <?php foreach ($tipos as $tipo): ?>
+                  <option value="<?= htmlspecialchars($tipo) ?>" <?= $filtro_tipo === $tipo ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($tipo) ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-md-4 col-6">
+              <label for="filtro_estado" class="form-label">Estado</label>
+              <select name="filtro_estado" class="form-select" aria-label="Filtrar por estado">
+                <option value="">Todos</option>
+                <option value="libre" <?= $filtro_estado === 'libre' ? 'selected' : '' ?>>Libre</option>
+                <option value="alquilado" <?= $filtro_estado === 'alquilado' ? 'selected' : '' ?>>Alquilado</option>
+                <option value="uso propio" <?= $filtro_estado === 'uso propio' ? 'selected' : '' ?>>Uso Propio</option>
+                <option value="en venta" <?= $filtro_estado === 'en venta' ? 'selected' : '' ?>>En Venta</option>
+              </select>
+            </div>
+            <div class="col-md-4 col-6">
+              <label for="filtro_contrato" class="form-label">Contrato</label>
+              <select name="filtro_contrato" class="form-select" aria-label="Filtrar por contrato">
+                <option value="">Todos</option>
+                <option value="vigente" <?= $filtro_contrato === 'vigente' ? 'selected' : '' ?>>Vigente</option>
+                <option value="sin" <?= $filtro_contrato === 'sin' ? 'selected' : '' ?>>Sin contrato</option>
+              </select>
+            </div>
+            <div class="col-md-4 col-6">
+              <label for="filtro_ultimo_pago" class="form-label">Último Pago</label>
+              <select name="filtro_ultimo_pago" class="form-select" aria-label="Filtrar por último pago">
+                <option value="">Todos</option>
+                <option value="con" <?= $filtro_ultimo_pago === 'con' ? 'selected' : '' ?>>Con pago este mes</option>
+                <option value="sin" <?= $filtro_ultimo_pago === 'sin' ? 'selected' : '' ?>>Sin pago este mes</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <button class="btn btn-primary" type="submit" aria-label="Buscar">Aplicar Filtros</button>
+              <?php if ($busqueda || $filtro_tipo || $filtro_propietario || $filtro_estado || $filtro_contrato || $filtro_ultimo_pago): ?>
+                <a href="propiedades.php" class="btn btn-outline-secondary" aria-label="Limpiar búsqueda">Borrar filtros</a>
+              <?php endif; ?>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
-    <?php if (count($propiedades) === 0): ?>
-      <p>No hay propiedades registradas.</p>
-    <?php else: ?>
-      <div class="table-responsive">
-        <table class="table align-middle">
-          <thead>
-            <tr>
-              <td class="p-0"></td>
-              <th>Propiedad</th>
-              <th>Contrato</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($propiedades as $p): ?>
+    <section>
+      <h2 class="fw-semibold mb-3">Listado de Propiedades</h2>
+      <div class="mb-3">
+        <span class="badge bg-primary">Total: <?= $total_propiedades ?></span>
+        <?php foreach ($tipos as $tipo): ?>
+          <?php if ($contador_tipos[$tipo] > 0): ?>
+            <span class="badge bg-secondary"><?= htmlspecialchars($tipo) ?>: <?= $contador_tipos[$tipo] ?></span>
+          <?php endif; ?>
+        <?php endforeach; ?>
+      </div>
+      <?php if (count($propiedades) === 0): ?>
+        <p>No hay propiedades registradas.</p>
+      <?php else: ?>
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
               <tr>
-                <td class="p-0">
-                  <div class="rounded-circle">
-                    <?php if (!empty($p['imagenes'])):
-                      $imagenes = json_decode($p['imagenes'], true);
-                      if (!empty($imagenes[0])): ?>
-                        <img src="uploads/<?= htmlspecialchars($imagenes[0]) ?>">
+                <td class="p-0"></td>
+                <th>Propiedad</th>
+                <th>Contrato</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($propiedades as $p): ?>
+                <tr>
+                  <td class="p-0">
+                    <div class="rounded-circle">
+                      <?php if (!empty($p['imagenes'])):
+                        $imagenes = json_decode($p['imagenes'], true);
+                        if (!empty($imagenes[0])): ?>
+                          <img src="uploads/<?= htmlspecialchars($imagenes[0]) ?>">
+                        <?php else: ?>
+                          <i class="bi bi-<?= $p['tipo'] === 'Cochera' ? 'car-front-fill' : 'house-door-fill' ?>"></i>
+                        <?php endif; ?>
                       <?php else: ?>
                         <i class="bi bi-<?= $p['tipo'] === 'Cochera' ? 'car-front-fill' : 'house-door-fill' ?>"></i>
                       <?php endif; ?>
-                    <?php else: ?>
-                      <i class="bi bi-<?= $p['tipo'] === 'Cochera' ? 'car-front-fill' : 'house-door-fill' ?>"></i>
-                    <?php endif; ?>
-                  </div>
-                </td>
-                <td>
-                  <b><a href="propiedades.php?edit=<?= intval($p['id']) ?>" class="text-decoration-none text-dark">
-                      <?= htmlspecialchars($p['nombre']) ?></b> (<?= htmlspecialchars($p['tipo']) ?>)</a><br>
-                  <?= htmlspecialchars($p['direccion']) ?><br>
-                  <?= estado_label($p['estado']) ?> <small>
-                    <nobr>$ <?= number_format($p['precio'], 2, ",", ".") ?></nobr><br>
-                    <?= htmlspecialchars($p['propietario']) ?><br>
-                    <?php if (!empty($p['link_mercadolibre'])): ?>
-                      <a href="<?= htmlspecialchars($p['link_mercadolibre']) ?>" target="_blank" class="badge bg-warning text-dark text-decoration-none">
-                        MercadoLibre
-                      </a>
-                    <?php endif; ?>
-                  </small>
-                </td>
-                <td>
-                  <?php if ($p['contrato_id'] && $p['inquilino_nombre']): ?>
-                    <a href="inquilinos.php?edit=<?= intval($p['inquilino_id']) ?>" class="text-decoration-none text-dark">
-                      <b><?= htmlspecialchars($p['inquilino_nombre']) ?></b>
-                    </a>
-                    <small class="d-block">
-                      <?php if ($p['fecha_ultimo_pago']): ?>
-                        <?php
-                        $ultimo_pago = date('m/Y', strtotime($p['fecha_ultimo_pago']));
-                        $periodo_actual = date('m/Y');
-                        $badge_class = ($ultimo_pago === $periodo_actual) ? 'bg-success' : 'bg-warning text-dark';
-                        $tipo_pago = $p['tipo_ultimo_pago'] ?? '';
-                        ?>
-                        <span class="badge <?= $badge_class ?>" style="max-width: 130px; overflow: hidden; text-overflow: ellipsis;"><?= $ultimo_pago ?><?= $tipo_pago ? ' ' . htmlspecialchars($tipo_pago) : '' ?></span>
-                      <?php else: ?>
-                        <span class="badge bg-danger">Sin pago</span>
+                    </div>
+                  </td>
+                  <td>
+                    <b><a href="propiedades.php?edit=<?= intval($p['id']) ?>" class="text-decoration-none text-dark">
+                        <?= htmlspecialchars($p['nombre']) ?></b> (<?= htmlspecialchars($p['tipo']) ?>)</a><br>
+                    <?= htmlspecialchars($p['direccion']) ?><br>
+                    <?= estado_label($p['estado']) ?> <small>
+                      <nobr>$ <?= number_format($p['precio'], 2, ",", ".") ?></nobr><br>
+                      <?= htmlspecialchars($p['propietario']) ?><br>
+                      <?php if (!empty($p['link_mercadolibre'])): ?>
+                        <a href="<?= htmlspecialchars($p['link_mercadolibre']) ?>" target="_blank" class="badge bg-warning text-dark text-decoration-none">
+                          MercadoLibre
+                        </a>
                       <?php endif; ?>
                     </small>
-                    <div class="text-nowrap mt-2">
-                      <a href="pagos.php?contrato_id=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-success">
-                        Pagos
+                  </td>
+                  <td>
+                    <?php if ($p['contrato_id'] && $p['inquilino_nombre']): ?>
+                      <a href="inquilinos.php?edit=<?= intval($p['inquilino_id']) ?>" class="text-decoration-none text-dark">
+                        <b><?= htmlspecialchars($p['inquilino_nombre']) ?></b>
                       </a>
-                      <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-success">
-                        Contrato
-                      </a>
-                    </div>
-                  <?php else: ?>
-                    <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-outline-success btn-sm" style="white-space: nowrap;">Crear contrato</a>
-                  <?php endif; ?>
-                </td>
-                <!--<td>
-                  <a href="propiedades.php?edit=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-primary me-1">Editar</a>
-                  <a href="propiedades.php?delete=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar esta propiedad?')">Eliminar</a>
-                </td>-->
-              </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      </div>
-    <?php endif; ?>
-  </section>
+                      <small class="d-block">
+                        <?php if ($p['fecha_ultimo_pago']): ?>
+                          <?php
+                          $ultimo_pago = date('m/Y', strtotime($p['fecha_ultimo_pago']));
+                          $periodo_actual = date('m/Y');
+                          $badge_class = ($ultimo_pago === $periodo_actual) ? 'bg-success' : 'bg-warning text-dark';
+                          $tipo_pago = $p['tipo_ultimo_pago'] ?? '';
+                          ?>
+                          <span class="badge <?= $badge_class ?>" style="max-width: 130px; overflow: hidden; text-overflow: ellipsis;"><?= $ultimo_pago ?><?= $tipo_pago ? ' ' . htmlspecialchars($tipo_pago) : '' ?></span>
+                        <?php else: ?>
+                          <span class="badge bg-danger">Sin pago</span>
+                        <?php endif; ?>
+                      </small>
+                      <div class="text-nowrap mt-2">
+                        <a href="pagos.php?contrato_id=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-success">
+                          Pagos
+                        </a>
+                        <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-success">
+                          Contrato
+                        </a>
+                      </div>
+                    <?php else: ?>
+                      <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-outline-success btn-sm" style="white-space: nowrap;">Crear contrato</a>
+                    <?php endif; ?>
+                  </td>
+                  <!--<td>
+                    <a href="propiedades.php?edit=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-primary me-1">Editar</a>
+                    <a href="propiedades.php?delete=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar esta propiedad?')">Eliminar</a>
+                  </td>-->
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      <?php endif; ?>
+    </section>
+  <?php endif; ?>
 
 </main>
 

@@ -98,36 +98,38 @@ include 'includes/header_nav.php';
     </div>
   </div>
 
-  <section>
-    <h2 class="fw-semibold mb-3">Listado de Propietarios</h2>
-    <?php if (count($propietarios) === 0): ?>
-      <p>No hay propietarios registrados.</p>
-    <?php else: ?>
-      <div class="table-responsive">
-        <table class="table align-middle table-striped">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($propietarios as $p): ?>
+  <?php if (!($edit_id || !empty($errors) || $show_form)): ?>
+    <section>
+      <h2 class="fw-semibold mb-3">Listado de Propietarios</h2>
+      <?php if (count($propietarios) === 0): ?>
+        <p>No hay propietarios registrados.</p>
+      <?php else: ?>
+        <div class="table-responsive">
+          <table class="table align-middle table-striped">
+            <thead>
               <tr>
-                <td><?= htmlspecialchars($p['id']) ?></td>
-                <td><?= htmlspecialchars($p['nombre']) ?></td>
-                <td>
-                  <a href="propietarios.php?edit=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
-                  <a href="propietarios.php?delete=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este propietario?')">Eliminar</a>
-                </td>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Acciones</th>
               </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      </div>
-    <?php endif; ?>
-  </section>
+            </thead>
+            <tbody>
+              <?php foreach ($propietarios as $p): ?>
+                <tr>
+                  <td><?= htmlspecialchars($p['id']) ?></td>
+                  <td><?= htmlspecialchars($p['nombre']) ?></td>
+                  <td>
+                    <a href="propietarios.php?edit=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
+                    <a href="propietarios.php?delete=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este propietario?')">Eliminar</a>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      <?php endif; ?>
+    </section>
+  <?php endif; ?>
 </main>
 
 <?php

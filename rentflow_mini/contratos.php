@@ -335,46 +335,48 @@ include 'includes/header_nav.php';
     </div>
   </div>
 
-  <section>
-    <h2 class="fw-semibold mb-3">Listado de Contratos</h2>
-    <?php if (count($contratos) === 0): ?>
-      <p>No hay contratos registrados.</p>
-    <?php else: ?>
-      <div class="table-responsive">
-        <table class="table align-middle table-striped">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Contrato</th>
-              <th>Pagos</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($contratos as $c): ?>
+  <?php if (!($edit_id || !empty($errors) || $propiedad_id_param)): ?>
+    <section>
+      <h2 class="fw-semibold mb-3">Listado de Contratos</h2>
+      <?php if (count($contratos) === 0): ?>
+        <p>No hay contratos registrados.</p>
+      <?php else: ?>
+        <div class="table-responsive">
+          <table class="table align-middle table-striped">
+            <thead>
               <tr>
-                <td><?= htmlspecialchars($c['id'])?></td>
-                <td>
-                  <a href="contratos.php?edit=<?= intval($c['id']) ?>" class="text-decoration-none text-dark"><b><?= htmlspecialchars($c['propiedad_nombre']) ?></b> <?= htmlspecialchars($c['inquilino_nombre']) ?><br>
-                    <?= estado_label($c['estado']) ?>
-                    <small>
-                      <nobr>$ <?= number_format($c['importe'], 2, ",", ".") ?></nobr>
-                    </small><br>
-                  </a>
-                </td>
-                <td>
-                  <a href="pagos.php?contrato_id=<?= intval($c['id']) ?>" class="btn btn-sm btn-success">Pagos</a>
-                </td>
-                <!--<td style="min-width:130px;">
-                  <a href="contratos.php?edit=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
-                  <a href="contratos.php?delete=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este contrato y sus pagos?')">Eliminar</a>
-                </td>-->
+                <th>ID</th>
+                <th>Contrato</th>
+                <th>Pagos</th>
               </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      </div>
-    <?php endif; ?>
-  </section>
+            </thead>
+            <tbody>
+              <?php foreach ($contratos as $c): ?>
+                <tr>
+                  <td><?= htmlspecialchars($c['id'])?></td>
+                  <td>
+                    <a href="contratos.php?edit=<?= intval($c['id']) ?>" class="text-decoration-none text-dark"><b><?= htmlspecialchars($c['propiedad_nombre']) ?></b> <?= htmlspecialchars($c['inquilino_nombre']) ?><br>
+                      <?= estado_label($c['estado']) ?>
+                      <small>
+                        <nobr>$ <?= number_format($c['importe'], 2, ",", ".") ?></nobr>
+                      </small><br>
+                    </a>
+                  </td>
+                  <td>
+                    <a href="pagos.php?contrato_id=<?= intval($c['id']) ?>" class="btn btn-sm btn-success">Pagos</a>
+                  </td>
+                  <!--<td style="min-width:130px;">
+                    <a href="contratos.php?edit=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
+                    <a href="contratos.php?delete=<?= intval($c['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este contrato y sus pagos?')">Eliminar</a>
+                  </td>-->
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      <?php endif; ?>
+    </section>
+  <?php endif; ?>
 
 </main>
 <script>

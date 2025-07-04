@@ -187,41 +187,43 @@ include 'includes/header_nav.php';
     </div>
   </div>
 
-  <section>
-    <h2 class="fw-semibold mb-3">Listado de Inquilinos</h2>
-    <?php if (count($inquilinos) === 0): ?>
-      <p>No hay inquilinos registrados.</p>
-    <?php else: ?>
-      <div class="table-responsive">
-        <table class="table align-middle table-striped">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Datos</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($inquilinos as $i): ?>
+  <?php if (!($edit_id || !empty($errors) || $show_form)): ?>
+    <section>
+      <h2 class="fw-semibold mb-3">Listado de Inquilinos</h2>
+      <?php if (count($inquilinos) === 0): ?>
+        <p>No hay inquilinos registrados.</p>
+      <?php else: ?>
+        <div class="table-responsive">
+          <table class="table align-middle table-striped">
+            <thead>
               <tr>
-                <td><?= htmlspecialchars($i['id']) ?></td>
-                <td><a href="inquilinos.php?edit=<?= intval($i['id']) ?>" class="text-decoration-none text-dark"><b><?= htmlspecialchars($i['nombre']) ?></b><br> <?= htmlspecialchars($i['cedula']) ?></a></td>
-                <td>
-                  <?= htmlspecialchars($i['telefono']) ?><br>
-                  <?= htmlspecialchars($i['vehiculo']) ?>
-                  <?= htmlspecialchars($i['matricula']) ?>
-                </td>
-                <!--<td style="min-width:120px;">
-                  <a href="inquilinos.php?edit=<?= intval($i['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
-                  <a href="inquilinos.php?delete=<?= intval($i['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este inquilino?')">Eliminar</a>
-                </td>-->
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Datos</th>
               </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      </div>
-    <?php endif; ?>
-  </section>
+            </thead>
+            <tbody>
+              <?php foreach ($inquilinos as $i): ?>
+                <tr>
+                  <td><?= htmlspecialchars($i['id']) ?></td>
+                  <td><a href="inquilinos.php?edit=<?= intval($i['id']) ?>" class="text-decoration-none text-dark"><b><?= htmlspecialchars($i['nombre']) ?></b><br> <?= htmlspecialchars($i['cedula']) ?></a></td>
+                  <td>
+                    <?= htmlspecialchars($i['telefono']) ?><br>
+                    <?= htmlspecialchars($i['vehiculo']) ?>
+                    <?= htmlspecialchars($i['matricula']) ?>
+                  </td>
+                  <!--<td style="min-width:120px;">
+                    <a href="inquilinos.php?edit=<?= intval($i['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
+                    <a href="inquilinos.php?delete=<?= intval($i['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este inquilino?')">Eliminar</a>
+                  </td>-->
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      <?php endif; ?>
+    </section>
+  <?php endif; ?>
 </main>
 
 <script>
