@@ -119,6 +119,7 @@ include 'includes/header_nav.php';
       <a href="contratos.php?inquilino_id=<?= $inquilino_id ?>" class="btn btn-success mb-3">Crear Contrato</a>
     <?php endif; ?>
   <?php endif; ?>
+  
   <?php if ($errors): ?>
     <div class="alert alert-danger">
       <ul><?php foreach ($errors as $e) echo "<li>" . htmlspecialchars($e) . "</li>"; ?></ul>

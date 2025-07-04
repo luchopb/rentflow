@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $propiedad_id = $edit_id;
       $message = "Propiedad actualizada correctamente.";
     } else {
-      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,documentos,galeria,local,precio,incluye_gc,gastos_comunes,estado,anep,contribucion_inmobiliaria,comentarios,link_mercadolibre,link_otras,ose,ute,padron,imm_tasa_general,imm_tarifa_saneamiento,imm_instalaciones,imm_adicional_mercantil,convenios,propietario_id,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,documentos,galeria,local,precio,incluye_gc,gastos_comunes,estado,anep,contribucion_inmobiliaria,comentarios,link_mercadolibre,link_otras,ose,ute,padron,imm_tasa_general,imm_tarifa_saneamiento,imm_instalaciones,imm_adicional_mercantil,convenios,propietario_id,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
       $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $anep, $contribucion_inmobiliaria, $comentarios, $link_mercadolibre, $link_otras, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_saneamiento, $imm_instalaciones, $imm_adicional_mercantil, $convenios, $propietario_id, $usuario_id, $fecha_hora]);
       $propiedad_id = $pdo->lastInsertId();
       $message = "Propiedad creada correctamente.";
@@ -239,16 +239,16 @@ foreach ($tipos as $tipo) {
                   AND c.estado = 'activo' 
                   AND CURDATE() BETWEEN c.fecha_inicio AND c.fecha_fin 
                 LEFT JOIN inquilinos i ON c.inquilino_id = i.id";
-  
+
   $where_conditions_count = [];
   $params_count = [];
-  
+
   if ($busqueda) {
     $where_conditions_count[] = "(p.nombre LIKE ? OR p.direccion LIKE ? OR p.local LIKE ? OR i.nombre LIKE ?)";
     $like_search = '%' . $busqueda . '%';
     $params_count = array_merge($params_count, [$like_search, $like_search, $like_search, $like_search]);
   }
-  
+
   // Si hay filtro de tipo, solo contar ese tipo específico
   if ($filtro_tipo) {
     if ($filtro_tipo === $tipo) {
@@ -264,11 +264,11 @@ foreach ($tipos as $tipo) {
     $where_conditions_count[] = "p.tipo = ?";
     $params_count[] = $tipo;
   }
-  
+
   if (!empty($where_conditions_count)) {
     $sql_count .= " WHERE " . implode(' AND ', $where_conditions_count);
   }
-  
+
   $stmt_count = $pdo->prepare($sql_count);
   $stmt_count->execute($params_count);
   $contador_tipos[$tipo] = $stmt_count->fetch()['total'];
@@ -282,11 +282,15 @@ include 'includes/header_nav.php';
   <h1>Propiedades</h1>
 
   <?php if ($message): ?>
-    <div class="alert alert-success">
-      <?= htmlspecialchars($message) ?>
-      <?php if ($propiedad_id):?>
-        <a href="propiedades.php?edit=<?= $propiedad_id?>" class="btn btn-success">Ver propiedad</a>
-      <?php endif;?>
+    <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
+    <?php if ($propiedad_id): ?>
+      <a href="propiedades.php?edit=<?= $propiedad_id ?>" class="btn btn-success mb-3">Ver propiedad</a>
+    <?php endif; ?>
+  <?php endif; ?>
+
+  <?php if ($errors): ?>
+    <div class="alert alert-danger">
+      <ul><?php foreach ($errors as $e) echo "<li>" . htmlspecialchars($e) . "</li>"; ?></ul>
     </div>
   <?php endif; ?>
 
@@ -297,7 +301,7 @@ include 'includes/header_nav.php';
   <div class="collapse <?= $show_form || $edit_id || !empty($errors) ? 'show' : '' ?>" id="formPropiedadCollapse">
     <div class="card mb-4 mt-3">
       <div class="card-header">
-        <h5><?= $edit_id? "Editar Propiedad" : "Nueva Propiedad"?></h5>
+        <h5><?= $edit_id ? "Editar Propiedad" : "Nueva Propiedad" ?></h5>
       </div>
       <div class="card-body">
         <form method="POST" enctype="multipart/form-data" novalidate>
@@ -307,7 +311,7 @@ include 'includes/header_nav.php';
 
           <!-- Main Data Section - Always visible -->
           <div class="mb-4">
-            
+
             <div class="mb-3">
               <label for="nombre" class="form-label">Nombre *</label>
               <input type="text" class="form-control" id="nombre" name="nombre" required value="<?= htmlspecialchars($edit_data['nombre'] ?? '') ?>" />
@@ -532,7 +536,7 @@ include 'includes/header_nav.php';
                       <?php endif; ?>
                     </div>
                   </div>
-                  
+
                   <div class="mb-3">
                     <label for="imm_tasa_general" class="form-label">IMM Tasa general</label>
                     <div class="input-group">
@@ -596,7 +600,7 @@ include 'includes/header_nav.php';
       </div>
     </div>
   </div>
-  
+
   <form method="GET" class="mb-4" role="search" aria-label="Buscar propiedades">
     <div class="row g-3" style="max-width:800px;">
       <div class="col-md-4">
@@ -657,7 +661,7 @@ include 'includes/header_nav.php';
               <tr>
                 <td class="p-0">
                   <div class="rounded-circle">
-                    <?php if (!empty($p['imagenes'])): 
+                    <?php if (!empty($p['imagenes'])):
                       $imagenes = json_decode($p['imagenes'], true);
                       if (!empty($imagenes[0])): ?>
                         <img src="uploads/<?= htmlspecialchars($imagenes[0]) ?>">
@@ -674,7 +678,12 @@ include 'includes/header_nav.php';
                       <?= htmlspecialchars($p['nombre']) ?></b> (<?= htmlspecialchars($p['tipo']) ?>)</a><br>
                   <?= htmlspecialchars($p['direccion']) ?><br>
                   <?= estado_label($p['estado']) ?> <small>
-                    <nobr>$ <?= number_format($p['precio'], 2, ",", ".") ?></nobr>
+                    <nobr>$ <?= number_format($p['precio'], 2, ",", ".") ?></nobr><br>
+                    <?php if (!empty($p['link_mercadolibre'])): ?>
+                      <a href="<?= htmlspecialchars($p['link_mercadolibre']) ?>" target="_blank" class="badge bg-warning text-dark text-decoration-none">
+                        MercadoLibre
+                      </a>
+                    <?php endif; ?>
                   </small>
                 </td>
                 <td>
@@ -683,12 +692,12 @@ include 'includes/header_nav.php';
                       <b><?= htmlspecialchars($p['inquilino_nombre']) ?></b>
                     </a>
                     <small class="d-block">
-                      <?php if($p['fecha_ultimo_pago']): ?>
+                      <?php if ($p['fecha_ultimo_pago']): ?>
                         <?php
-                          $ultimo_pago = date('m/Y', strtotime($p['fecha_ultimo_pago']));
-                          $periodo_actual = date('m/Y');
-                          $badge_class = ($ultimo_pago === $periodo_actual) ? 'bg-success' : 'bg-warning text-dark';
-                          $tipo_pago = $p['tipo_ultimo_pago'] ?? '';
+                        $ultimo_pago = date('m/Y', strtotime($p['fecha_ultimo_pago']));
+                        $periodo_actual = date('m/Y');
+                        $badge_class = ($ultimo_pago === $periodo_actual) ? 'bg-success' : 'bg-warning text-dark';
+                        $tipo_pago = $p['tipo_ultimo_pago'] ?? '';
                         ?>
                         <span class="badge <?= $badge_class ?>"><?= $ultimo_pago ?><?= $tipo_pago ? ' ' . htmlspecialchars($tipo_pago) : '' ?></span>
                       <?php else: ?>
@@ -746,44 +755,44 @@ include 'includes/header_nav.php';
   collapseEl.addEventListener('hide.bs.collapse', () => toggleBtn.textContent = 'Agregar Nueva Propiedad');
 
   <?php if (!empty($edit_data['imagenes_arr'])): ?>
-  // Galería de imágenes en modal
-  const galleryImages = <?= json_encode($edit_data['imagenes_arr']) ?>;
-  let currentGalleryIdx = 0;
+    // Galería de imágenes en modal
+    const galleryImages = <?= json_encode($edit_data['imagenes_arr']) ?>;
+    let currentGalleryIdx = 0;
 
-  function openGalleryModal(idx) {
-    currentGalleryIdx = idx;
-    const modal = document.getElementById('galleryModal');
-    const modalImg = document.getElementById('galleryModalImg');
-    modalImg.src = 'uploads/' + galleryImages[currentGalleryIdx];
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-  }
+    function openGalleryModal(idx) {
+      currentGalleryIdx = idx;
+      const modal = document.getElementById('galleryModal');
+      const modalImg = document.getElementById('galleryModalImg');
+      modalImg.src = 'uploads/' + galleryImages[currentGalleryIdx];
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
 
-  function closeGalleryModal() {
-    document.getElementById('galleryModal').style.display = 'none';
-    document.body.style.overflow = '';
-  }
+    function closeGalleryModal() {
+      document.getElementById('galleryModal').style.display = 'none';
+      document.body.style.overflow = '';
+    }
 
-  function galleryPrev(e) {
-    e.stopPropagation();
-    currentGalleryIdx = (currentGalleryIdx - 1 + galleryImages.length) % galleryImages.length;
-    document.getElementById('galleryModalImg').src = 'uploads/' + galleryImages[currentGalleryIdx];
-  }
+    function galleryPrev(e) {
+      e.stopPropagation();
+      currentGalleryIdx = (currentGalleryIdx - 1 + galleryImages.length) % galleryImages.length;
+      document.getElementById('galleryModalImg').src = 'uploads/' + galleryImages[currentGalleryIdx];
+    }
 
-  function galleryNext(e) {
-    e.stopPropagation();
-    currentGalleryIdx = (currentGalleryIdx + 1) % galleryImages.length;
-    document.getElementById('galleryModalImg').src = 'uploads/' + galleryImages[currentGalleryIdx];
-  }
+    function galleryNext(e) {
+      e.stopPropagation();
+      currentGalleryIdx = (currentGalleryIdx + 1) % galleryImages.length;
+      document.getElementById('galleryModalImg').src = 'uploads/' + galleryImages[currentGalleryIdx];
+    }
 
-  // Cerrar modal al hacer click fuera de la imagen
-  document.getElementById('galleryModal').addEventListener('click', function(e) {
-    if (e.target === this) closeGalleryModal();
-  });
-  // Cerrar con ESC
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeGalleryModal();
-  });
+    // Cerrar modal al hacer click fuera de la imagen
+    document.getElementById('galleryModal').addEventListener('click', function(e) {
+      if (e.target === this) closeGalleryModal();
+    });
+    // Cerrar con ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeGalleryModal();
+    });
   <?php endif; ?>
 </script>
 
