@@ -111,6 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (!$nombre) $errors[] = "El nombre es obligatorio.";
   if (!$tipo) $errors[] = "El tipo es obligatorio.";
   if (!$direccion) $errors[] = "La dirección es obligatoria.";
+  if (!$propietario_id) $errors[] = "El propietario es obligatorio.";
   if (!$estado || !in_array($estado, ['libre', 'alquilado', 'uso propio', 'en venta'])) $estado = 'libre';
 
   if (empty($errors)) {
@@ -175,14 +176,15 @@ $filtro_propietario = intval($_GET['filtro_propietario'] ?? 0);
 $filtro_estado = clean_input($_GET['filtro_estado'] ?? '');
 $filtro_contrato = clean_input($_GET['filtro_contrato'] ?? '');
 $params = [];
-$sql = "SELECT p.*, c.id AS contrato_id, i.nombre AS inquilino_nombre, i.id AS inquilino_id, 
+$sql = "SELECT p.*, c.id AS contrato_id, i.nombre AS inquilino_nombre, i.id AS inquilino_id, pr.nombre AS propietario,
         (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') AS fecha_ultimo_pago,
         (SELECT tipo_pago FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual' AND periodo = (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') LIMIT 1) AS tipo_ultimo_pago
         FROM propiedades p 
         LEFT JOIN contratos c ON c.propiedad_id = p.id 
           AND c.estado = 'activo' 
           AND CURDATE() BETWEEN c.fecha_inicio AND c.fecha_fin 
-        LEFT JOIN inquilinos i ON c.inquilino_id = i.id";
+        LEFT JOIN inquilinos i ON c.inquilino_id = i.id
+        LEFT JOIN propietarios pr ON p.propietario_id = pr.id";
 
 $where_conditions = [];
 if ($busqueda) {
@@ -660,7 +662,7 @@ include 'includes/header_nav.php';
     <div class="card-body">
       <form method="GET" role="search" aria-label="Buscar propiedades">
         <div class="row g-3" style="max-width:1200px;">
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label for="search" class="form-label">Buscar</label>
             <input
               type="search"
@@ -670,7 +672,7 @@ include 'includes/header_nav.php';
               value="<?= htmlspecialchars($busqueda) ?>"
               aria-label="Buscar propiedades" autocomplete="off" />
           </div>
-          <div class="col-md-3">
+          <div class="col-md-2 col-6">
             <label for="filtro_propietario" class="form-label">Propietario</label>
             <select name="filtro_propietario" class="form-select" aria-label="Filtrar por propietario">
               <option value="0">Todos</option>
@@ -683,7 +685,7 @@ include 'includes/header_nav.php';
               <?php endforeach; ?>
             </select>
           </div>
-          <div class="col-md-2">
+          <div class="col-md-2 col-6">
             <label for="filtro_tipo" class="form-label">Tipo de propiedad</label>
             <select name="filtro_tipo" class="form-select" aria-label="Filtrar por tipo">
               <option value="">Todos</option>
@@ -694,7 +696,7 @@ include 'includes/header_nav.php';
               <?php endforeach; ?>
             </select>
           </div>
-          <div class="col-md-2">
+          <div class="col-md-2 col-6">
             <label for="filtro_estado" class="form-label">Estado</label>
             <select name="filtro_estado" class="form-select" aria-label="Filtrar por estado">
               <option value="">Todos</option>
@@ -704,7 +706,7 @@ include 'includes/header_nav.php';
               <option value="en venta" <?= $filtro_estado === 'en venta' ? 'selected' : '' ?>>En Venta</option>
             </select>
           </div>
-          <div class="col-md-2">
+          <div class="col-md-2 col-6">
             <label for="filtro_contrato" class="form-label">Contrato</label>
             <select name="filtro_contrato" class="form-select" aria-label="Filtrar por contrato">
               <option value="">Todos</option>
@@ -769,6 +771,7 @@ include 'includes/header_nav.php';
                   <?= htmlspecialchars($p['direccion']) ?><br>
                   <?= estado_label($p['estado']) ?> <small>
                     <nobr>$ <?= number_format($p['precio'], 2, ",", ".") ?></nobr><br>
+                    <?= htmlspecialchars($p['propietario']) ?><br>
                     <?php if (!empty($p['link_mercadolibre'])): ?>
                       <a href="<?= htmlspecialchars($p['link_mercadolibre']) ?>" target="_blank" class="badge bg-warning text-dark text-decoration-none">
                         MercadoLibre
@@ -789,7 +792,7 @@ include 'includes/header_nav.php';
                         $badge_class = ($ultimo_pago === $periodo_actual) ? 'bg-success' : 'bg-warning text-dark';
                         $tipo_pago = $p['tipo_ultimo_pago'] ?? '';
                         ?>
-                        <span class="badge <?= $badge_class ?>"><?= $ultimo_pago ?><?= $tipo_pago ? ' ' . htmlspecialchars($tipo_pago) : '' ?></span>
+                        <span class="badge <?= $badge_class ?>" style="max-width: 130px; overflow: hidden; text-overflow: ellipsis;"><?= $ultimo_pago ?><?= $tipo_pago ? ' ' . htmlspecialchars($tipo_pago) : '' ?></span>
                       <?php else: ?>
                         <span class="badge bg-danger">Sin pago</span>
                       <?php endif; ?>
@@ -803,7 +806,7 @@ include 'includes/header_nav.php';
                       </a>
                     </div>
                   <?php else: ?>
-                    <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-success btn-sm" style="white-space: nowrap;">Crear contrato</a>
+                    <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-outline-success btn-sm" style="white-space: nowrap;">Crear contrato</a>
                   <?php endif; ?>
                 </td>
                 <!--<td>

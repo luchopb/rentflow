@@ -402,17 +402,17 @@ include 'includes/header_nav.php';
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-2 col-6">
                     <label for="fecha_desde" class="form-label">Fecha Desde</label>
                     <input type="date" class="form-control" id="fecha_desde" name="fecha_desde"
                         value="<?= htmlspecialchars($filtro_fecha_desde) ?>">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-2 col-6">
                     <label for="fecha_hasta" class="form-label">Fecha Hasta</label>
                     <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta"
                         value="<?= htmlspecialchars($filtro_fecha_hasta) ?>">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-2 col-6">
                     <label for="periodo" class="form-label">Período</label>
                     <select class="form-select" id="periodo" name="periodo">
                         <option value="">Todos</option>
@@ -423,7 +423,7 @@ include 'includes/header_nav.php';
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 col-6">
                     <label for="concepto" class="form-label">Concepto</label>
                     <select class="form-select" id="concepto" name="concepto">
                         <option value="">Todos</option>
@@ -434,7 +434,7 @@ include 'includes/header_nav.php';
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 col-6">
                     <label for="tipo_pago" class="form-label">Tipo de Pago</label>
                     <select class="form-select" id="tipo_pago" name="tipo_pago">
                         <option value="">Todos</option>
