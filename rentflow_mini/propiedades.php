@@ -13,6 +13,7 @@ $filtro_tipo = clean_input($_GET['filtro_tipo'] ?? '');
 $filtro_propietario = intval($_GET['filtro_propietario'] ?? 0);
 $filtro_estado = clean_input($_GET['filtro_estado'] ?? '');
 $filtro_contrato = clean_input($_GET['filtro_contrato'] ?? '');
+$filtro_ultimo_pago = clean_input($_GET['filtro_ultimo_pago'] ?? '');
 
 // Verificar si se debe mostrar el formulario de nueva propiedad
 $show_form = isset($_GET['add']) && $_GET['add'] === 'true';
@@ -126,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $propiedad_id = $edit_id;
       $message = "Propiedad actualizada correctamente.";
     } else {
-      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,documentos,galeria,local,precio,incluye_gc,gastos_comunes,estado,anep,contribucion_inmobiliaria,comentarios,link_mercadolibre,link_otras,ose,ute,padron,imm_tasa_general,imm_tarifa_saneamiento,imm_instalaciones,imm_adicional_mercantil,convenios,propietario_id,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,documentos,galeria,local,precio,incluye_gc,gastos_comunes,estado,anep,contribucion_inmobiliaria,comentarios,link_mercadolibre,link_otras,ose,ute,padron,imm_tasa_general,imm_tarifa_saneamiento,imm_instalaciones,imm_adicional_mercantil,convenios,propietario_id,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
       $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $anep, $contribucion_inmobiliaria, $comentarios, $link_mercadolibre, $link_otras, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_saneamiento, $imm_instalaciones, $imm_adicional_mercantil, $convenios, $propietario_id, $usuario_id, $fecha_hora]);
       $propiedad_id = $pdo->lastInsertId();
       $message = "Propiedad creada correctamente.";
@@ -175,6 +176,7 @@ $filtro_tipo = clean_input($_GET['filtro_tipo'] ?? '');
 $filtro_propietario = intval($_GET['filtro_propietario'] ?? 0);
 $filtro_estado = clean_input($_GET['filtro_estado'] ?? '');
 $filtro_contrato = clean_input($_GET['filtro_contrato'] ?? '');
+$filtro_ultimo_pago = clean_input($_GET['filtro_ultimo_pago'] ?? '');
 $params = [];
 $sql = "SELECT p.*, c.id AS contrato_id, i.nombre AS inquilino_nombre, i.id AS inquilino_id, pr.nombre AS propietario,
         (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') AS fecha_ultimo_pago,
@@ -209,6 +211,16 @@ if ($filtro_contrato === 'vigente') {
 }
 if ($filtro_contrato === 'sin') {
   $where_conditions[] = "c.id IS NULL";
+}
+if ($filtro_ultimo_pago === 'con') {
+  $mes_actual = date('Y-m');
+  $where_conditions[] = "(SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') = ?";
+  $params[] = $mes_actual;
+}
+if ($filtro_ultimo_pago === 'sin') {
+  $mes_actual = date('Y-m');
+  $where_conditions[] = "c.id IS NOT NULL AND ((SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') IS NULL OR (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') <> ?)";
+  $params[] = $mes_actual;
 }
 if (!empty($where_conditions)) {
   $sql .= " WHERE " . implode(' AND ', $where_conditions);
@@ -259,6 +271,14 @@ if ($filtro_contrato === 'vigente') {
 }
 if ($filtro_contrato === 'sin') {
   $where_conditions_count[] = "c.id IS NULL";
+}
+if ($filtro_ultimo_pago === 'con') {
+  $where_conditions_count[] = "(SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') = ?";
+  $params_count[] = date('Y-m');
+}
+if ($filtro_ultimo_pago === 'sin') {
+  $where_conditions_count[] = "c.id IS NOT NULL AND ((SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') IS NULL OR (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') <> ?)";
+  $params_count[] = date('Y-m');
 }
 
 if (!empty($where_conditions_count)) {
@@ -317,6 +337,14 @@ foreach ($tipos as $tipo) {
   }
   if ($filtro_contrato === 'sin') {
     $where_conditions_count[] = "c.id IS NULL";
+  }
+  if ($filtro_ultimo_pago === 'con') {
+    $where_conditions_count[] = "(SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') = ?";
+    $params_count[] = date('Y-m');
+  }
+  if ($filtro_ultimo_pago === 'sin') {
+    $where_conditions_count[] = "c.id IS NOT NULL AND ((SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') IS NULL OR (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') <> ?)";
+    $params_count[] = date('Y-m');
   }
 
   if (!empty($where_conditions_count)) {
@@ -672,7 +700,7 @@ include 'includes/header_nav.php';
               value="<?= htmlspecialchars($busqueda) ?>"
               aria-label="Buscar propiedades" autocomplete="off" />
           </div>
-          <div class="col-md-2 col-6">
+          <div class="col-md-4 col-6">
             <label for="filtro_propietario" class="form-label">Propietario</label>
             <select name="filtro_propietario" class="form-select" aria-label="Filtrar por propietario">
               <option value="0">Todos</option>
@@ -685,7 +713,7 @@ include 'includes/header_nav.php';
               <?php endforeach; ?>
             </select>
           </div>
-          <div class="col-md-2 col-6">
+          <div class="col-md-4 col-6">
             <label for="filtro_tipo" class="form-label">Tipo de propiedad</label>
             <select name="filtro_tipo" class="form-select" aria-label="Filtrar por tipo">
               <option value="">Todos</option>
@@ -696,7 +724,7 @@ include 'includes/header_nav.php';
               <?php endforeach; ?>
             </select>
           </div>
-          <div class="col-md-2 col-6">
+          <div class="col-md-4 col-6">
             <label for="filtro_estado" class="form-label">Estado</label>
             <select name="filtro_estado" class="form-select" aria-label="Filtrar por estado">
               <option value="">Todos</option>
@@ -706,7 +734,7 @@ include 'includes/header_nav.php';
               <option value="en venta" <?= $filtro_estado === 'en venta' ? 'selected' : '' ?>>En Venta</option>
             </select>
           </div>
-          <div class="col-md-2 col-6">
+          <div class="col-md-4 col-6">
             <label for="filtro_contrato" class="form-label">Contrato</label>
             <select name="filtro_contrato" class="form-select" aria-label="Filtrar por contrato">
               <option value="">Todos</option>
@@ -714,9 +742,17 @@ include 'includes/header_nav.php';
               <option value="sin" <?= $filtro_contrato === 'sin' ? 'selected' : '' ?>>Sin contrato</option>
             </select>
           </div>
+          <div class="col-md-4 col-6">
+            <label for="filtro_ultimo_pago" class="form-label">Último Pago</label>
+            <select name="filtro_ultimo_pago" class="form-select" aria-label="Filtrar por último pago">
+              <option value="">Todos</option>
+              <option value="con" <?= $filtro_ultimo_pago === 'con' ? 'selected' : '' ?>>Con pago este mes</option>
+              <option value="sin" <?= $filtro_ultimo_pago === 'sin' ? 'selected' : '' ?>>Sin pago este mes</option>
+            </select>
+          </div>
           <div class="col-12">
             <button class="btn btn-primary" type="submit" aria-label="Buscar">Aplicar Filtros</button>
-            <?php if ($busqueda || $filtro_tipo || $filtro_propietario || $filtro_estado || $filtro_contrato): ?>
+            <?php if ($busqueda || $filtro_tipo || $filtro_propietario || $filtro_estado || $filtro_contrato || $filtro_ultimo_pago): ?>
               <a href="propiedades.php" class="btn btn-outline-secondary" aria-label="Limpiar búsqueda">Borrar filtros</a>
             <?php endif; ?>
           </div>
