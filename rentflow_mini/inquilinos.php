@@ -243,6 +243,81 @@ include 'includes/header_nav.php';
       <?php endif; ?>
     </section>
   <?php endif; ?>
+
+  <?php if ($edit_id): ?>
+    <!-- Historial de Contratos -->
+    <div class="card mt-4">
+      <div class="card-header">
+        <h5 class="mb-0">Historial de Contratos</h5>
+      </div>
+      <div class="card-body">
+        <?php
+        // Consulta para obtener el historial de contratos de este inquilino
+        $stmt_contratos = $pdo->prepare("
+          SELECT 
+            c.id AS contrato_id,
+            c.fecha_inicio,
+            c.fecha_fin,
+            c.importe,
+            c.estado,
+            c.fecha_creacion,
+            p.nombre AS propiedad_nombre,
+            p.id AS propiedad_id,
+            p.direccion AS propiedad_direccion
+          FROM contratos c
+          LEFT JOIN propiedades p ON c.propiedad_id = p.id
+          WHERE c.inquilino_id = ?
+          ORDER BY c.fecha_inicio DESC
+        ");
+        $stmt_contratos->execute([$edit_id]);
+        $contratos_historial = $stmt_contratos->fetchAll(PDO::FETCH_ASSOC);
+        ?>
+
+        <?php if (empty($contratos_historial)): ?>
+          <p class="text-muted">No hay contratos registrados para este inquilino.</p>
+        <?php else: ?>
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <tbody>
+                <?php foreach ($contratos_historial as $contrato): ?>
+                  <tr>
+                    <td>
+                      <?php if ($contrato['propiedad_nombre']): ?>
+                        <a href="propiedades.php?edit=<?= $contrato['propiedad_id'] ?>" class="text-decoration-none text-dark fw-bold">
+                          <?= htmlspecialchars($contrato['propiedad_nombre']) ?>
+                        </a>
+                      <?php else: ?>
+                        <span class="text-muted">Propiedad eliminada</span>
+                      <?php endif; ?>
+                    </td>
+                    <td>
+                      <small>
+                        <?= date('d/m/Y', strtotime($contrato['fecha_inicio'])) ?> a <?= date('d/m/Y', strtotime($contrato['fecha_fin'])) ?><br>
+                        <?php
+                        $estado_class = $contrato['estado'] === 'activo' ? 'bg-success' : 'bg-secondary';
+                        $estado_text = ucfirst($contrato['estado']);
+                        ?>
+                        <span class="badge <?= $estado_class ?>"><?= $estado_text ?></span>
+                        $<?= number_format($contrato['importe'], 2, ',', '.') ?>
+                      </small>
+                    </td>
+                    <td>
+                      <a href="contratos.php?edit=<?= $contrato['contrato_id'] ?>" class="btn btn-sm btn-outline-primary">
+                        Contrato
+                      </a>
+                      <a href="pagos.php?contrato_id=<?= $contrato['contrato_id'] ?>" class="btn btn-sm btn-outline-success">
+                        Pagos
+                      </a>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
+        <?php endif; ?>
+      </div>
+    </div>
+  <?php endif; ?>
 </main>
 
 <script>
