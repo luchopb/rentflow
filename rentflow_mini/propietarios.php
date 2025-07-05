@@ -19,26 +19,27 @@ if ($delete_id) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $nombre = clean_input($_POST['nombre'] ?? '');
+  $email = clean_input($_POST['email'] ?? '');
 
   if (!$nombre) $errors[] = "El nombre es obligatorio.";
 
   if (empty($errors)) {
     if (isset($_POST['edit_id']) && intval($_POST['edit_id']) > 0) {
       $edit_id = intval($_POST['edit_id']);
-      $stmt = $pdo->prepare("UPDATE propietarios SET nombre=? WHERE id=?");
-      $stmt->execute([$nombre, $edit_id]);
+      $stmt = $pdo->prepare("UPDATE propietarios SET nombre=?, email=? WHERE id=?");
+      $stmt->execute([$nombre, $email, $edit_id]);
       $message = "Propietario actualizado correctamente.";
       $propietario_id = $edit_id;
     } else {
-      $stmt = $pdo->prepare("INSERT INTO propietarios (nombre) VALUES (?)");
-      $stmt->execute([$nombre]);
+      $stmt = $pdo->prepare("INSERT INTO propietarios (nombre, email) VALUES (?, ?)");
+      $stmt->execute([$nombre, $email]);
       $message = "Propietario creado correctamente.";
       $propietario_id = $pdo->lastInsertId();
     }
     header("Location: propietarios.php?msg=" . urlencode($message) . "&propietario_id=" . $propietario_id);
     exit();
   } else {
-    $edit_data = [ 'nombre' => $nombre ];
+    $edit_data = ['nombre' => $nombre, 'email' => $email];
     $edit_id = intval($_POST['edit_id'] ?? 0);
   }
 } else if ($edit_id) {
@@ -90,6 +91,11 @@ include 'includes/header_nav.php';
           <label for="nombre" class="form-label">Nombre *</label>
           <input type="text" class="form-control" id="nombre" name="nombre" required value="<?= htmlspecialchars($edit_data['nombre'] ?? '') ?>" />
         </div>
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="text" class="form-control" id="email" name="email" placeholder="email1@ejemplo.com, email2@ejemplo.com" value="<?= htmlspecialchars($edit_data['email'] ?? '') ?>" />
+          <div class="form-text">Puede agregar múltiples emails separados por coma</div>
+        </div>
         <button type="submit" class="btn btn-primary fw-semibold"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
         <?php if ($edit_id): ?>
           <a href="propietarios.php" class="btn btn-outline-secondary ms-2">Cancelar</a>
@@ -110,17 +116,21 @@ include 'includes/header_nav.php';
               <tr>
                 <th>ID</th>
                 <th>Nombre</th>
-                <th>Acciones</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               <?php foreach ($propietarios as $p): ?>
                 <tr>
                   <td><?= htmlspecialchars($p['id']) ?></td>
-                  <td><?= htmlspecialchars($p['nombre']) ?></td>
                   <td>
-                    <a href="propietarios.php?edit=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
-                    <a href="propietarios.php?delete=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este propietario?')">Eliminar</a>
+                    <a href="propietarios.php?edit=<?= intval($p['id']) ?>" class="text-decoration-none text-dark"><b><?= htmlspecialchars($p['nombre']) ?></b><br>
+                      <small class="text-muted"><?= htmlspecialchars($p['email'] ?? '') ?></small></a>
+                  </td>
+                  <td>
+                    <?php if ($_SESSION['user_role'] === 'admin'): ?>
+                      <a href="propietarios.php?delete=<?= intval($p['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este propietario?')">Eliminar</a>
+                    <?php endif; ?>
                   </td>
                 </tr>
               <?php endforeach; ?>
@@ -134,4 +144,4 @@ include 'includes/header_nav.php';
 
 <?php
 include 'includes/footer.php';
-?> 
+?>

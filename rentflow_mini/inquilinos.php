@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $nombre = clean_input($_POST['nombre'] ?? '');
   $cedula = clean_input($_POST['cedula'] ?? '');
   $telefono = clean_input($_POST['telefono'] ?? '');
+  $email = clean_input($_POST['email'] ?? '');
   $vehiculo = clean_input($_POST['vehiculo'] ?? '');
   $matricula = clean_input($_POST['matricula'] ?? '');
   $documentos_subidos = [];
@@ -56,15 +57,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['edit_id']) && intval($_POST['edit_id']) > 0) {
       $edit_id = intval($_POST['edit_id']);
       $fecha_modificacion = date('Y-m-d H:i:s'); // Fecha y hora actual
-      $stmt = $pdo->prepare("UPDATE inquilinos SET nombre=?, cedula=?, telefono=?, vehiculo=?, matricula=?, documentos=?, fecha_modificacion=? WHERE id=?");
-      $stmt->execute([$nombre, $cedula, $telefono, $vehiculo, $matricula, $docs_json, $fecha_modificacion, $edit_id]);
+      $stmt = $pdo->prepare("UPDATE inquilinos SET nombre=?, cedula=?, telefono=?, email=?, vehiculo=?, matricula=?, documentos=?, fecha_modificacion=? WHERE id=?");
+      $stmt->execute([$nombre, $cedula, $telefono, $email, $vehiculo, $matricula, $docs_json, $fecha_modificacion, $edit_id]);
       $message = "Inquilino actualizado correctamente.";
       $inquilino_id = $edit_id; // Set inquilino_id to the edited ID
     } else {
       $usuario_id = $_SESSION['user_id'];
       $fecha_creacion = date('Y-m-d H:i:s');
-      $stmt = $pdo->prepare("INSERT INTO inquilinos (nombre, cedula, telefono, vehiculo, matricula, documentos, usuario_id, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-      $stmt->execute([$nombre, $cedula, $telefono, $vehiculo, $matricula, $docs_json, $usuario_id, $fecha_creacion]);
+      $stmt = $pdo->prepare("INSERT INTO inquilinos (nombre, cedula, telefono, email, vehiculo, matricula, documentos, usuario_id, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+      $stmt->execute([$nombre, $cedula, $telefono, $email, $vehiculo, $matricula, $docs_json, $usuario_id, $fecha_creacion]);
       $message = "Inquilino creado correctamente.";
       $inquilino_id = $pdo->lastInsertId(); // Obtener el ID del nuevo inquilino
     }
@@ -77,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'nombre' => $nombre,
       'cedula' => $cedula,
       'telefono' => $telefono,
+      'email' => $email,
       'vehiculo' => $vehiculo,
       'matricula' => $matricula,
       'documentos_arr' => array_merge($documentos_anteriores, $documentos_subidos)
@@ -148,6 +150,11 @@ include 'includes/header_nav.php';
         <div class="mb-3">
           <label for="telefono" class="form-label">Teléfono</label>
           <input type="text" class="form-control" id="telefono" name="telefono" value="<?= htmlspecialchars($edit_data['telefono'] ?? '') ?>" />
+        </div>
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="text" class="form-control" id="email" name="email" placeholder="email1@ejemplo.com, email2@ejemplo.com" value="<?= htmlspecialchars($edit_data['email'] ?? '') ?>" />
+          <div class="form-text">Puede agregar múltiples emails separados por coma</div>
         </div>
         <div class="mb-3">
           <label for="vehiculo" class="form-label">Vehículo</label>
@@ -228,6 +235,7 @@ include 'includes/header_nav.php';
                   </td>
                   <td>
                     <?= htmlspecialchars($i['telefono']) ?><br>
+                    <?= htmlspecialchars($i['email']) ?><br>
                     <?= htmlspecialchars($i['vehiculo']) ?>
                     <?= htmlspecialchars($i['matricula']) ?>
                   </td>

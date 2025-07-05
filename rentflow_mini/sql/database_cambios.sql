@@ -141,4 +141,10 @@ ALTER TABLE propiedades ADD COLUMN fecha_modificacion DATETIME NULL AFTER fecha_
 ALTER TABLE pagos ADD COLUMN usuario_id INT NULL AFTER contrato_id;
 ALTER TABLE pagos ADD COLUMN fecha_creacion DATETIME NULL AFTER fecha;
 
+-- Agregar campo email a la tabla inquilinos
+ALTER TABLE inquilinos ADD COLUMN email VARCHAR(500) NOT NULL AFTER telefono;
+
+-- Agregar campo email a la tabla propietarios
+ALTER TABLE propietarios ADD COLUMN email VARCHAR(500) NOT NULL AFTER nombre;
+
 
