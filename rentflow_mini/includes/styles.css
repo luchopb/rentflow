@@ -38,7 +38,7 @@ body {
     gap: 0.3rem;
     cursor: pointer;
     font-size: 1.2rem;
-    margin-left: 1.2rem;
+    /* margin-left: 1.2rem; */
     /* margin-bottom: 1rem; */
 }
 
@@ -79,7 +79,7 @@ body.tema-oscuro {
     --color-card: #23272b;
     --color-borde: #444950;
     --color-input: #23272b;
-    --color-acento: #ffd600;
+    --color-acento: #00ffdc;
     background: var(--color-fondo);
     color: var(--color-texto);
 }
@@ -118,6 +118,92 @@ body.tema-oscuro h1,
 body.tema-oscuro label, 
 body.tema-oscuro .accordion-button {
     color: var(--color-acento);
+}
+
+/* Mejoras para tema oscuro */
+body.tema-oscuro .btn-outline-primary, 
+body.tema-oscuro .btn-outline-secondary, 
+body.tema-oscuro .btn-outline-success, 
+body.tema-oscuro .btn-outline-danger, 
+body.tema-oscuro .btn-outline-warning, 
+body.tema-oscuro .btn-outline-info, 
+body.tema-oscuro .btn-outline-light, 
+body.tema-oscuro .btn-outline-dark {
+    color: var(--color-acento);
+    border-color: var(--color-acento);
+    background: transparent;
+}
+body.tema-oscuro .btn-outline-primary:hover, 
+body.tema-oscuro .btn-outline-secondary:hover, 
+body.tema-oscuro .btn-outline-success:hover, 
+body.tema-oscuro .btn-outline-danger:hover, 
+body.tema-oscuro .btn-outline-warning:hover, 
+body.tema-oscuro .btn-outline-info:hover, 
+body.tema-oscuro .btn-outline-light:hover, 
+body.tema-oscuro .btn-outline-dark:hover {
+    background: var(--color-acento);
+    color: #181a1b;
+    border-color: var(--color-acento);
+}
+
+/* Tablas en tema oscuro */
+body.tema-oscuro table, 
+body.tema-oscuro .table, 
+body.tema-oscuro .table-responsive, 
+body.tema-oscuro th, 
+body.tema-oscuro td {
+    background: var(--color-card) !important;
+    color: var(--color-texto) !important;
+    border-color: var(--color-borde) !important;
+}
+
+/* Títulos de cards */
+body.tema-oscuro .card-title, 
+body.tema-oscuro .card-header, 
+body.tema-oscuro .card h5, 
+body.tema-oscuro .card h4, 
+body.tema-oscuro .card h3 {
+    color: var(--color-acento) !important;
+}
+
+/* Fondo y texto de acordeones */
+body.tema-oscuro .accordion-item, 
+body.tema-oscuro .accordion-header, 
+body.tema-oscuro .accordion-body, 
+body.tema-oscuro .accordion-button {
+    background: var(--color-card) !important;
+    color: var(--color-acento) !important;
+    border-color: var(--color-borde) !important;
+}
+body.tema-oscuro .accordion-button:not(.collapsed) {
+    background: var(--color-primario-hover) !important;
+    color: var(--color-acento) !important;
+}
+
+/* Inputs y selects en oscuro */
+body.tema-oscuro input, 
+body.tema-oscuro textarea, 
+body.tema-oscuro select {
+    background: var(--color-input) !important;
+    color: var(--color-texto) !important;
+    border-color: var(--color-borde) !important;
+}
+
+/* Badges en oscuro */
+body.tema-oscuro .badge {
+    background: var(--color-primario-hover) !important;
+    color: var(--color-acento) !important;
+}
+
+/* Bordes de cards y tablas */
+body.tema-oscuro .card, 
+body.tema-oscuro .table {
+    border-color: var(--color-borde) !important;
+}
+
+/* Forzar texto claro para .text-dark en tema oscuro */
+body.tema-oscuro .text-dark {
+    color: #fff !important;
 }
 
 /* Estilos generales siguiendo inspiración minimal y elegante */
