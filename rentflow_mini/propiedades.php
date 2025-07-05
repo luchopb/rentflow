@@ -567,7 +567,7 @@ include 'includes/header_nav.php';
           <div class="accordion accordion-flush mb-4" id="additionalDataAccordion">
             <div class="accordion-item">
               <h2 class="accordion-header">
-                <button class="btn btn-primary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#additionalDataContent">
+                <button class="btn btn-secondary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#additionalDataContent">
                   Ver más datos <i class="bi bi-plus"></i>
                 </button>
               </h2>

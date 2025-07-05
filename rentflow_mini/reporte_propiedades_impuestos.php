@@ -32,24 +32,40 @@ ORDER BY p.id DESC
 $stmt = $pdo->query($sql);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-function bg($n) {
+function bg($n)
+{
   $colors = ['#e3f2fd', '#e8f5e9', '#fff3e0', '#f3e5f5'];
   return $colors[$n % count($colors)];
 }
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <title><?= htmlspecialchars($page_title) ?></title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
-    .bg-prop { background-color:rgb(181, 224, 255) !important; }
-    .bg-impuestos { background-color:rgb(255, 229, 186) !important; }
-    th, td { vertical-align: middle !important; font-size: 12px; }
-    .nowrap { white-space: nowrap; }
+    .bg-prop {
+      background-color: rgb(181, 224, 255) !important;
+    }
+
+    .bg-impuestos {
+      background-color: rgb(255, 229, 186) !important;
+    }
+
+    th,
+    td {
+      vertical-align: middle !important;
+      font-size: 12px;
+    }
+
+    .nowrap {
+      white-space: nowrap;
+    }
   </style>
 </head>
+
 <body class="container-fluid px-4 py-4">
   <h1 class="mb-4">Reporte de Propiedades - Impuestos</h1>
   <a href="#" class="btn btn-success mb-3" onclick="exportTableToExcel('tabla_reporte', 'reporte_propiedades_impuestos')">Exportar a Excel</a>
@@ -78,25 +94,25 @@ function bg($n) {
       </thead>
       <tbody>
         <?php foreach ($rows as $r): ?>
-        <tr>
-          <td class="bg-prop nowrap"><?= $r['propiedad_id'] ?></td>
-          <td class="bg-prop"><?= htmlspecialchars($r['propiedad_nombre'] ?? '') ?></td>
-          <td class="bg-prop"><?= htmlspecialchars($r['tipo'] ?? '') ?></td>
-          <td class="bg-prop"><?= htmlspecialchars($r['direccion'] ?? '') ?></td>
-          <td class="bg-prop"><?= htmlspecialchars($r['galeria'] ?? '') ?></td>
-          <td class="bg-prop"><?= htmlspecialchars($r['local'] ?? '') ?></td>
-          <td class="bg-prop"><?= htmlspecialchars($r['estado'] ?? '') ?></td>
-          <td class="bg-impuestos"><?= htmlspecialchars($r['ose'] ?? '') ?></td>
-          <td class="bg-impuestos"><?= htmlspecialchars($r['ute'] ?? '') ?></td>
-          <td class="bg-impuestos"><?= htmlspecialchars($r['padron'] ?? '') ?></td>
-          <td class="bg-impuestos"><?= htmlspecialchars($r['imm_tasa_general'] ?? '') ?></td>
-          <td class="bg-impuestos"><?= htmlspecialchars($r['imm_tarifa_saneamiento'] ?? '') ?></td>
-          <td class="bg-impuestos"><?= htmlspecialchars($r['imm_instalaciones'] ?? '') ?></td>
-          <td class="bg-impuestos"><?= htmlspecialchars($r['imm_adicional_mercantil'] ?? '') ?></td>
-          <td class="bg-impuestos"><?= htmlspecialchars($r['contribucion_inmobiliaria'] ?? '') ?></td>
-          <td class="bg-impuestos"><?= htmlspecialchars($r['anep'] ?? '') ?></td>
-          <td class="bg-impuestos"><?= htmlspecialchars($r['convenios'] ?? '') ?></td>
-        </tr>
+          <tr>
+            <td class="bg-prop nowrap"><?= $r['propiedad_id'] ?></td>
+            <td class="bg-prop"><a href="propiedades.php?edit=<?= $r['propiedad_id'] ?>"><?= htmlspecialchars($r['propiedad_nombre'] ?? '') ?></a></td>
+            <td class="bg-prop"><?= htmlspecialchars($r['tipo'] ?? '') ?></td>
+            <td class="bg-prop"><?= htmlspecialchars($r['direccion'] ?? '') ?></td>
+            <td class="bg-prop"><?= htmlspecialchars($r['galeria'] ?? '') ?></td>
+            <td class="bg-prop"><?= htmlspecialchars($r['local'] ?? '') ?></td>
+            <td class="bg-prop"><?= htmlspecialchars($r['estado'] ?? '') ?></td>
+            <td class="bg-impuestos"><?= htmlspecialchars($r['ose'] ?? '') ?></td>
+            <td class="bg-impuestos"><?= htmlspecialchars($r['ute'] ?? '') ?></td>
+            <td class="bg-impuestos"><?= htmlspecialchars($r['padron'] ?? '') ?></td>
+            <td class="bg-impuestos"><?= htmlspecialchars($r['imm_tasa_general'] ?? '') ?></td>
+            <td class="bg-impuestos"><?= htmlspecialchars($r['imm_tarifa_saneamiento'] ?? '') ?></td>
+            <td class="bg-impuestos"><?= htmlspecialchars($r['imm_instalaciones'] ?? '') ?></td>
+            <td class="bg-impuestos"><?= htmlspecialchars($r['imm_adicional_mercantil'] ?? '') ?></td>
+            <td class="bg-impuestos"><?= htmlspecialchars($r['contribucion_inmobiliaria'] ?? '') ?></td>
+            <td class="bg-impuestos"><?= htmlspecialchars($r['anep'] ?? '') ?></td>
+            <td class="bg-impuestos"><?= htmlspecialchars($r['convenios'] ?? '') ?></td>
+          </tr>
         <?php endforeach; ?>
       </tbody>
     </table>
@@ -108,7 +124,9 @@ function bg($n) {
       var tableHTML = tableSelect.outerHTML;
       filename = filename ? filename + '.xls' : 'excel_data.xls';
       var utf8BOM = '\uFEFF';
-      var blob = new Blob([utf8BOM + tableHTML], { type: dataType });
+      var blob = new Blob([utf8BOM + tableHTML], {
+        type: dataType
+      });
       var downloadLink = document.createElement('a');
       downloadLink.href = URL.createObjectURL(blob);
       downloadLink.download = filename;
@@ -118,4 +136,5 @@ function bg($n) {
     }
   </script>
 </body>
-</html> 
+
+</html>
