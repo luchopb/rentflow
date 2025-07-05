@@ -805,10 +805,10 @@ include 'includes/header_nav.php';
                   </td>
                   <td>
                     <b><a href="propiedades.php?edit=<?= intval($p['id']) ?>" class="text-decoration-none text-dark">
-                      <?= intval($p['id']) ?>. 
-                      <?= htmlspecialchars($p['nombre']) ?></b> (<?= htmlspecialchars($p['tipo']) ?>)</a><br>
-                      <?= htmlspecialchars($p['direccion']) ?><br>
-                      <?= estado_label($p['estado']) ?> <small>
+                        <?= intval($p['id']) ?>.
+                        <?= htmlspecialchars($p['nombre']) ?></b> (<?= htmlspecialchars($p['tipo']) ?>)</a><br>
+                    <?= htmlspecialchars($p['direccion']) ?><br>
+                    <?= estado_label($p['estado']) ?> <small>
                       <nobr>$ <?= number_format($p['precio'], 2, ",", ".") ?></nobr><br>
                       <?= htmlspecialchars($p['propietario']) ?><br>
                       <?php if (!empty($p['link_mercadolibre'])): ?>
@@ -859,6 +859,80 @@ include 'includes/header_nav.php';
         </div>
       <?php endif; ?>
     </section>
+  <?php endif; ?>
+
+  <?php if ($edit_id): ?>
+    <!-- Historial de Contratos -->
+    <div class="card mt-4">
+      <div class="card-header">
+        <h5 class="mb-0">Historial de Contratos</h5>
+      </div>
+      <div class="card-body">
+        <?php
+        // Consulta para obtener el historial de contratos de esta propiedad
+        $stmt_contratos = $pdo->prepare("
+          SELECT 
+            c.id AS contrato_id,
+            c.fecha_inicio,
+            c.fecha_fin,
+            c.importe,
+            c.estado,
+            c.fecha_creacion,
+            i.nombre AS inquilino_nombre,
+            i.id AS inquilino_id
+          FROM contratos c
+          LEFT JOIN inquilinos i ON c.inquilino_id = i.id
+          WHERE c.propiedad_id = ?
+          ORDER BY c.fecha_inicio DESC
+        ");
+        $stmt_contratos->execute([$edit_id]);
+        $contratos_historial = $stmt_contratos->fetchAll(PDO::FETCH_ASSOC);
+        ?>
+
+        <?php if (empty($contratos_historial)): ?>
+          <p class="text-muted">No hay contratos registrados para esta propiedad.</p>
+        <?php else: ?>
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <tbody>
+                <?php foreach ($contratos_historial as $contrato): ?>
+                  <tr>
+                    <td>
+                      <?php if ($contrato['inquilino_nombre']): ?>
+                        <a href="inquilinos.php?edit=<?= $contrato['inquilino_id'] ?>" class="text-decoration-none text-dark fw-bold">
+                          <?= htmlspecialchars($contrato['inquilino_nombre']) ?>
+                        </a>
+                      <?php else: ?>
+                        <span class="text-muted">Inquilino eliminado</span>
+                      <?php endif; ?>
+                    </td>
+                    <td>
+                      <small>
+                        <?= date('d/m/Y', strtotime($contrato['fecha_inicio'])) ?> a <?= date('d/m/Y', strtotime($contrato['fecha_fin'])) ?><br>
+                        <?php
+                        $estado_class = $contrato['estado'] === 'activo' ? 'bg-success' : 'bg-secondary';
+                        $estado_text = ucfirst($contrato['estado']);
+                        ?>
+                        <span class="badge <?= $estado_class ?>"><?= $estado_text ?></span>
+                        $<?= number_format($contrato['importe'], 2, ',', '.') ?>
+                      </small>
+                    </td>
+                    <td>
+                      <a href="contratos.php?edit=<?= $contrato['contrato_id'] ?>" class="btn btn-sm btn-outline-primary">
+                        Contrato
+                      </a>
+                      <a href="pagos.php?contrato_id=<?= $contrato['contrato_id'] ?>" class="btn btn-sm btn-outline-success">
+                        Pagos
+                      </a>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
+        <?php endif; ?>
+      </div>
+    </div>
   <?php endif; ?>
 
 </main>
