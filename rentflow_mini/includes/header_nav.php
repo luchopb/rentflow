@@ -47,7 +47,7 @@ $search = clean_input($_GET['search'] ?? '');
 <body>
   <!-- Sidebar para desktop -->
   <nav class="sidebar-nav d-none d-lg-flex flex-column">
-    <a href="dashboard.php" class="navbar-brand">Inmobiliaria</a>
+    <a href="dashboard.php" class="navbar-brand">milventas</a>
     <div class="sidebar-search mb-2">
       <form action="propiedades.php" method="GET" role="search" aria-label="Buscar propiedades">
         <div class="input-group">
@@ -66,6 +66,14 @@ $search = clean_input($_GET['search'] ?? '');
       <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'propietarios.php' ? 'active' : '' ?>" href="propietarios.php">Propietarios</a></li>
       <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'reporte_propiedades.php' ? 'active' : '' ?>" href="reporte_propiedades.php" target="_blank">Reporte Completo</a></li>
       <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'reporte_propiedades.php' ? 'active' : '' ?>" href="reporte_propiedades_impuestos.php" target="_blank">Reporte Impuestos</a></li>
+      <li>
+        <!-- Switch de tema (desktop) -->
+        <label class="switch-tema nav-link " id="switch-tema-desktop" title="Cambiar tema claro/oscuro">
+          <span class="icono-sol bi bi-sun-fill"></span>
+          <input type="checkbox" id="toggle-tema-desktop" style="display:none;" />
+          <span class="icono-luna bi bi-moon-stars-fill"></span>
+        </label>
+      </li>
       <li class="nav-item mt-2"><a class="nav-link" href="logout.php">Salir</a></li>
     </ul>
   </nav>
@@ -73,7 +81,6 @@ $search = clean_input($_GET['search'] ?? '');
   <!-- Topbar para mobile -->
   <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary d-lg-none">
     <div class="container container-main d-flex justify-content-between align-items-center py-2">
-
       <form action="propiedades.php" method="GET" class="" role="search" aria-label="Buscar propiedades">
         <div class="input-group">
           <input type="search" name="search" class="form-control" placeholder="Buscar..." value="<?= htmlspecialchars($search) ?>" aria-label="Buscar propiedades" autocomplete="off" />
@@ -91,11 +98,16 @@ $search = clean_input($_GET['search'] ?? '');
           <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'propietarios.php' ? 'active' : '' ?>" href="propietarios.php">Propietarios</a></li>
           <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'reporte_propiedades.php' ? 'active' : '' ?>" href="reporte_propiedades.php" target="_blank">Reporte Completo</a></li>
           <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'reporte_propiedades.php' ? 'active' : '' ?>" href="reporte_propiedades_impuestos.php" target="_blank">Reporte Impuestos</a></li>
+          <li>
+            <!-- Switch de tema (mobile) -->
+            <label class="switch-tema nav-link me-2" id="switch-tema-mobile" title="Cambiar tema claro/oscuro">
+              <span class="icono-sol bi bi-sun-fill"></span>
+              <input type="checkbox" id="toggle-tema-mobile" style="display:none;" />
+              <span class="icono-luna bi bi-moon-stars-fill"></span>
+            </label>
+          </li>
           <li class="nav-item"><a class="nav-link" href="logout.php">Salir</a></li>
         </ul>
       </div>
     </div>
   </nav>
-</body>
-
-</html>

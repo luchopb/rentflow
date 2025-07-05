@@ -1,3 +1,125 @@
+/* Variables de color para tema claro */
+:root {
+    --color-fondo: #ffffff;
+    --color-texto: #374151;
+    --color-primario: #0d6efd;
+    --color-primario-hover: #4691ff;
+    --color-navbar: #fff;
+    --color-sidebar: #0d6efd;
+    --color-card: #fff;
+    --color-borde: #c3c3c3;
+    --color-input: #f4f4f4;
+    --color-acento: #fff700;
+}
+
+body {
+    background: var(--color-fondo);
+    color: var(--color-texto);
+}
+
+.sidebar-nav, .navbar.bg-primary, .mobile-navbar, .sidebar-nav .navbar-brand {
+    background: var(--color-sidebar) !important;
+    color: #fff;
+}
+
+.card, .table-responsive {
+    background: var(--color-card);
+}
+
+.form-control, .form-select {
+    background: var(--color-input);
+    border: solid 1px var(--color-borde);
+}
+
+/* Switch para tema claro oscuro */
+.switch-tema {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    font-size: 1.2rem;
+    margin-left: 1.2rem;
+    /* margin-bottom: 1rem; */
+}
+
+.switch-tema input[type="checkbox"] {
+    display: none;
+}
+
+.switch-tema .icono-sol,
+.switch-tema .icono-luna {
+    font-size: 1.3rem;
+    transition: color 0.2s;
+}
+
+.switch-tema .icono-sol {
+    color: #00ffdc;
+}
+
+.switch-tema .icono-luna {
+    color: #5299ff;
+}
+
+body.tema-oscuro .switch-tema .icono-luna {
+    color: #00ffdc;
+}
+
+body.tema-oscuro .switch-tema .icono-sol {
+    color: #818181;
+}
+
+/* Tema oscuro */
+body.tema-oscuro {
+    --color-fondo: #181a1b;
+    --color-texto: #e0e0e0;
+    --color-primario: #222e3c;
+    --color-primario-hover: #2d3b4d;
+    --color-navbar: #23272b;
+    --color-sidebar: #23272b;
+    --color-card: #23272b;
+    --color-borde: #444950;
+    --color-input: #23272b;
+    --color-acento: #ffd600;
+    background: var(--color-fondo);
+    color: var(--color-texto);
+}
+
+body.tema-oscuro .sidebar-nav, 
+body.tema-oscuro .navbar.bg-primary, 
+body.tema-oscuro .mobile-navbar, 
+body.tema-oscuro .sidebar-nav .navbar-brand {
+    background: var(--color-sidebar) !important;
+    color: #fff;
+}
+
+body.tema-oscuro .card, 
+body.tema-oscuro .table-responsive {
+    background: var(--color-card);
+}
+
+body.tema-oscuro .form-control, 
+body.tema-oscuro .form-select {
+    background: var(--color-input);
+    border: solid 1px var(--color-borde);
+    color: var(--color-texto);
+}
+
+body.tema-oscuro .nav-link.active, 
+body.tema-oscuro .nav-link:hover {
+    background: var(--color-primario-hover);
+    color: var(--color-acento);
+}
+
+body.tema-oscuro .nav-link {
+    color: #e0e0e0;
+}
+
+body.tema-oscuro h1, 
+body.tema-oscuro label, 
+body.tema-oscuro .accordion-button {
+    color: var(--color-acento);
+}
+
 /* Estilos generales siguiendo inspiración minimal y elegante */
 body {
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -74,12 +196,6 @@ a.nav-link.active {
     display: inline-block;
     margin-right: 12px;
     margin-bottom: 10px;
-}
-
-.form-control, .form-select {
-    background: #f4f4f4;
-    font-weight: bold;
-    border: solid 1px #c3c3c3;
 }
 
 .rounded-circle {
