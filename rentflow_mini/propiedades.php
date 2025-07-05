@@ -127,7 +127,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $propiedad_id = $edit_id;
       $message = "Propiedad actualizada correctamente.";
     } else {
-      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,documentos,galeria,local,precio,incluye_gc,gastos_comunes,estado,anep,contribucion_inmobiliaria,comentarios,link_mercadolibre,link_otras,ose,ute,padron,imm_tasa_general,imm_tarifa_saneamiento,imm_instalaciones,imm_adicional_mercantil,convenios,propietario_id,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+      // Corregido: la cantidad de columnas y valores debe coincidir (26 columnas y 26 valores)
+      $stmt = $pdo->prepare("INSERT INTO propiedades (nombre,tipo,direccion,imagenes,documentos,galeria,local,precio,incluye_gc,gastos_comunes,estado,anep,contribucion_inmobiliaria,comentarios,link_mercadolibre,link_otras,ose,ute,padron,imm_tasa_general,imm_tarifa_saneamiento,imm_instalaciones,imm_adicional_mercantil,convenios,propietario_id,usuario_id,fecha_creacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
       $stmt->execute([$nombre, $tipo, $direccion, $imagenes_db, $documentos_db, $galeria, $local, $precio, $incluye_gc, $gastos_comunes, $estado, $anep, $contribucion_inmobiliaria, $comentarios, $link_mercadolibre, $link_otras, $ose, $ute, $padron, $imm_tasa_general, $imm_tarifa_saneamiento, $imm_instalaciones, $imm_adicional_mercantil, $convenios, $propietario_id, $usuario_id, $fecha_hora]);
       $propiedad_id = $pdo->lastInsertId();
       $message = "Propiedad creada correctamente.";
@@ -804,9 +805,10 @@ include 'includes/header_nav.php';
                   </td>
                   <td>
                     <b><a href="propiedades.php?edit=<?= intval($p['id']) ?>" class="text-decoration-none text-dark">
-                        <?= htmlspecialchars($p['nombre']) ?></b> (<?= htmlspecialchars($p['tipo']) ?>)</a><br>
-                    <?= htmlspecialchars($p['direccion']) ?><br>
-                    <?= estado_label($p['estado']) ?> <small>
+                      <?= intval($p['id']) ?>. 
+                      <?= htmlspecialchars($p['nombre']) ?></b> (<?= htmlspecialchars($p['tipo']) ?>)</a><br>
+                      <?= htmlspecialchars($p['direccion']) ?><br>
+                      <?= estado_label($p['estado']) ?> <small>
                       <nobr>$ <?= number_format($p['precio'], 2, ",", ".") ?></nobr><br>
                       <?= htmlspecialchars($p['propietario']) ?><br>
                       <?php if (!empty($p['link_mercadolibre'])): ?>

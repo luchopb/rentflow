@@ -64,7 +64,8 @@ $search = clean_input($_GET['search'] ?? '');
       <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'listado_pagos.php' ? 'active' : '' ?>" href="listado_pagos.php">Pagos</a></li>
       <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'gastos.php' ? 'active' : '' ?>" href="gastos.php">Gastos</a></li>
       <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'propietarios.php' ? 'active' : '' ?>" href="propietarios.php">Propietarios</a></li>
-      <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'reporte_propiedades.php' ? 'active' : '' ?>" href="reporte_propiedades.php">Reporte</a></li>
+      <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'reporte_propiedades.php' ? 'active' : '' ?>" href="reporte_propiedades.php" target="_blank">Reporte Completo</a></li>
+      <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'reporte_propiedades.php' ? 'active' : '' ?>" href="reporte_propiedades_impuestos.php" target="_blank">Reporte Impuestos</a></li>
       <li class="nav-item mt-2"><a class="nav-link" href="logout.php">Salir</a></li>
     </ul>
   </nav>
@@ -88,7 +89,8 @@ $search = clean_input($_GET['search'] ?? '');
         <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'dashboard.php' ? 'active' : '' ?>" href="dashboard.php">Dashboard</a></li>
           <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'propietarios.php' ? 'active' : '' ?>" href="propietarios.php">Propietarios</a></li>
-          <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'reporte_propiedades.php' ? 'active' : '' ?>" href="reporte_propiedades.php">Reporte</a></li>
+          <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'reporte_propiedades.php' ? 'active' : '' ?>" href="reporte_propiedades.php" target="_blank">Reporte Completo</a></li>
+          <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'reporte_propiedades.php' ? 'active' : '' ?>" href="reporte_propiedades_impuestos.php" target="_blank">Reporte Impuestos</a></li>
           <li class="nav-item"><a class="nav-link" href="logout.php">Salir</a></li>
         </ul>
       </div>
