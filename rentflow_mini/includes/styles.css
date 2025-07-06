@@ -1,3 +1,6 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
 /* Variables de color para tema claro */
 :root {
     --color-fondo: #ffffff;
@@ -76,9 +79,9 @@ body.tema-oscuro {
     --color-primario-hover: #2d3b4d;
     --color-navbar: #23272b;
     --color-sidebar: #23272b;
-    --color-card: #23272b;
-    --color-borde: #444950;
-    --color-input: #23272b;
+    --color-card: #1d2124;
+    --color-borde: #838383;
+    --color-input: #303438;
     --color-acento: #00ffdc;
     background: var(--color-fondo);
     color: var(--color-texto);
@@ -86,7 +89,7 @@ body.tema-oscuro {
 
 body.tema-oscuro .sidebar-nav, 
 body.tema-oscuro .navbar.bg-primary, 
-body.tema-oscuro .mobile-navbar, 
+body.tema-oscuro .mobile-navbar .bg-primary, 
 body.tema-oscuro .sidebar-nav .navbar-brand {
     background: var(--color-sidebar) !important;
     color: #fff;
@@ -158,11 +161,7 @@ body.tema-oscuro td {
 }
 
 /* Títulos de cards */
-body.tema-oscuro .card-title, 
-body.tema-oscuro .card-header, 
-body.tema-oscuro .card h5, 
-body.tema-oscuro .card h4, 
-body.tema-oscuro .card h3 {
+body.tema-oscuro .card-header {
     color: var(--color-acento) !important;
 }
 
@@ -202,13 +201,15 @@ body.tema-oscuro .table {
 }
 
 /* Forzar texto claro para .text-dark en tema oscuro */
-body.tema-oscuro .text-dark {
+body.tema-oscuro .text-dark,
+body.tema-oscuro .text-muted {
     color: #fff !important;
 }
 
 /* Estilos generales siguiendo inspiración minimal y elegante */
 body {
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-family: "Noto Sans", Roboto, "Segoe UI", system-ui, -apple-system, 
+        "Helvetica Neue", Arial, "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     background: #ffffff;
     color: #374151;
     padding-top: 5.5rem;
@@ -457,7 +458,7 @@ a.nav-link.active {
 
     .sidebar-nav .nav-link {
         color: #fff;
-        font-size: 1.1rem;
+        font-size: 0.9rem;
         padding: 0.7rem 1.5rem;
         /* border-radius: 0.3rem; */
         margin-bottom: 0.2rem;
