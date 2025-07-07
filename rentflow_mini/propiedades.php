@@ -233,7 +233,7 @@ $stmt->execute($params);
 $propiedades = $stmt->fetchAll();
 
 // Contador por tipo de propiedad (filtrado)
-$tipos = ['Local', 'Apartamento', 'Cochera', 'Depósito'];
+$tipos = ['Local', 'Apartamento', 'Cochera', 'Garage', 'Depósito', 'Casa'];
 $contador_tipos = [];
 
 // Contador total filtrado
@@ -408,7 +408,9 @@ include 'includes/header_nav.php';
                   'Local' => 'Local',
                   'Apartamento' => 'Apartamento',
                   'Cochera' => 'Cochera',
+                  'Garage' => 'Garage',
                   'Depósito' => 'Depósito',
+                  'Casa' => 'Casa'
                 ];
                 foreach ($tipos as $key => $val) {
                   $sel = ($edit_data['tipo'] ?? '') === $key ? "selected" : "";
