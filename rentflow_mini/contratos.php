@@ -38,6 +38,7 @@ $importe = '';
 $garantia = 0;
 $corredor = 0;
 $estado = 'activo';
+$comentarios = '';
 
 $documentos_subidos = [];
 $documentos_guardados = [];
@@ -59,9 +60,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $fecha_inicio = $_POST['fecha_inicio'] ?? '';
   $fecha_fin = $_POST['fecha_fin'] ?? '';
   $importe = floatval($_POST['importe'] ?? 0);
-  $garantia = floatval($_POST['garantia'] ?? 0);
-  $corredor = floatval($_POST['corredor'] ?? 0);
+  $garantia = $_POST['garantia'] ?? '';
+  $corredor = $_POST['corredor'] ?? '';
   $estado = $_POST['estado'] ?? 'activo';
+  $comentarios = $_POST['comentarios'] ?? '';
   $edit_id = intval($_POST['edit_id'] ?? 0);
 
   // Leer documentos previos si editando
@@ -117,8 +119,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (empty($errors)) {
     if ($edit_id > 0) {
       // Actualizar contrato con documentos
-      $stmt = $pdo->prepare("UPDATE contratos SET inquilino_id=?, propiedad_id=?, fecha_inicio=?, fecha_fin=?, importe=?, garantia=?, corredor=?, estado=?, documentos=? WHERE id=?");
-      $stmt->execute([$inquilino_id, $propiedad_id, $fecha_inicio, $fecha_fin, $importe, $garantia, $corredor, $estado, $docs_json, $edit_id]);
+      $stmt = $pdo->prepare("UPDATE contratos SET inquilino_id=?, propiedad_id=?, fecha_inicio=?, fecha_fin=?, importe=?, garantia=?, corredor=?, estado=?, documentos=?, comentarios=? WHERE id=?");
+      $stmt->execute([$inquilino_id, $propiedad_id, $fecha_inicio, $fecha_fin, $importe, $garantia, $corredor, $estado, $docs_json, $comentarios, $edit_id]);
 
       // Si el estado es finalizado, marcar la propiedad como libre
       if ($estado === 'finalizado') {
@@ -130,8 +132,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $contrato_id_envio = $edit_id;
     } else {
       // Insertar nuevo contrato con documentos
-      $stmt = $pdo->prepare("INSERT INTO contratos (inquilino_id, propiedad_id, fecha_inicio, fecha_fin, importe, garantia, corredor, estado, documentos) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-      $stmt->execute([$inquilino_id, $propiedad_id, $fecha_inicio, $fecha_fin, $importe, $garantia, $corredor, $estado, $docs_json]);
+      $stmt = $pdo->prepare("INSERT INTO contratos (inquilino_id, propiedad_id, fecha_inicio, fecha_fin, importe, garantia, corredor, estado, documentos, comentarios) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ");
+      $stmt->execute([$inquilino_id, $propiedad_id, $fecha_inicio, $fecha_fin, $importe, $garantia, $corredor, $estado, $docs_json, $comentarios]);
       $new_id = $pdo->lastInsertId();
 
       // Actualizar estado propiedad a "alquilado" solo si no está finalizado
@@ -176,13 +178,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'corredor' => $corredor,
       'estado' => $estado,
       'documentos' => $docs_json,
+      'comentarios' => $comentarios,
     ];
   }
 } elseif ($edit_id > 0) {
   $stmt = $pdo->prepare("SELECT * FROM contratos WHERE id = ?");
   $stmt->execute([$edit_id]);
   $edit_data = $stmt->fetch(PDO::FETCH_ASSOC);
-  if (!$edit_data) {
+  if ($edit_data) {
+    $edit_data['comentarios'] = $edit_data['comentarios'] ?? '';
+  } else {
     $edit_id = 0;
     $edit_data = null;
   }
@@ -330,6 +335,11 @@ include 'includes/header_nav.php';
             <option value="activo" <?= ($edit_data['estado'] ?? '') === 'activo' ? 'selected' : '' ?>>Activo</option>
             <option value="finalizado" <?= ($edit_data['estado'] ?? '') === 'finalizado' ? 'selected' : '' ?>>Finalizado</option>
           </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="comentarios" class="form-label">Comentarios</label>
+          <textarea class="form-control" id="comentarios" name="comentarios" rows="3"><?= htmlspecialchars($edit_data['comentarios'] ?? '') ?></textarea>
         </div>
 
         <div class="mb-3">

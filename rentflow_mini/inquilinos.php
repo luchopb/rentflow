@@ -24,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $email = clean_input($_POST['email'] ?? '');
   $vehiculo = clean_input($_POST['vehiculo'] ?? '');
   $matricula = clean_input($_POST['matricula'] ?? '');
+  $comentarios = clean_input($_POST['comentarios'] ?? '');
   $documentos_subidos = [];
 
   // Documentos anteriores
@@ -57,15 +58,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['edit_id']) && intval($_POST['edit_id']) > 0) {
       $edit_id = intval($_POST['edit_id']);
       $fecha_modificacion = date('Y-m-d H:i:s'); // Fecha y hora actual
-      $stmt = $pdo->prepare("UPDATE inquilinos SET nombre=?, cedula=?, telefono=?, email=?, vehiculo=?, matricula=?, documentos=?, fecha_modificacion=? WHERE id=?");
-      $stmt->execute([$nombre, $cedula, $telefono, $email, $vehiculo, $matricula, $docs_json, $fecha_modificacion, $edit_id]);
+      $stmt = $pdo->prepare("UPDATE inquilinos SET nombre=?, cedula=?, telefono=?, email=?, vehiculo=?, matricula=?, documentos=?, comentarios=?, fecha_modificacion=? WHERE id=?");
+      $stmt->execute([$nombre, $cedula, $telefono, $email, $vehiculo, $matricula, $docs_json, $comentarios, $fecha_modificacion, $edit_id]);
       $message = "Inquilino actualizado correctamente.";
       $inquilino_id = $edit_id; // Set inquilino_id to the edited ID
     } else {
       $usuario_id = $_SESSION['user_id'];
       $fecha_creacion = date('Y-m-d H:i:s');
-      $stmt = $pdo->prepare("INSERT INTO inquilinos (nombre, cedula, telefono, email, vehiculo, matricula, documentos, usuario_id, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-      $stmt->execute([$nombre, $cedula, $telefono, $email, $vehiculo, $matricula, $docs_json, $usuario_id, $fecha_creacion]);
+      $stmt = $pdo->prepare("INSERT INTO inquilinos (nombre, cedula, telefono, email, vehiculo, matricula, documentos, comentarios, usuario_id, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+      $stmt->execute([$nombre, $cedula, $telefono, $email, $vehiculo, $matricula, $docs_json, $comentarios, $usuario_id, $fecha_creacion]);
       $message = "Inquilino creado correctamente.";
       $inquilino_id = $pdo->lastInsertId(); // Obtener el ID del nuevo inquilino
     }
@@ -81,6 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'email' => $email,
       'vehiculo' => $vehiculo,
       'matricula' => $matricula,
+      'comentarios' => $comentarios,
       'documentos_arr' => array_merge($documentos_anteriores, $documentos_subidos)
     ];
     $edit_id = intval($_POST['edit_id'] ?? 0);
@@ -91,6 +93,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $edit_data = $stmt->fetch(PDO::FETCH_ASSOC);
   if ($edit_data) {
     $edit_data['documentos_arr'] = json_decode($edit_data['documentos'], true) ?: [];
+    // Cargar comentarios si existen
+    $edit_data['comentarios'] = $edit_data['comentarios'] ?? '';
   } else {
     $edit_id = 0;
     $edit_data = null;
@@ -149,7 +153,10 @@ include 'includes/header_nav.php';
         </div>
         <div class="mb-3">
           <label for="telefono" class="form-label">Teléfono</label>
-          <input type="text" class="form-control" id="telefono" name="telefono" value="<?= htmlspecialchars($edit_data['telefono'] ?? '') ?>" />
+          <div class="input-group">
+            <input type="text" class="form-control" id="telefono" name="telefono" value="<?= htmlspecialchars($edit_data['telefono'] ?? '') ?>" />
+            <button type="button" class="btn btn-success" id="btnWhatsapp" onclick="abrirWhatsapp()">Whatsapp</button>
+          </div>
         </div>
         <div class="mb-3">
           <label for="email" class="form-label">Email</label>
@@ -163,6 +170,10 @@ include 'includes/header_nav.php';
         <div class="mb-3">
           <label for="matricula" class="form-label">Matrícula</label>
           <input type="text" class="form-control" id="matricula" name="matricula" value="<?= htmlspecialchars($edit_data['matricula'] ?? '') ?>" />
+        </div>
+        <div class="mb-3">
+          <label for="comentarios" class="form-label">Comentarios</label>
+          <textarea class="form-control" id="comentarios" name="comentarios" rows="3"><?= htmlspecialchars($edit_data['comentarios'] ?? '') ?></textarea>
         </div>
 
         <div class="mb-3">
@@ -234,10 +245,10 @@ include 'includes/header_nav.php';
                     ?>
                   </td>
                   <td>
-                    <?= htmlspecialchars($i['telefono']) ?><br>
-                    <?= htmlspecialchars($i['email']) ?><br>
-                    <?= htmlspecialchars($i['vehiculo']) ?>
-                    <?= htmlspecialchars($i['matricula']) ?>
+                    <?= htmlspecialchars($i['telefono']) ?? '' ?><br>
+                    <?= htmlspecialchars($i['email']) ?? '' ?><br>
+                    <?= htmlspecialchars($i['vehiculo']) ?? '' ?>
+                    <?= htmlspecialchars($i['matricula']) ?? '' ?>
                   </td>
                   <!--<td style="min-width:120px;">
                     <a href="inquilinos.php?edit=<?= intval($i['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
@@ -341,6 +352,15 @@ include 'includes/header_nav.php';
     document.getElementById('existing_docs').value = JSON.stringify(docsValue);
     let elem = container.querySelector('[data-doc="' + doc + '"]');
     if (elem) elem.remove();
+  }
+
+  function abrirWhatsapp() {
+    const tel = document.getElementById('telefono').value.replace(/[^\d]/g, '');
+    if (tel.length > 0) {
+      window.open('https://wa.me/' + tel, '_blank');
+    } else {
+      alert('Ingrese un número de teléfono válido para usar WhatsApp.');
+    }
   }
 </script>
 

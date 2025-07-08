@@ -115,6 +115,8 @@ body.tema-oscuro .nav-link {
 }
 
 body.tema-oscuro h1, 
+body.tema-oscuro h2, 
+body.tema-oscuro h3, 
 body.tema-oscuro label, 
 body.tema-oscuro .accordion-button {
     color: var(--color-acento);

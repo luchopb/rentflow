@@ -147,4 +147,8 @@ ALTER TABLE inquilinos ADD COLUMN email VARCHAR(500) NOT NULL AFTER telefono;
 -- Agregar campo email a la tabla propietarios
 ALTER TABLE propietarios ADD COLUMN email VARCHAR(500) NOT NULL AFTER nombre;
 
+-- Agregar campo comentarios a inquilinos y contratos
+ALTER TABLE inquilinos ADD COLUMN comentarios TEXT NULL AFTER documentos;
+ALTER TABLE contratos ADD COLUMN comentarios TEXT NULL AFTER documentos;
+
 
