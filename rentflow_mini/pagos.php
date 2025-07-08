@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+require_once 'includes/email_helper.php';
 check_login();
 $page_title = 'Pagos - Inmobiliaria';
 
@@ -63,6 +64,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
     $stmt = $pdo->prepare("INSERT INTO pagos (contrato_id, usuario_id, periodo, fecha, fecha_creacion, importe, comentario, comprobante, concepto, tipo_pago) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([$contrato_id, $usuario_id, $periodo, $fecha_pago, $fecha_creacion, $importe, $comentario, $basename ?? null, $concepto, $tipo_pago]);
     $message = "Pago registrado correctamente.";
+    // Enviar email después de registrar pago
+    $stmt = $pdo->prepare("SELECT c.*, i.email as inquilino_email, i.nombre as inquilino_nombre, p.propietario_id, p.nombre as propiedad_nombre, p.direccion, pr.email as propietario_email, pr.nombre as propietario_nombre FROM contratos c JOIN inquilinos i ON c.inquilino_id = i.id JOIN propiedades p ON c.propiedad_id = p.id JOIN propietarios pr ON p.propietario_id = pr.id WHERE c.id = ?");
+    $stmt->execute([$contrato_id]);
+    $info = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($info) {
+      $destinatarios = array_filter(array_merge(
+        explode(',', $info['inquilino_email']),
+        explode(',', $info['propietario_email'])
+      ));
+      $asunto = 'Nuevo Pago registrado en RentFlow';
+      $cuerpo = '<h2>Detalle del Pago</h2>';
+      $cuerpo .= '<b>Propiedad:</b> ' . htmlspecialchars($info['propiedad_nombre']) . ' (' . htmlspecialchars($info['direccion']) . ')<br>';
+      $cuerpo .= '<b>Inquilino:</b> ' . htmlspecialchars($info['inquilino_nombre']) . '<br>';
+      $cuerpo .= '<b>Propietario:</b> ' . htmlspecialchars($info['propietario_nombre']) . '<br>';
+      $cuerpo .= '<b>Período:</b> ' . htmlspecialchars($periodo) . '<br>';
+      $cuerpo .= '<b>Fecha de pago:</b> ' . htmlspecialchars($fecha_pago) . '<br>';
+      $cuerpo .= '<b>Importe:</b> $' . number_format($importe,2,',','.') . '<br>';
+      $cuerpo .= '<b>Concepto:</b> ' . htmlspecialchars($concepto) . '<br>';
+      $cuerpo .= '<b>Tipo de pago:</b> ' . htmlspecialchars($tipo_pago) . '<br>';
+      if ($comentario) $cuerpo .= '<b>Comentario:</b> ' . htmlspecialchars($comentario) . '<br>';
+      enviar_email($destinatarios, $asunto, $cuerpo);
+    }
     header("Location: pagos.php?contrato_id=$contrato_id&msg=" . urlencode($message));
     exit();
   }

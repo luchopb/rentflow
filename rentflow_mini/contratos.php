@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+require_once 'includes/email_helper.php';
 check_login();
 $page_title = 'Contratos - Inmobiliaria';
 
@@ -125,6 +126,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
 
       $message = "Contrato actualizado correctamente.";
+      // Enviar email después de actualizar
+      $contrato_id_envio = $edit_id;
     } else {
       // Insertar nuevo contrato con documentos
       $stmt = $pdo->prepare("INSERT INTO contratos (inquilino_id, propiedad_id, fecha_inicio, fecha_fin, importe, garantia, corredor, estado, documentos) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -137,6 +140,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
 
       $message = "Contrato creado correctamente.";
+      // Enviar email después de crear
+      $contrato_id_envio = $new_id;
+      // Obtener emails de propietario e inquilino
+      $stmt = $pdo->prepare("SELECT c.*, i.email as inquilino_email, i.nombre as inquilino_nombre, p.propietario_id, p.nombre as propiedad_nombre, p.direccion, pr.email as propietario_email, pr.nombre as propietario_nombre FROM contratos c JOIN inquilinos i ON c.inquilino_id = i.id JOIN propiedades p ON c.propiedad_id = p.id JOIN propietarios pr ON p.propietario_id = pr.id WHERE c.id = ?");
+      $stmt->execute([$contrato_id_envio]);
+      $info = $stmt->fetch(PDO::FETCH_ASSOC);
+      if ($info) {
+        $destinatarios = array_filter(array_merge(
+          explode(',', $info['inquilino_email']),
+          explode(',', $info['propietario_email'])
+        ));
+        $asunto = 'Nuevo Contrato registrado en RentFlow';
+        $cuerpo = '<h2>Detalle del Contrato</h2>';
+        $cuerpo .= '<b>Propiedad:</b> ' . htmlspecialchars($info['propiedad_nombre']) . ' (' . htmlspecialchars($info['direccion']) . ')<br>';
+        $cuerpo .= '<b>Inquilino:</b> ' . htmlspecialchars($info['inquilino_nombre']) . '<br>';
+        $cuerpo .= '<b>Propietario:</b> ' . htmlspecialchars($info['propietario_nombre']) . '<br>';
+        $cuerpo .= '<b>Fecha inicio:</b> ' . htmlspecialchars($info['fecha_inicio']) . '<br>';
+        $cuerpo .= '<b>Fecha fin:</b> ' . htmlspecialchars($info['fecha_fin']) . '<br>';
+        $cuerpo .= '<b>Importe:</b> $' . number_format($info['importe'],2,',','.') . '<br>';
+        $cuerpo .= '<b>Estado:</b> ' . htmlspecialchars($info['estado']) . '<br>';
+        enviar_email($destinatarios, $asunto, $cuerpo);
+    }
     }
     header("Location: contratos.php?msg=" . urlencode($message));
     exit();
