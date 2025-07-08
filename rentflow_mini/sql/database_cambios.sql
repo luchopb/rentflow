@@ -152,3 +152,5 @@ ALTER TABLE inquilinos ADD COLUMN comentarios TEXT NULL AFTER documentos;
 ALTER TABLE contratos ADD COLUMN comentarios TEXT NULL AFTER documentos;
 
 
+-- Agregar campo telefono en propietarios
+ALTER TABLE propietarios ADD COLUMN telefono VARCHAR(50) NOT NULL AFTER nombre;

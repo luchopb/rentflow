@@ -19,6 +19,7 @@ if ($delete_id) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $nombre = clean_input($_POST['nombre'] ?? '');
+  $telefono = clean_input($_POST['telefono'] ?? '');
   $email = clean_input($_POST['email'] ?? '');
 
   if (!$nombre) $errors[] = "El nombre es obligatorio.";
@@ -26,13 +27,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (empty($errors)) {
     if (isset($_POST['edit_id']) && intval($_POST['edit_id']) > 0) {
       $edit_id = intval($_POST['edit_id']);
-      $stmt = $pdo->prepare("UPDATE propietarios SET nombre=?, email=? WHERE id=?");
-      $stmt->execute([$nombre, $email, $edit_id]);
+      $stmt = $pdo->prepare("UPDATE propietarios SET nombre=?, telefono=?, email=? WHERE id=?");
+      $stmt->execute([$nombre, $telefono, $email, $edit_id]);
       $message = "Propietario actualizado correctamente.";
       $propietario_id = $edit_id;
     } else {
-      $stmt = $pdo->prepare("INSERT INTO propietarios (nombre, email) VALUES (?, ?)");
-      $stmt->execute([$nombre, $email]);
+      $stmt = $pdo->prepare("INSERT INTO propietarios (nombre, telefono, email) VALUES (?, ?, ?)");
+      $stmt->execute([$nombre, $telefono, $email]);
       $message = "Propietario creado correctamente.";
       $propietario_id = $pdo->lastInsertId();
     }
@@ -90,6 +91,13 @@ include 'includes/header_nav.php';
         <div class="mb-3">
           <label for="nombre" class="form-label">Nombre *</label>
           <input type="text" class="form-control" id="nombre" name="nombre" required value="<?= htmlspecialchars($edit_data['nombre'] ?? '') ?>" />
+        </div>
+        <div class="mb-3">
+          <label for="telefono" class="form-label">Teléfono</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="telefono" name="telefono" value="<?= htmlspecialchars($edit_data['telefono'] ?? '') ?>" />
+            <button type="button" class="btn btn-success" id="btnWhatsapp" onclick="abrirWhatsapp()">Whatsapp</button>
+          </div>
         </div>
         <div class="mb-3">
           <label for="email" class="form-label">Email</label>

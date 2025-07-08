@@ -160,12 +160,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cuerpo .= '<b>Propietario:</b> ' . htmlspecialchars($info['propietario_nombre']) . '<br>';
         $cuerpo .= '<b>Fecha inicio:</b> ' . htmlspecialchars($info['fecha_inicio']) . '<br>';
         $cuerpo .= '<b>Fecha fin:</b> ' . htmlspecialchars($info['fecha_fin']) . '<br>';
-        $cuerpo .= '<b>Importe:</b> $' . number_format($info['importe'],2,',','.') . '<br>';
+        $cuerpo .= '<b>Importe:</b> $' . number_format($info['importe'], 2, ',', '.') . '<br>';
         $cuerpo .= '<b>Estado:</b> ' . htmlspecialchars($info['estado']) . '<br>';
         enviar_email($destinatarios, $asunto, $cuerpo);
+      }
     }
-    }
-    header("Location: contratos.php?msg=" . urlencode($message));
+    header("Location: contratos.php?msg=" . urlencode($message) . "&contrato_id=" . urlencode($contrato_id_envio));
     exit();
   } else {
     $edit_data = [
@@ -199,6 +199,7 @@ $msg = $_GET['msg'] ?? '';
 if ($msg) {
   $message = $msg;
 }
+$contrato_id = $_GET['contrato_id'] ?? '';
 
 $inquilinos = $pdo->query("SELECT id, nombre FROM inquilinos ORDER BY nombre ASC")->fetchAll();
 $propiedades = $pdo->query("SELECT id, nombre, estado, precio FROM propiedades WHERE estado IN ('libre','en venta','uso propio') ORDER BY nombre ASC")->fetchAll();
@@ -241,12 +242,19 @@ include 'includes/header_nav.php';
 
   <?php if ($message): ?>
     <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
+    <?php if ($contrato_id): ?>
+      <a href="contratos.php?edit=<?= $contrato_id ?>" class="btn btn-success mb-3">Ver contrato</a>
+    <?php endif; ?>
   <?php endif; ?>
 
   <?php if (!empty($errors)): ?>
     <div class="alert alert-danger">
       <ul><?php foreach ($errors as $e) echo "<li>" . htmlspecialchars($e) . "</li>"; ?></ul>
     </div>
+  <?php endif; ?>
+
+  <?php if ($edit_id): ?>
+      <a href="pagos.php?contrato_id=<?= intval($edit_id) ?>" class="btn btn-success mb-3">Registrar Pagos</a>
   <?php endif; ?>
 
   <button class="btn btn-outline-dark mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formContratoCollapse" aria-expanded="<?= ($edit_id || !empty($errors) || $propiedad_id_param) ? 'true' : 'false' ?>" aria-controls="formContratoCollapse" style="font-weight:600;">
@@ -258,12 +266,6 @@ include 'includes/header_nav.php';
       <h3><?= $edit_id ? "Editar Contrato" : "Nuevo Contrato" ?></h3>
       <form method="POST" enctype="multipart/form-data" novalidate id="formContrato">
         <input type="hidden" name="edit_id" value="<?= $edit_id ?: '' ?>" />
-
-        <?php if ($edit_id): ?>
-          <div class="mb-3">
-            <a href="pagos.php?contrato_id=<?= intval($edit_id) ?>" class="btn btn-success">Registrar Pagos</a>
-          </div>
-        <?php endif; ?>
 
         <div class="mb-3">
           <label for="propiedad_id" class="form-label">Propiedad *</label>
@@ -280,9 +282,9 @@ include 'includes/header_nav.php';
         </div>
 
         <div class="mb-3">
-          <a href="propiedades.php?add=true" class="btn btn-primary btn-sm">Agregar Propiedad Nueva</a>
+          <a href="propiedades.php?add=true" class="btn btn-success btn-sm">Agregar Propiedad Nueva</a>
           <?php if ($edit_id > 0): ?>
-            <a href="propiedades.php?edit=<?= htmlspecialchars($edit_data['propiedad_id'] ?? '') ?>" class="btn btn-secondary btn-sm">Editar Propiedad</a>
+            <a href="propiedades.php?edit=<?= htmlspecialchars($edit_data['propiedad_id'] ?? '') ?>" class="btn btn-primary btn-sm">Editar Propiedad</a>
           <?php endif; ?>
         </div>
 
@@ -299,7 +301,7 @@ include 'includes/header_nav.php';
         </div>
 
         <div class="mb-3">
-          <a href="inquilinos.php?add=true" class="btn btn-primary btn-sm">Agregar Nuevo Inquilino</a>
+          <a href="inquilinos.php?add=true" class="btn btn-success btn-sm">Agregar Nuevo Inquilino</a>
         </div>
 
         <div class="mb-3">

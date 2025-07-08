@@ -225,7 +225,11 @@ include 'includes/header_nav.php';
                 <tr>
                   <td><?= htmlspecialchars($i['id']) ?></td>
                   <td>
-                    <a href="inquilinos.php?edit=<?= intval($i['id']) ?>" class="text-decoration-none text-dark"><b><?= htmlspecialchars($i['nombre']) ?></b><br> <?= htmlspecialchars($i['cedula']) ?></a><br>
+                    <a href="inquilinos.php?edit=<?= intval($i['id']) ?>" class="text-decoration-none text-dark"><b><?= htmlspecialchars($i['nombre']) ?></b>
+                      <br> <?= htmlspecialchars($i['cedula']) ?>
+                      <br> <?= htmlspecialchars($i['vehiculo']) ?> <?= htmlspecialchars($i['matricula']) ?>
+                      <br> <?= htmlspecialchars($i['telefono']) ?> <?= htmlspecialchars($i['email']) ?></a>
+                    <br>
                     <?php
                     $docs = [];
                     if (!empty($i['documentos'])) {
@@ -245,10 +249,17 @@ include 'includes/header_nav.php';
                     ?>
                   </td>
                   <td>
-                    <?= htmlspecialchars($i['telefono']) ?? '' ?><br>
-                    <?= htmlspecialchars($i['email']) ?? '' ?><br>
-                    <?= htmlspecialchars($i['vehiculo']) ?? '' ?>
-                    <?= htmlspecialchars($i['matricula']) ?? '' ?>
+                    <?php
+                    // Mostrar teléfono solo si existe y con botón de WhatsApp
+                    if (!empty($i['telefono'])) {
+                      $telefono_limpio = preg_replace('/\D/', '', $i['telefono']);
+                      echo '<a href="https://wa.me/598' . $telefono_limpio . '" target="_blank" class="btn btn-success btn-sm" title="Enviar WhatsApp"><i class="bi bi-whatsapp"></i></a>';
+                    }
+                    // Mostrar email y botón de enviar mail si existe
+                    if (!empty($i['email'])) {
+                      echo '<a href="mailto:' . htmlspecialchars($i['email']) . '" class="btn btn-primary btn-sm" title="Enviar correo"><i class="bi bi-envelope"></i></a>';
+                    }
+                    ?>
                   </td>
                   <!--<td style="min-width:120px;">
                     <a href="inquilinos.php?edit=<?= intval($i['id']) ?>" class="btn btn-sm btn-outline-primary">Editar</a>
