@@ -568,7 +568,7 @@ include 'includes/header_nav.php';
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="form-check d-flex justify-content-center">
+                                        <div class="form-check d-flex">
                                             <input class="form-check-input checkbox-validacion" 
                                                    type="checkbox" 
                                                    id="validado_<?= $pago['id'] ?>"
