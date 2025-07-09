@@ -14,6 +14,7 @@ $filtro_fecha_hasta = $_GET['fecha_hasta'] ?? '';
 $filtro_periodo = $_GET['periodo'] ?? '';
 $filtro_concepto = $_GET['concepto'] ?? '';
 $filtro_tipo_pago = $_GET['tipo_pago'] ?? '';
+$filtro_validado = $_GET['validado'] ?? '';
 
 // Si no se envió ningún filtro de fecha, filtrar por el mes actual
 if (empty($_GET['fecha_desde']) && empty($_GET['fecha_hasta']) && empty($_GET['periodo'])) {
@@ -182,6 +183,9 @@ $sql_base = "
         p.tipo_pago,
         p.comentario,
         p.comprobante,
+        p.validado,
+        p.fecha_validacion,
+        p.usuario_validacion_id,
         c.id as contrato_id,
         c.importe as renta_mensual,
         prop.id as propiedad_id,
@@ -235,6 +239,11 @@ if ($filtro_tipo_pago) {
     $params[] = $filtro_tipo_pago;
 }
 
+if ($filtro_validado !== '') {
+    $sql_base .= " AND p.validado = ?";
+    $params[] = $filtro_validado === '1' ? 1 : 0;
+}
+
 $sql_base .= " ORDER BY p.fecha DESC, p.id DESC";
 
 // Ejecutar consulta
@@ -245,6 +254,19 @@ $pagos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Calcular indicadores
 $total_pagos = count($pagos);
 $monto_total = array_sum(array_column($pagos, 'importe'));
+
+// Calcular estadísticas de validación
+$pagos_validados = array_filter($pagos, function($pago) {
+    return $pago['validado'] ?? false;
+});
+$total_validados = count($pagos_validados);
+$monto_validados = array_sum(array_column($pagos_validados, 'importe'));
+
+$pagos_pendientes = array_filter($pagos, function($pago) {
+    return !($pago['validado'] ?? false);
+});
+$total_pendientes = count($pagos_pendientes);
+$monto_pendientes = array_sum(array_column($pagos_pendientes, 'importe'));
 
 // Desglose por tipo de pago
 $desglose_tipo = [];
@@ -334,6 +356,24 @@ include 'includes/header_nav.php';
                 <div class="card-body">
                     <h5 class="card-title">Tipos de Pago</h5>
                     <h3 class="card-text"><?= count($desglose_tipo) ?></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-2">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Pagos Validados</h5>
+                    <h3 class="card-text"><?= $total_validados ?></h3>
+                    <small>$<?= number_format($monto_validados, 2, ',', '.') ?></small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-2">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5 class="card-title">Pagos Pendientes</h5>
+                    <h3 class="card-text"><?= $total_pendientes ?></h3>
+                    <small>$<?= number_format($monto_pendientes, 2, ',', '.') ?></small>
                 </div>
             </div>
         </div>
@@ -445,6 +485,14 @@ include 'includes/header_nav.php';
                         <?php endforeach; ?>
                     </select>
                 </div>
+                <div class="col-md-3 col-6">
+                    <label for="validado" class="form-label">Estado de Validación</label>
+                    <select class="form-select" id="validado" name="validado">
+                        <option value="">Todos</option>
+                        <option value="1" <?= $filtro_validado === '1' ? 'selected' : '' ?>>Validados</option>
+                        <option value="0" <?= $filtro_validado === '0' ? 'selected' : '' ?>>Pendientes</option>
+                    </select>
+                </div>
                 <div class="col-12">
                     <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
                     <a href="listado_pagos.php" class="btn btn-outline-secondary">Borrar Filtros</a>
@@ -473,13 +521,11 @@ include 'includes/header_nav.php';
                         <thead>
                             <tr>
                                 <th>Fecha</th>
-                                <th>Período</th>
                                 <th>Propiedad</th>
                                 <th>Inquilino</th>
-                                <th>Concepto</th>
-                                <th>Tipo</th>
                                 <th>Importe</th>
-                                <th>Comprobante</th>
+                                <th>Validado</th>
+                                <th>Concepto</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -488,12 +534,9 @@ include 'includes/header_nav.php';
                                 <tr>
                                     <td>
                                         <strong><?= date('d/m/Y', strtotime($pago['fecha'])) ?></strong>
-                                    </td>
-                                    <td>
                                         <span class="badge bg-primary"><?= htmlspecialchars($pago['periodo']) ?></span>
                                     </td>
                                     <td>
-                                        <div>
                                             <strong>
                                                 <a href="propiedades.php?edit=<?= intval($pago['propiedad_id']) ?>" class="text-decoration-none text-dark">
                                                     <?= htmlspecialchars($pago['propiedad_nombre']) ?>
@@ -502,10 +545,8 @@ include 'includes/header_nav.php';
                                             <?php if ($pago['propiedad_direccion']): ?>
                                                 <br><small class="text-muted"><?= htmlspecialchars($pago['propiedad_direccion']) ?></small>
                                             <?php endif; ?>
-                                        </div>
                                     </td>
                                     <td>
-                                        <div>
                                             <strong>
                                                 <a href="inquilinos.php?edit=<?= intval($pago['inquilino_id']) ?>" class="text-decoration-none text-dark">
                                                     <?= htmlspecialchars($pago['inquilino_nombre']) ?>
@@ -514,12 +555,9 @@ include 'includes/header_nav.php';
                                             <?php if ($pago['inquilino_telefono']): ?>
                                                 <br><small class="text-muted"><?= htmlspecialchars($pago['inquilino_telefono']) ?></small>
                                             <?php endif; ?>
-                                        </div>
                                     </td>
                                     <td>
-                                        <span class="badge bg-info"><?= htmlspecialchars($pago['concepto']) ?></span>
-                                    </td>
-                                    <td>
+                                        <strong class="text-success d-block">$<?= number_format($pago['importe'], 2, ',', '.') ?></strong>
                                         <?php
                                         // Si el tipo de pago contiene la palabra "efectivo" (sin importar mayúsculas/minúsculas), mostrar en verde, sino en gris
                                         $tipo_pago = $pago['tipo_pago'] ?? '';
@@ -530,16 +568,35 @@ include 'includes/header_nav.php';
                                         </span>
                                     </td>
                                     <td>
-                                        <strong class="text-success">$<?= number_format($pago['importe'], 2, ',', '.') ?></strong>
+                                        <div class="form-check d-flex justify-content-center">
+                                            <input class="form-check-input checkbox-validacion" 
+                                                   type="checkbox" 
+                                                   id="validado_<?= $pago['id'] ?>"
+                                                   data-pago-id="<?= $pago['id'] ?>"
+                                                   <?= ($pago['validado'] ?? false) ? 'checked' : '' ?>>
+                                            <label class="form-check-label ms-2" for="validado_<?= $pago['id'] ?>">
+                                                <?php if ($pago['validado']): ?>
+                                                    <small class="text-success">
+                                                        <i class="bi bi-check-circle-fill"></i> Validado
+                                                        <?php if ($pago['fecha_validacion']): ?>
+                                                            <br><small><?= date('d/m/Y H:i', strtotime($pago['fecha_validacion'])) ?></small>
+                                                        <?php endif; ?>
+                                                    </small>
+                                                <?php else: ?>
+                                                    <small class="text-muted">Pendiente</small>
+                                                <?php endif; ?>
+                                            </label>
+                                        </div>
                                     </td>
                                     <td>
+                                        <span class="badge bg-info"><?= htmlspecialchars($pago['concepto']) ?></span><br>
                                         <?php if ($pago['comprobante']): ?>
                                             <a href="uploads/<?= htmlspecialchars($pago['comprobante']) ?>"
                                                 target="_blank" class="btn btn-sm btn-outline-secondary">
                                                 Comprobante
                                             </a>
                                         <?php else: ?>
-                                            <span class="text-muted">Sin comprobante</span>
+                                            <small class="text-muted">Sin comprobante</small>
                                         <?php endif; ?>
                                     </td>
                                     <td>
@@ -573,6 +630,99 @@ include 'includes/header_nav.php';
         }
     }
 
+    // Función para validar/desvalidar pagos
+    function validarPago(pagoId, validado) {
+        const formData = new FormData();
+        formData.append('pago_id', pagoId);
+        formData.append('validado', validado);
+
+        fetch('validar_pago.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Mostrar mensaje de éxito
+                const mensaje = document.createElement('div');
+                mensaje.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                mensaje.innerHTML = `
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.body.appendChild(mensaje);
+
+                // Remover el mensaje después de 3 segundos
+                setTimeout(() => {
+                    mensaje.remove();
+                }, 3000);
+
+                // Actualizar la etiqueta del checkbox
+                const checkbox = document.getElementById(`validado_${pagoId}`);
+                const label = checkbox.nextElementSibling;
+                
+                if (validado) {
+                    label.innerHTML = `
+                        <small class="text-success">
+                            <i class="bi bi-check-circle-fill"></i> Validado
+                            <br><small>${data.fecha_validacion ? new Date(data.fecha_validacion).toLocaleString('es-ES', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            }) : ''}</small>
+                        </small>
+                    `;
+                } else {
+                    label.innerHTML = '<small class="text-muted">Pendiente</small>';
+                }
+            } else {
+                // Mostrar mensaje de error
+                const mensaje = document.createElement('div');
+                mensaje.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+                mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                mensaje.innerHTML = `
+                    Error: ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.body.appendChild(mensaje);
+
+                // Remover el mensaje después de 5 segundos
+                setTimeout(() => {
+                    mensaje.remove();
+                }, 5000);
+
+                // Revertir el checkbox
+                const checkbox = document.getElementById(`validado_${pagoId}`);
+                checkbox.checked = !validado;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            
+            // Mostrar mensaje de error
+            const mensaje = document.createElement('div');
+            mensaje.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+            mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            mensaje.innerHTML = `
+                Error de conexión. Intente nuevamente.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(mensaje);
+
+            // Remover el mensaje después de 5 segundos
+            setTimeout(() => {
+                mensaje.remove();
+            }, 5000);
+
+            // Revertir el checkbox
+            const checkbox = document.getElementById(`validado_${pagoId}`);
+            checkbox.checked = !validado;
+        });
+    }
+
     // Auto-submit del formulario cuando cambien los filtros
     document.addEventListener('DOMContentLoaded', function() {
         const filterInputs = document.querySelectorAll('select[name], input[name]');
@@ -582,6 +732,25 @@ include 'includes/header_nav.php';
                 if (this.tagName === 'SELECT') {
                     this.closest('form').submit();
                 }
+            });
+        });
+
+        // Manejar cambios en los checkboxes de validación
+        const checkboxesValidacion = document.querySelectorAll('.checkbox-validacion');
+        checkboxesValidacion.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const pagoId = this.getAttribute('data-pago-id');
+                const validado = this.checked;
+                
+                // Deshabilitar el checkbox temporalmente para evitar múltiples clics
+                this.disabled = true;
+                
+                validarPago(pagoId, validado);
+                
+                // Habilitar el checkbox después de un breve delay
+                setTimeout(() => {
+                    this.disabled = false;
+                }, 1000);
             });
         });
     });

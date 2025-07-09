@@ -154,3 +154,8 @@ ALTER TABLE contratos ADD COLUMN comentarios TEXT NULL AFTER documentos;
 
 -- Agregar campo telefono en propietarios
 ALTER TABLE propietarios ADD COLUMN telefono VARCHAR(50) NOT NULL AFTER nombre;
+
+-- Agregar campos para validación de pagos
+ALTER TABLE pagos ADD COLUMN validado BOOLEAN DEFAULT FALSE AFTER pagado;
+ALTER TABLE pagos ADD COLUMN fecha_validacion DATETIME NULL AFTER validado;
+ALTER TABLE pagos ADD COLUMN usuario_validacion_id INT NULL AFTER fecha_validacion;
