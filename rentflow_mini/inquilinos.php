@@ -225,11 +225,14 @@ include 'includes/header_nav.php';
                 <tr>
                   <td><?= htmlspecialchars($i['id']) ?></td>
                   <td>
-                    <a href="inquilinos.php?edit=<?= intval($i['id']) ?>" class="text-decoration-none text-dark"><b><?= htmlspecialchars($i['nombre']) ?></b>
-                      <br> <?= htmlspecialchars($i['cedula']) ?>
-                      <br> <?= htmlspecialchars($i['vehiculo']) ?> <?= htmlspecialchars($i['matricula']) ?>
-                      <br> <?= htmlspecialchars($i['telefono']) ?> <?= htmlspecialchars($i['email']) ?></a>
-                    <br>
+                    <a href="inquilinos.php?edit=<?= intval($i['id']) ?>" class="text-decoration-none text-dark">
+                      <b class="d-block"><?= htmlspecialchars($i['nombre']) ?></b>
+                      <small class="text-muted">
+                        <span class="d-block"><?= htmlspecialchars($i['cedula']) ?></span>
+                        <span class="d-block"><?= htmlspecialchars($i['vehiculo']) ?> <?= htmlspecialchars($i['matricula']) ?></span>
+                        <span class="d-block"><?= htmlspecialchars($i['telefono']) ?> <?= htmlspecialchars($i['email']) ?></span>
+                      </small>
+                    </a>
                     <?php
                     $docs = [];
                     if (!empty($i['documentos'])) {
@@ -253,11 +256,11 @@ include 'includes/header_nav.php';
                     // Mostrar teléfono solo si existe y con botón de WhatsApp
                     if (!empty($i['telefono'])) {
                       $telefono_limpio = preg_replace('/\D/', '', $i['telefono']);
-                      echo '<a href="https://wa.me/598' . $telefono_limpio . '" target="_blank" class="btn btn-success btn-sm" title="Enviar WhatsApp"><i class="bi bi-whatsapp"></i></a>';
+                      echo '<a href="https://wa.me/598' . $telefono_limpio . '" target="_blank" class="btn btn-success" title="Enviar WhatsApp"><i class="bi bi-whatsapp"></i></a>';
                     }
                     // Mostrar email y botón de enviar mail si existe
                     if (!empty($i['email'])) {
-                      echo '<a href="mailto:' . htmlspecialchars($i['email']) . '" class="btn btn-primary btn-sm" title="Enviar correo"><i class="bi bi-envelope"></i></a>';
+                      echo '<a href="mailto:' . htmlspecialchars($i['email']) . '" class="btn btn-primary" title="Enviar correo"><i class="bi bi-envelope"></i></a>';
                     }
                     ?>
                   </td>
