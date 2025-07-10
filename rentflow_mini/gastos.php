@@ -110,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $asunto = 'Nuevo Gasto registrado en RentFlow';
             $cuerpo = '<h2>Detalle del Gasto</h2>';
             $cuerpo .= '<b>Concepto:</b> ' . htmlspecialchars($concepto) . '<br>';
-            $cuerpo .= '<b>Importe:</b> $' . number_format($importe,2,',','.') . '<br>';
+            $cuerpo .= '<b>Importe:</b> $' . number_format($importe, 2, ',', '.') . '<br>';
             $cuerpo .= '<b>Forma de pago:</b> ' . htmlspecialchars($forma_pago) . '<br>';
             if ($propiedad_id_form) {
                 $stmt2 = $pdo->prepare("SELECT nombre, direccion FROM propiedades WHERE id = ?");
@@ -237,6 +237,8 @@ include 'includes/header_nav.php';
                                     <option value="Pago de Servicios" <?= ($edit_data['concepto'] ?? '') === 'Pago de Servicios' ? 'selected' : '' ?>>Pago de Servicios</option>
                                     <option value="Pago de Reparaciones" <?= ($edit_data['concepto'] ?? '') === 'Pago de Reparaciones' ? 'selected' : '' ?>>Pago de Reparaciones</option>
                                     <option value="Pago de Mantenimiento" <?= ($edit_data['concepto'] ?? '') === 'Pago de Mantenimiento' ? 'selected' : '' ?>>Pago de Mantenimiento</option>
+                                    <option value="Pago de Convenios" <?= ($edit_data['concepto'] ?? '') === 'Pago de Convenios' ? 'selected' : '' ?>>Pago de Convenios</option>
+                                    <option value="Otros" <?= ($edit_data['concepto'] ?? '') === 'Otros' ? 'selected' : '' ?>>Otros</option>
                                 </select>
                             </div>
                         </div>
@@ -246,7 +248,7 @@ include 'includes/header_nav.php';
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="importe" class="form-label">Importe *</label>
-                                <input type="number" step="0.01" min="0" class="form-control" id="importe" name="importe" value="<?= htmlspecialchars($edit_data['importe'] ?? '') ?>" required>
+                                <input type="number" step="1" min="0" class="form-control" id="importe" name="importe" value="<?= htmlspecialchars($edit_data['importe'] ?? '') ?>" required>
                             </div>
                         </div>
                         <div class="col-md-6">
