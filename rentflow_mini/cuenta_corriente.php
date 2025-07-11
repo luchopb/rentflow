@@ -35,10 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fecha_arqueo'], $_POS
 $propietarios = $pdo->query("SELECT id, nombre FROM propietarios ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
 $propietario_id = isset($_GET['propietario_id']) ? intval($_GET['propietario_id']) : 0;
 
-// --- Filtros ---
-$fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] ? $_GET['fecha_inicio'] : null;
-$fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] ? $_GET['fecha_fin'] : null;
-$filtro_tipo_pago = isset($_GET['filtro_tipo_pago']) ? $_GET['filtro_tipo_pago'] : 'Todos';
 
 // --- Consulta de pagos ---
 $query_pagos = "SELECT p.fecha, p.concepto, p.tipo_pago AS forma_pago, p.comprobante, p.importe, 'pago' AS tipo
@@ -46,55 +42,51 @@ FROM pagos p
 LEFT JOIN contratos c ON p.contrato_id = c.id
 LEFT JOIN propiedades pr ON c.propiedad_id = pr.id
 WHERE 1=1";
-$params = [];
-$types = '';
-if ($fecha_inicio) {
-    $query_pagos .= " AND p.fecha >= ?";
-    $params[] = $fecha_inicio;
-    $types .= 's';
-}
-if ($fecha_fin) {
-    $query_pagos .= " AND p.fecha <= ?";
-    $params[] = $fecha_fin;
-    $types .= 's';
-}
-if ($filtro_tipo_pago && $filtro_tipo_pago !== 'Todos') {
-    $query_pagos .= " AND p.tipo_pago LIKE ?";
-    $params[] = '%' . $filtro_tipo_pago . '%';
-    $types .= 's';
-}
-if ($propietario_id) {
-    $query_pagos .= " AND pr.propietario_id = ?";
-    $params[] = $propietario_id;
-    $types .= 'i';
-}
+
 
 // --- Consulta de gastos ---
 $query_gastos = "SELECT g.fecha, g.concepto, g.forma_pago, g.comprobante, g.importe, 'gasto' AS tipo
 FROM gastos g
 LEFT JOIN propiedades pr ON g.propiedad_id = pr.id
 WHERE 1=1";
-$params_g = [];
-$types_g = '';
+
+// --- Filtros ---
+$fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] ? $_GET['fecha_inicio'] : '2025-01-01';
+$fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] ? $_GET['fecha_fin'] : date('Y-m-d');
+$filtro_tipo_pago = isset($_GET['filtro_tipo_pago']) ? $_GET['filtro_tipo_pago'] : 'Todos';
+
+$params = [];
+$types = '';
 if ($fecha_inicio) {
     $query_gastos .= " AND g.fecha >= ?";
-    $params_g[] = $fecha_inicio;
-    $types_g .= 's';
+    $query_pagos .= " AND p.fecha >= ?";
+    $params[] = $fecha_inicio;
+    $types .= 's';
 }
 if ($fecha_fin) {
     $query_gastos .= " AND g.fecha <= ?";
-    $params_g[] = $fecha_fin;
-    $types_g .= 's';
+    $query_pagos .= " AND p.fecha <= ?";
+    $params[] = $fecha_fin;
+    $types .= 's';
 }
 if ($filtro_tipo_pago && $filtro_tipo_pago !== 'Todos') {
-    $query_gastos .= " AND g.forma_pago LIKE ?";
-    $params_g[] = '%' . $filtro_tipo_pago . '%';
-    $types_g .= 's';
+    if ($filtro_tipo_pago == 'Efectivo') {
+        $query_gastos .= " AND g.forma_pago LIKE ?";
+        $query_pagos .= " AND p.tipo_pago LIKE ?";
+        $params[] = '%' . $filtro_tipo_pago . '%';
+        $types .= 's';
+    } else {
+        $query_gastos .= " AND g.forma_pago NOT LIKE ?";
+        $query_pagos .= " AND p.tipo_pago NOT LIKE ?";
+        $params[] = '%Efectivo%';
+        $types .= 's';
+    }
 }
 if ($propietario_id) {
     $query_gastos .= " AND pr.propietario_id = ?";
-    $params_g[] = $propietario_id;
-    $types_g .= 'i';
+    $query_pagos .= " AND pr.propietario_id = ?";
+    $params[] = $propietario_id;
+    $types .= 'i';
 }
 
 // Ejecutar consultas
@@ -113,8 +105,8 @@ foreach ($result as $row) {
 }
 
 $stmt = $pdo->prepare($query_gastos . " ORDER BY fecha ASC");
-if ($types_g) {
-    $stmt->execute($params_g);
+if ($types) {
+    $stmt->execute($params);
 } else {
     $stmt->execute();
 }
@@ -143,7 +135,7 @@ foreach ($movimientos as $i => $mov) {
 
 <div class="container mt-4">
     <h2>Cuenta Corriente</h2>
-    <div class="card">
+    <div class="card d-none">
         <div class="card-header">
             <h5 class="mb-0">Arqueo de Caja</h5>
         </div>
@@ -187,7 +179,7 @@ foreach ($movimientos as $i => $mov) {
 
     <div class="card">
         <div class="card-header">
-            <h5 class="mb-0">Cuenta Corriente</h5>
+            <h5 class="mb-0">Filtros</h5>
         </div>
         <div class="card-body">
             <!-- Filtros del reporte -->

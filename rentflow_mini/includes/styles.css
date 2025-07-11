@@ -334,11 +334,6 @@ a.nav-link.active {
     display: block;
 }
 
-.tabla-cuentacorriente td, 
-.tabla-cuentacorriente th {
-    font-size: 12px;
-}
-
 /* Menú inferior mobile */
 .mobile-navbar {
     display: none;
@@ -377,6 +372,11 @@ a.nav-link.active {
     .mobile-navbar .small {
         font-size: 0.65rem;
         line-height: 1.2;
+    }
+    
+    .tabla-cuentacorriente td, 
+    .tabla-cuentacorriente th {
+        font-size: 12px;
     }
 }
 
