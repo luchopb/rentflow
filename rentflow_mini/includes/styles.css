@@ -334,6 +334,11 @@ a.nav-link.active {
     display: block;
 }
 
+.tabla-cuentacorriente td, 
+.tabla-cuentacorriente th {
+    font-size: 12px;
+}
+
 /* Menú inferior mobile */
 .mobile-navbar {
     display: none;
