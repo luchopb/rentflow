@@ -159,3 +159,5 @@ ALTER TABLE propietarios ADD COLUMN telefono VARCHAR(50) NOT NULL AFTER nombre;
 ALTER TABLE pagos ADD COLUMN validado BOOLEAN DEFAULT FALSE AFTER pagado;
 ALTER TABLE pagos ADD COLUMN fecha_validacion DATETIME NULL AFTER validado;
 ALTER TABLE pagos ADD COLUMN usuario_validacion_id INT NULL AFTER fecha_validacion;
+
+ALTER TABLE `gastos` CHANGE `concepto` `concepto` VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL;

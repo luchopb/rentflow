@@ -38,7 +38,7 @@ if ($msg) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $edit_id = intval($_POST['edit_id'] ?? 0);
     $fecha = $_POST['fecha'] ?? '';
-    $concepto = clean_input($_POST['concepto'] ?? '');
+    $concepto_id = intval($_POST['concepto_id'] ?? 0);
     $importe = floatval($_POST['importe'] ?? 0);
     $forma_pago = clean_input($_POST['forma_pago'] ?? '');
     $observaciones = clean_input($_POST['observaciones'] ?? '');
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validaciones
     if (!$fecha) $errors[] = "La fecha es obligatoria.";
-    if (!$concepto) $errors[] = "El concepto es obligatorio.";
+    if (!$concepto_id) $errors[] = "El concepto es obligatorio.";
     if ($importe <= 0) $errors[] = "El importe debe ser mayor que cero.";
     if (!$forma_pago) $errors[] = "La forma de pago es obligatoria.";
 
@@ -80,8 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($edit_id > 0) {
             // Actualizar gasto existente
-            $sql = "UPDATE gastos SET fecha=?, concepto=?, importe=?, forma_pago=?, observaciones=?, propiedad_id=?, usuario_id=?, fecha_modificacion=?";
-            $params = [$fecha, $concepto, $importe, $forma_pago, $observaciones, $propiedad_id_form ?: null, $usuario_id, $fecha_hora];
+            $sql = "UPDATE gastos SET fecha=?, concepto_id=?, importe=?, forma_pago=?, observaciones=?, propiedad_id=?, usuario_id=?, fecha_modificacion=?";
+            $params = [$fecha, $concepto_id, $importe, $forma_pago, $observaciones, $propiedad_id_form ?: null, $usuario_id, $fecha_hora];
 
             if ($comprobante) {
                 $sql .= ", comprobante=?";
@@ -96,8 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = "Gasto actualizado correctamente.";
         } else {
             // Insertar nuevo gasto
-            $stmt = $pdo->prepare("INSERT INTO gastos (fecha, concepto, importe, forma_pago, observaciones, comprobante, propiedad_id, usuario_id, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$fecha, $concepto, $importe, $forma_pago, $observaciones, $comprobante, $propiedad_id_form ?: null, $usuario_id, $fecha_hora]);
+            $stmt = $pdo->prepare("INSERT INTO gastos (fecha, concepto_id, importe, forma_pago, observaciones, comprobante, propiedad_id, usuario_id, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$fecha, $concepto_id, $importe, $forma_pago, $observaciones, $comprobante, $propiedad_id_form ?: null, $usuario_id, $fecha_hora]);
             $message = "Gasto registrado correctamente.";
         }
 
@@ -106,10 +106,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $prop = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($prop && $prop['email']) {
+            $stmt_concepto = $pdo->prepare("SELECT nombre FROM listado_conceptos WHERE id = ?");
+            $stmt_concepto->execute([$concepto_id]);
+            $concepto_nombre = $stmt_concepto->fetchColumn();
+
             $destinatarios = array_filter(explode(',', $prop['email']));
             $asunto = 'Nuevo Gasto registrado en RentFlow';
             $cuerpo = '<h2>Detalle del Gasto</h2>';
-            $cuerpo .= '<b>Concepto:</b> ' . htmlspecialchars($concepto) . '<br>';
+            $cuerpo .= '<b>Concepto:</b> ' . htmlspecialchars($concepto_nombre) . '<br>';
             $cuerpo .= '<b>Importe:</b> $' . number_format($importe, 2, ',', '.') . '<br>';
             $cuerpo .= '<b>Forma de pago:</b> ' . htmlspecialchars($forma_pago) . '<br>';
             if ($propiedad_id_form) {
@@ -126,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: gastos.php?msg=" . urlencode($message));
         exit();
     } else {
-        $edit_data = compact('fecha', 'concepto', 'importe', 'forma_pago', 'observaciones', 'propiedad_id_form');
+        $edit_data = compact('fecha', 'concepto_id', 'importe', 'forma_pago', 'observaciones', 'propiedad_id_form');
     }
 } else {
     $edit_data = null;
@@ -142,25 +146,31 @@ $stmt = $pdo->prepare("SELECT id, nombre, direccion FROM propiedades ORDER BY no
 $stmt->execute();
 $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Obtener conceptos para el formulario
+$stmt = $pdo->prepare("SELECT id, nombre FROM listado_conceptos ORDER BY nombre");
+$stmt->execute();
+$conceptos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 // Filtros de fecha
 $fecha_desde = $_GET['fecha_desde'] ?? date('Y-m-01');
 $fecha_hasta = $_GET['fecha_hasta'] ?? date('Y-m-t');
 
 // Consulta con búsqueda y filtros
 $params = [];
-$sql = "SELECT g.*, p.nombre as propiedad_nombre, p.direccion as propiedad_direccion, u.username as usuario_nombre 
+$sql = "SELECT g.*, lc.nombre as concepto_nombre, p.nombre as propiedad_nombre, p.direccion as propiedad_direccion, u.username as usuario_nombre 
         FROM gastos g 
+        LEFT JOIN listado_conceptos lc ON g.concepto_id = lc.id
         LEFT JOIN propiedades p ON g.propiedad_id = p.id 
         LEFT JOIN usuarios u ON g.usuario_id = u.id";
 
 $where_conditions = [];
 if ($busqueda) {
-    $where_conditions[] = "(g.concepto LIKE ? OR g.observaciones LIKE ? OR p.nombre LIKE ? OR p.direccion LIKE ?)";
+    $where_conditions[] = "(lc.nombre LIKE ? OR g.observaciones LIKE ? OR p.nombre LIKE ? OR p.direccion LIKE ?)";
     $like_search = '%' . $busqueda . '%';
     $params = array_merge($params, [$like_search, $like_search, $like_search, $like_search]);
 }
 if ($filtro_concepto) {
-    $where_conditions[] = "g.concepto = ?";
+    $where_conditions[] = "g.concepto_id = ?";
     $params[] = $filtro_concepto;
 }
 if ($propiedad_id) {
@@ -187,7 +197,7 @@ $gastos = $stmt->fetchAll();
 $total_gastos = array_sum(array_column($gastos, 'importe'));
 $cantidad_gastos = count($gastos);
 $promedio_gastos = $cantidad_gastos > 0 ? $total_gastos / $cantidad_gastos : 0;
-$tipos_concepto = count(array_unique(array_column($gastos, 'concepto')));
+$tipos_concepto = count(array_unique(array_column($gastos, 'concepto_nombre')));
 
 include 'includes/header_nav.php';
 ?>
@@ -229,16 +239,14 @@ include 'includes/header_nav.php';
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="concepto" class="form-label">Concepto *</label>
-                                <select name="concepto" id="concepto" class="form-select" required>
+                                <label for="concepto_id" class="form-label">Concepto *</label>
+                                <select name="concepto_id" id="concepto_id" class="form-select" required>
                                     <option value="">Seleccione...</option>
-                                    <option value="Pago de Gastos comunes" <?= ($edit_data['concepto'] ?? '') === 'Pago de Gastos comunes' ? 'selected' : '' ?>>Pago de Gastos comunes</option>
-                                    <option value="Pago de Impuestos" <?= ($edit_data['concepto'] ?? '') === 'Pago de Impuestos' ? 'selected' : '' ?>>Pago de Impuestos</option>
-                                    <option value="Pago de Servicios" <?= ($edit_data['concepto'] ?? '') === 'Pago de Servicios' ? 'selected' : '' ?>>Pago de Servicios</option>
-                                    <option value="Pago de Reparaciones" <?= ($edit_data['concepto'] ?? '') === 'Pago de Reparaciones' ? 'selected' : '' ?>>Pago de Reparaciones</option>
-                                    <option value="Pago de Mantenimiento" <?= ($edit_data['concepto'] ?? '') === 'Pago de Mantenimiento' ? 'selected' : '' ?>>Pago de Mantenimiento</option>
-                                    <option value="Pago de Convenios" <?= ($edit_data['concepto'] ?? '') === 'Pago de Convenios' ? 'selected' : '' ?>>Pago de Convenios</option>
-                                    <option value="Otros" <?= ($edit_data['concepto'] ?? '') === 'Otros' ? 'selected' : '' ?>>Otros</option>
+                                    <?php foreach ($conceptos as $c): ?>
+                                        <option value="<?= $c['id'] ?>" <?= ($edit_data['concepto_id'] ?? '') == $c['id'] ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($c['nombre']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
                         </div>
@@ -353,11 +361,11 @@ include 'includes/header_nav.php';
                     <label for="filtro_concepto" class="form-label">Concepto</label>
                     <select class="form-select" id="filtro_concepto" name="filtro_concepto">
                         <option value="">Todos los conceptos</option>
-                        <option value="Pago de Gastos comunes" <?= $filtro_concepto === 'Pago de Gastos comunes' ? 'selected' : '' ?>>Pago de Gastos comunes</option>
-                        <option value="Pago de Impuestos" <?= $filtro_concepto === 'Pago de Impuestos' ? 'selected' : '' ?>>Pago de Impuestos</option>
-                        <option value="Pago de Servicios" <?= $filtro_concepto === 'Pago de Servicios' ? 'selected' : '' ?>>Pago de Servicios</option>
-                        <option value="Pago de Reparaciones" <?= $filtro_concepto === 'Pago de Reparaciones' ? 'selected' : '' ?>>Pago de Reparaciones</option>
-                        <option value="Pago de Mantenimiento" <?= $filtro_concepto === 'Pago de Mantenimiento' ? 'selected' : '' ?>>Pago de Mantenimiento</option>
+                        <?php foreach ($conceptos as $c): ?>
+                            <option value="<?= $c['id'] ?>" <?= $filtro_concepto == $c['id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($c['nombre']) ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -411,7 +419,7 @@ include 'includes/header_nav.php';
                                         <strong><?= date('d/m/Y', strtotime($gasto['fecha'])) ?></strong>
                                     </td>
                                     <td>
-                                        <strong><?= htmlspecialchars($gasto['concepto']) ?></strong>
+                                        <strong><?= htmlspecialchars($gasto['concepto_nombre']) ?></strong>
                                         <?php if ($gasto['observaciones']): ?>
                                             <br><small class="text-muted"><?= htmlspecialchars($gasto['observaciones']) ?></small>
                                         <?php endif; ?>
