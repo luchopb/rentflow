@@ -142,6 +142,10 @@ $stmt = $pdo->prepare("SELECT id, nombre, direccion FROM propiedades ORDER BY no
 $stmt->execute();
 $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Obtener datos para los filtros
+$stmt_conceptos = $pdo->query("SELECT DISTINCT concepto FROM pagos WHERE concepto IS NOT NULL ORDER BY concepto");
+$conceptos = $stmt_conceptos->fetchAll(PDO::FETCH_COLUMN);
+
 // Filtros de fecha
 $fecha_desde = $_GET['fecha_desde'] ?? date('Y-m-01');
 $fecha_hasta = $_GET['fecha_hasta'] ?? date('Y-m-t');
@@ -353,11 +357,11 @@ include 'includes/header_nav.php';
                     <label for="filtro_concepto" class="form-label">Concepto</label>
                     <select class="form-select" id="filtro_concepto" name="filtro_concepto">
                         <option value="">Todos los conceptos</option>
-                        <option value="Pago de Gastos comunes" <?= $filtro_concepto === 'Pago de Gastos comunes' ? 'selected' : '' ?>>Pago de Gastos comunes</option>
-                        <option value="Pago de Impuestos" <?= $filtro_concepto === 'Pago de Impuestos' ? 'selected' : '' ?>>Pago de Impuestos</option>
-                        <option value="Pago de Servicios" <?= $filtro_concepto === 'Pago de Servicios' ? 'selected' : '' ?>>Pago de Servicios</option>
-                        <option value="Pago de Reparaciones" <?= $filtro_concepto === 'Pago de Reparaciones' ? 'selected' : '' ?>>Pago de Reparaciones</option>
-                        <option value="Pago de Mantenimiento" <?= $filtro_concepto === 'Pago de Mantenimiento' ? 'selected' : '' ?>>Pago de Mantenimiento</option>
+                        <?php foreach ($conceptos as $concepto): ?>
+                            <option value="<?= $concepto ?>" <?= $filtro_concepto === $concepto ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($concepto) ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="col-md-3">
