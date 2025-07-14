@@ -1,7 +1,6 @@
 <?php
 // Incluir cabecera y conexión
 include 'config.php';
-include 'includes/header_nav.php';
 
 // --- Lógica para insertar arqueo de caja ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fecha_arqueo'], $_POST['tipo_arqueo'], $_POST['importe'], $_POST['tipo_pago'])) {
@@ -10,21 +9,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fecha_arqueo'], $_POS
     $importe = floatval($_POST['importe']);
     $tipo_pago = $_POST['tipo_pago'];
     $usuario_id = 1; // Puedes cambiar esto por el usuario logueado si lo tienes
-    $concepto = 'Arqueo de Caja';
     $comprobante = null;
+    $comentario = $_POST['comentario'];
+    $fecha_creacion = date('Y-m-d H:i:s');
 
     if ($tipo_arqueo === 'sumar') {
         // Insertar como pago
-        $sql = "INSERT INTO pagos (fecha, concepto, tipo_pago, importe, comentario, comprobante, pagado, validado, usuario_id) VALUES (?, ?, ?, ?, ?, ?, 1, 1, ?)";
+        $concepto = 'Arqueo de Caja (suma)';
+        $sql = "INSERT INTO pagos (fecha, concepto, tipo_pago, importe, comentario, comprobante, pagado, validado, usuario_id, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, 1, 0, ?, ?)";
         $stmt = $pdo->prepare($sql);
-        $comentario = 'Arqueo de caja (suma)';
-        $stmt->execute([$fecha, $concepto, $tipo_pago, $importe, $comentario, $comprobante, $usuario_id]);
+        $stmt->execute([$fecha, $concepto, $tipo_pago, $importe, $comentario, $comprobante, $usuario_id, $fecha_creacion]);
     } else {
         // Insertar como gasto
-        $sql = "INSERT INTO gastos (fecha, concepto, importe, forma_pago, observaciones, comprobante, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $concepto = 'Arqueo de Caja (resta)';
+        $sql = "INSERT INTO gastos (fecha, concepto, importe, forma_pago, observaciones, comprobante, usuario_id, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
-        $observaciones = 'Arqueo de caja (resta)';
-        $stmt->execute([$fecha, $concepto, $importe, $tipo_pago, $observaciones, $comprobante, $usuario_id]);
+        $stmt->execute([$fecha, $concepto, $importe, $tipo_pago, $comentario, $comprobante, $usuario_id, $fecha_creacion]);
     }
     // Redirigir para evitar reenvío del formulario
     header('Location: cuenta_corriente.php');
@@ -33,27 +33,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fecha_arqueo'], $_POS
 
 // --- Consultar propietarios para el filtro ---
 $propietarios = $pdo->query("SELECT id, nombre FROM propietarios ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
-$propietario_id = isset($_GET['propietario_id']) ? intval($_GET['propietario_id']) : 0;
 
+// --- Filtros ---
+$propietario_id = isset($_GET['propietario_id']) ? intval($_GET['propietario_id']) : 1;
+$fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] ? $_GET['fecha_inicio'] : '2025-01-01';
+$fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] ? $_GET['fecha_fin'] : date('Y-m-d');
+$filtro_tipo_pago = isset($_GET['filtro_tipo_pago']) ? $_GET['filtro_tipo_pago'] : 'Efectivo';
 
 // --- Consulta de pagos ---
-$query_pagos = "SELECT p.fecha, p.concepto, p.tipo_pago AS forma_pago, p.comprobante, p.importe, 'pago' AS tipo
+// Levantar también el nombre del inquilino (alias: nombre_inquilino)
+$query_pagos = "SELECT 
+    p.fecha, 
+    p.concepto, 
+    p.tipo_pago AS forma_pago, 
+    p.comprobante, 
+    p.importe, 
+    'pago' AS tipo, 
+    comentario, 
+    pr.nombre AS propiedad, 
+    pr.id AS propiedad_id,
+    i.nombre AS nombre_inquilino,
+    validado
 FROM pagos p
 LEFT JOIN contratos c ON p.contrato_id = c.id
 LEFT JOIN propiedades pr ON c.propiedad_id = pr.id
+LEFT JOIN inquilinos i ON c.inquilino_id = i.id
 WHERE 1=1";
 
 
 // --- Consulta de gastos ---
-$query_gastos = "SELECT g.fecha, g.concepto, g.forma_pago, g.comprobante, g.importe, 'gasto' AS tipo
+// Levantar también el nombre del inquilino (alias: nombre_inquilino)
+$query_gastos = "SELECT 
+    g.fecha, 
+    g.concepto, 
+    g.forma_pago, 
+    g.comprobante, 
+    g.importe, 
+    'gasto' AS tipo, 
+    observaciones AS comentario, 
+    pr.nombre AS propiedad, 
+    pr.id AS propiedad_id,
+    i.nombre AS nombre_inquilino,
+    0 AS validado
 FROM gastos g
 LEFT JOIN propiedades pr ON g.propiedad_id = pr.id
+LEFT JOIN contratos c ON c.propiedad_id = pr.id
+LEFT JOIN inquilinos i ON c.inquilino_id = i.id
 WHERE 1=1";
 
-// --- Filtros ---
-$fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] ? $_GET['fecha_inicio'] : '2025-01-01';
-$fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] ? $_GET['fecha_fin'] : date('Y-m-d');
-$filtro_tipo_pago = isset($_GET['filtro_tipo_pago']) ? $_GET['filtro_tipo_pago'] : 'Todos';
 
 $params = [];
 $types = '';
@@ -83,11 +110,17 @@ if ($filtro_tipo_pago && $filtro_tipo_pago !== 'Todos') {
     }
 }
 if ($propietario_id) {
-    $query_gastos .= " AND pr.propietario_id = ?";
-    $query_pagos .= " AND pr.propietario_id = ?";
+    $propietario_todos = "";
+    if ($propietario_id === 1) {
+        // Si filtro por propietario id 1 (todos) agrego los pagos y gastos sin propíetario
+        $propietario_todos = " OR pr.propietario_id IS NULL";
+    }
+    $query_gastos .= " AND (pr.propietario_id = ? $propietario_todos )";
+    $query_pagos .= " AND (pr.propietario_id = ? $propietario_todos )";
     $params[] = $propietario_id;
     $types .= 'i';
 }
+
 
 // Ejecutar consultas
 $movimientos = [];
@@ -131,51 +164,13 @@ foreach ($movimientos as $i => $mov) {
     $saldo += $mov['credito'] - $mov['debito'];
     $movimientos[$i]['saldo'] = $saldo;
 }
+
+include 'includes/header_nav.php';
 ?>
+
 
 <div class="container mt-4">
     <h2>Cuenta Corriente</h2>
-    <div class="card d-none">
-        <div class="card-header">
-            <h5 class="mb-0">Arqueo de Caja</h5>
-        </div>
-        <div class="card-body">
-            <form method="post" action="">
-                <div class="row mb-2">
-                    <div class="col-md-3">
-                        <label for="fecha_arqueo">Fecha:</label>
-                        <input type="date" class="form-control" name="fecha_arqueo" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label>Tipo de arqueo:</label><br>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="tipo_arqueo" id="sumar" value="sumar" checked>
-                            <label class="form-check-label" for="sumar">Sumar</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="tipo_arqueo" id="restar" value="restar">
-                            <label class="form-check-label" for="restar">Restar</label>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="importe">Importe:</label>
-                        <input type="number" step="0.01" class="form-control" name="importe" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="tipo_pago">Tipo de Pago:</label>
-                        <select class="form-control" name="tipo_pago" required>
-                            <option value="Efectivo">Efectivo</option>
-                            <option value="Transferencia">Transferencia</option>
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary">Agregar Arqueo</button>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="container mt-4">
 
     <div class="card">
         <div class="card-header">
@@ -217,6 +212,7 @@ foreach ($movimientos as $i => $mov) {
     </div>
 
     <div class="table-responsive mt-4">
+        <h3>Saldo final: $<?php echo number_format($saldo, 2, ',', '.'); ?></h3>
         <!-- Tabla de cuenta corriente -->
         <table class="table table-bordered table-sm table-hover tabla-cuentacorriente">
             <thead>
@@ -224,8 +220,8 @@ foreach ($movimientos as $i => $mov) {
                     <th>Fecha</th>
                     <th>Detalle</th>
                     <th>Tipo de pago</th>
-                    <th>Crédito</th>
-                    <th>Débito</th>
+                    <th>Ingreso</th>
+                    <th>Egreso</th>
                     <th>Saldo</th>
                 </tr>
             </thead>
@@ -234,25 +230,97 @@ foreach ($movimientos as $i => $mov) {
                     <tr>
                         <td><?php echo htmlspecialchars($mov['fecha']); ?></td>
                         <td>
+                            <?php if ($mov['validado'] == 1): ?>
+                                <small class="text-success">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                </small>
+                            <?php endif; ?>
+                            <?php if (!is_null($mov['propiedad'])): ?>
+                                <a href="propiedades.php?edit=<?= $mov['propiedad_id'] ?>" class="text-decoration-none text-dark">
+                                    <strong><?php echo htmlspecialchars($mov['propiedad']); ?></strong>
+                                </a>
+                            <?php endif; ?>
+                            <?php if (!is_null($mov['nombre_inquilino'])): ?>
+                                <strong><?php echo htmlspecialchars($mov['nombre_inquilino']); ?></strong><br>
+                            <?php endif; ?>
+                            <?php echo htmlspecialchars($mov['concepto']); ?>
+                            <?php if (!is_null($mov['comentario']) && $mov['comentario'] !== ''): ?>
+                                <?php
+                                    $comentario = htmlspecialchars($mov['comentario']);
+                                    if (mb_strlen($comentario) > 120) {
+                                        $comentario = mb_substr($comentario, 0, 120) . '...';
+                                    }
+                                ?>
+                                <small><?php echo $comentario; ?></small>
+                            <?php endif; ?>
+                        </td>
+                        <td>
                             <?php if (!empty($mov['comprobante'])): ?>
                                 <a href="uploads/<?php echo urlencode($mov['comprobante']); ?>" target="_blank" class="badge bg-info">
                                     Comprobante
                                 </a>
                             <?php else: ?>
                                 <small class="badge bg-secondary">Sin comprobante</small>
-                            <?php endif; ?>
-                            <?php echo htmlspecialchars($mov['concepto']); ?>
+                            <?php endif; ?><br>
+                            <?php echo htmlspecialchars($mov['forma_pago']); ?>
                         </td>
-                        <td><?php echo htmlspecialchars($mov['forma_pago']); ?></td>
                         <td><?php echo $mov['credito'] ? number_format($mov['credito'], 2, ',', '.') : ''; ?></td>
-                        <td><?php echo $mov['debito'] ? number_format($mov['debito'], 2, ',', '.') : ''; ?></td>
+                        <td class="text-danger"><?php echo $mov['debito'] ? '-' . number_format($mov['debito'], 2, ',', '.') : ''; ?></td>
                         <td><?php echo number_format($mov['saldo'], 2, ',', '.'); ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
+        <h3>Saldo final: $<?php echo number_format($saldo, 2, ',', '.'); ?></h3>
     </div>
 </div>
+
+
+<div class="container mt-4 mb-4">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Arqueo de Caja</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="">
+                <div class="row mb-2">
+                    <div class="col-md-2">
+                        <label for="fecha_arqueo">Fecha:</label>
+                        <input type="date" class="form-control" name="fecha_arqueo" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label>Tipo de arqueo:</label><br>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="tipo_arqueo" id="sumar" value="sumar" checked>
+                            <label class="form-check-label" for="sumar">Sumar</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="tipo_arqueo" id="restar" value="restar">
+                            <label class="form-check-label" for="restar">Restar</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="importe">Importe $:</label>
+                        <input type="number" step="1" class="form-control" name="importe" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="tipo_pago">Tipo de Pago:</label>
+                        <select class="form-control" name="tipo_pago" required>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="importe">Comentario:</label>
+                        <input type="text" class="form-control" name="comentario" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Agregar Arqueo</button>
+            </form>
+        </div>
+    </div>
+</div>
+
 <?php
 // Incluir pie de página
 include 'includes/footer.php';

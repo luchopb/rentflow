@@ -573,7 +573,8 @@ include 'includes/header_nav.php';
                                                    type="checkbox" 
                                                    id="validado_<?= $pago['id'] ?>"
                                                    data-pago-id="<?= $pago['id'] ?>"
-                                                   <?= ($pago['validado'] ?? false) ? 'checked' : '' ?>>
+                                                   <?= ($pago['validado'] ?? false) ? 'checked' : '' ?>
+                                                   onclick="if(!confirm('¿Realmente desea validar el pago?')) { event.preventDefault(); return false; }">
                                             <label class="form-check-label ms-2" for="validado_<?= $pago['id'] ?>">
                                                 <?php if ($pago['validado']): ?>
                                                     <small class="text-success">
