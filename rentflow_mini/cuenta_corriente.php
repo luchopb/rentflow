@@ -113,7 +113,7 @@ if ($propietario_id) {
     $propietario_todos = "";
     if ($propietario_id === 1) {
         // Si filtro por propietario id 1 (todos) agrego los pagos y gastos sin propíetario
-        $propietario_todos = " OR pr.propietario_id IS NULL";
+        $propietario_todos = " OR pr.propietario_id = 2 OR pr.propietario_id IS NULL";
     }
     $query_gastos .= " AND (pr.propietario_id = ? $propietario_todos )";
     $query_pagos .= " AND (pr.propietario_id = ? $propietario_todos )";
@@ -246,10 +246,10 @@ include 'includes/header_nav.php';
                             <?php echo htmlspecialchars($mov['concepto']); ?>
                             <?php if (!is_null($mov['comentario']) && $mov['comentario'] !== ''): ?>
                                 <?php
-                                    $comentario = htmlspecialchars($mov['comentario']);
-                                    if (mb_strlen($comentario) > 120) {
-                                        $comentario = mb_substr($comentario, 0, 120) . '...';
-                                    }
+                                $comentario = htmlspecialchars($mov['comentario']);
+                                if (mb_strlen($comentario) > 120) {
+                                    $comentario = mb_substr($comentario, 0, 120) . '...';
+                                }
                                 ?>
                                 <small><?php echo $comentario; ?></small>
                             <?php endif; ?>
@@ -301,7 +301,7 @@ include 'includes/header_nav.php';
                     </div>
                     <div class="col-md-2">
                         <label for="importe">Importe $:</label>
-                        <input type="number" step="1" class="form-control" name="importe" required>
+                        <input type="number" step="0.01" class="form-control" name="importe" required>
                     </div>
                     <div class="col-md-3">
                         <label for="tipo_pago">Tipo de Pago:</label>
