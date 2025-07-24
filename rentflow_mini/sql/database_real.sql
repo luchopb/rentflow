@@ -115,6 +115,9 @@ CREATE TABLE IF NOT EXISTS `gastos` (
   `usuario_id` int(11) NOT NULL,
   `fecha_creacion` datetime DEFAULT CURRENT_TIMESTAMP,
   `fecha_modificacion` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `validado` tinyint(1) DEFAULT '0',
+  `fecha_validacion` datetime DEFAULT NULL,
+  `usuario_validacion_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_gastos_propiedad` (`propiedad_id`),
   KEY `fk_gastos_usuario` (`usuario_id`)
@@ -124,9 +127,9 @@ CREATE TABLE IF NOT EXISTS `gastos` (
 -- Volcado de datos para la tabla `gastos`
 --
 
-INSERT INTO `gastos` (`id`, `fecha`, `concepto`, `importe`, `forma_pago`, `observaciones`, `comprobante`, `propiedad_id`, `usuario_id`, `fecha_creacion`, `fecha_modificacion`) VALUES
-(1, '2025-07-02', 'Pago de Gastos comunes', 1829.00, 'Transferencia', 'pago gastos comunes galeria de las americas propietario local 5 , 10 , 31 , 35 , 103 , 105, 106', '6865e7581cc34-IMG_2026.png', NULL, 1, '2025-07-02 21:13:44', '2025-07-02 21:13:44'),
-(2, '2025-07-07', 'Pago de Impuestos', 27960.00, 'Transferencia', 'Paga Raúl de su cuenta devolver la mitad de la cuenta en conjunto', '686c130d63e9e-31e321d7-e026-4ca5-bbcb-6c590a68e806.jpeg', 19, 1, '2025-07-07 13:33:49', '2025-07-07 13:33:49');
+INSERT INTO `gastos` (`id`, `fecha`, `concepto`, `importe`, `forma_pago`, `observaciones`, `comprobante`, `propiedad_id`, `usuario_id`, `fecha_creacion`, `fecha_modificacion`, `validado`, `fecha_validacion`, `usuario_validacion_id`) VALUES
+(1, '2025-07-02', 'Pago de Gastos comunes', 1829.00, 'Transferencia', 'pago gastos comunes galeria de las americas propietario local 5 , 10 , 31 , 35 , 103 , 105, 106', '6865e7581cc34-IMG_2026.png', NULL, 1, '2025-07-02 21:13:44', '2025-07-02 21:13:44', 0, NULL, NULL),
+(2, '2025-07-07', 'Pago de Impuestos', 27960.00, 'Transferencia', 'Paga Raúl de su cuenta devolver la mitad de la cuenta en conjunto', '686c130d63e9e-31e321d7-e026-4ca5-bbcb-6c590a68e806.jpeg', 19, 1, '2025-07-07 13:33:49', '2025-07-07 13:33:49', 0, NULL, NULL);
 
 -- --------------------------------------------------------
 

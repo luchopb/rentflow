@@ -161,3 +161,8 @@ ALTER TABLE pagos ADD COLUMN fecha_validacion DATETIME NULL AFTER validado;
 ALTER TABLE pagos ADD COLUMN usuario_validacion_id INT NULL AFTER fecha_validacion;
 
 ALTER TABLE gastos CHANGE concepto concepto VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL;
+
+-- Agregar campos para validación de gastos
+ALTER TABLE gastos ADD COLUMN validado BOOLEAN DEFAULT FALSE AFTER fecha_modificacion;
+ALTER TABLE gastos ADD COLUMN fecha_validacion DATETIME NULL AFTER validado;
+ALTER TABLE gastos ADD COLUMN usuario_validacion_id INT NULL AFTER fecha_validacion;

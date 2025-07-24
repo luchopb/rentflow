@@ -405,6 +405,7 @@ include 'includes/header_nav.php';
                                 <th>Forma de Pago</th>
                                 <th>Propiedad</th>
                                 <th>Comprobante</th>
+                                <th>Validado</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -448,7 +449,28 @@ include 'includes/header_nav.php';
                                         <?php endif; ?>
                                         <small><?= htmlspecialchars($gasto['usuario_nombre'] ?? 'Usuario') ?></small><br>
                                         <small class="text-muted"><?= date('d/m/Y H:i', strtotime($gasto['fecha_creacion'])) ?></small>
-
+                                    </td>
+                                    <td>
+                                        <div class="form-check d-flex">
+                                            <input class="form-check-input checkbox-validacion-gasto" 
+                                                   type="checkbox" 
+                                                   id="validado_gasto_<?= $gasto['id'] ?>"
+                                                   data-gasto-id="<?= $gasto['id'] ?>"
+                                                   <?= ($gasto['validado'] ?? false) ? 'checked' : '' ?>
+                                                   onclick="if(!confirm('¿Realmente desea validar este gasto?')) { event.preventDefault(); return false; }">
+                                            <label class="form-check-label ms-2" for="validado_gasto_<?= $gasto['id'] ?>">
+                                                <?php if ($gasto['validado']): ?>
+                                                    <small class="text-success">
+                                                        <i class="bi bi-check-circle-fill"></i> Validado
+                                                        <?php if ($gasto['fecha_validacion']): ?>
+                                                            <br><small><?= date('d/m/Y H:i', strtotime($gasto['fecha_validacion'])) ?></small>
+                                                        <?php endif; ?>
+                                                    </small>
+                                                <?php else: ?>
+                                                    <small class="text-muted">Pendiente</small>
+                                                <?php endif; ?>
+                                            </label>
+                                        </div>
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm" role="group">
@@ -473,3 +495,84 @@ include 'includes/header_nav.php';
 </main>
 
 <?php include 'includes/footer.php'; ?>
+<script>
+// Manejar cambios en los checkboxes de validación de gastos
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkboxesValidacionGasto = document.querySelectorAll('.checkbox-validacion-gasto');
+        checkboxesValidacionGasto.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const gastoId = this.getAttribute('data-gasto-id');
+                const validado = this.checked;
+                this.disabled = true;
+                validarGasto(gastoId, validado);
+                setTimeout(() => {
+                    this.disabled = false;
+                }, 1000);
+            });
+        });
+    });
+
+    function validarGasto(gastoId, validado) {
+        const formData = new FormData();
+        formData.append('gasto_id', gastoId);
+        formData.append('validado', validado);
+        fetch('validar_gasto.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const mensaje = document.createElement('div');
+                mensaje.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                mensaje.innerHTML = `
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.body.appendChild(mensaje);
+                setTimeout(() => { mensaje.remove(); }, 3000);
+                const checkbox = document.getElementById(`validado_gasto_${gastoId}`);
+                const label = checkbox.nextElementSibling;
+                if (validado) {
+                    label.innerHTML = `
+                        <small class="text-success">
+                            <i class="bi bi-check-circle-fill"></i> Validado
+                            <br><small>${data.fecha_validacion ? new Date(data.fecha_validacion).toLocaleString('es-ES', {
+                                day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                            }) : ''}</small>
+                        </small>
+                    `;
+                } else {
+                    label.innerHTML = '<small class="text-muted">Pendiente</small>';
+                }
+            } else {
+                const mensaje = document.createElement('div');
+                mensaje.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+                mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                mensaje.innerHTML = `
+                    Error: ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.body.appendChild(mensaje);
+                setTimeout(() => { mensaje.remove(); }, 5000);
+                const checkbox = document.getElementById(`validado_gasto_${gastoId}`);
+                checkbox.checked = !validado;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            const mensaje = document.createElement('div');
+            mensaje.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+            mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            mensaje.innerHTML = `
+                Error de conexión. Intente nuevamente.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(mensaje);
+            setTimeout(() => { mensaje.remove(); }, 5000);
+            const checkbox = document.getElementById(`validado_gasto_${gastoId}`);
+            checkbox.checked = !validado;
+        });
+    }
+</script>

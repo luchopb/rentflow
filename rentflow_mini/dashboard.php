@@ -25,9 +25,19 @@ $total_propiedades = array_sum(array_column($propiedades_por_tipo, 'total'));
 $total_ocupadas = array_sum(array_column($propiedades_por_tipo, 'ocupadas'));
 $ratio_ocupacion = $total_propiedades > 0 ? round(($total_ocupadas / $total_propiedades) * 100) : 0;
 
-// Obtener propiedades y sus inquilinos actuales
+// Obtener propiedades y sus inquilinos actuales junto a último pago mensual
 $stmt = $pdo->prepare("
-    SELECT c.id AS id, p.nombre AS propiedad_nombre, i.nombre AS inquilino_nombre, i.id AS inquilino_id, c.fecha_fin 
+    SELECT c.id AS id, p.nombre AS propiedad_nombre, i.nombre AS inquilino_nombre, i.id AS inquilino_id, c.fecha_fin,
+           (
+               SELECT pa.fecha FROM pagos pa 
+               WHERE pa.contrato_id = c.id AND pa.concepto = 'Pago mensual'
+               ORDER BY pa.periodo DESC, pa.fecha DESC LIMIT 1
+           ) AS fecha_ultimo_pago,
+           (
+               SELECT pa.periodo FROM pagos pa 
+               WHERE pa.contrato_id = c.id AND pa.concepto = 'Pago mensual'
+               ORDER BY pa.periodo DESC, pa.fecha DESC LIMIT 1
+           ) AS periodo_ultimo_pago
     FROM propiedades p
     INNER JOIN contratos c ON p.id = c.propiedad_id AND c.estado = 'activo'
     LEFT JOIN inquilinos i ON c.inquilino_id = i.id
@@ -257,6 +267,14 @@ $contratos_vencidos = $stmt_vencidos->fetchAll(PDO::FETCH_ASSOC);
                 <a href="pagos.php?contrato_id=<?= $fila['id'] ?>" class="btn btn-success btn-sm">Pago recibido</a>
               <?php else: ?>
                 <a href="pagos.php?contrato_id=<?= $fila['id'] ?>&add=true" class="btn btn-outline-success btn-sm">Registrar pago</a>
+              <?php endif; ?>
+              <?php if ($fila['fecha_ultimo_pago'] && $fila['periodo_ultimo_pago']): ?>
+                <div class="small text-muted mt-1">
+                  <b><?= date('Y-m-d', strtotime($fila['fecha_ultimo_pago'])) ?></b> Último pago<br>
+                  <b><?= htmlspecialchars($fila['periodo_ultimo_pago']) ?></b> Período
+                </div>
+              <?php else: ?>
+                <div class="small text-muted mt-1">Sin pagos registrados</div>
               <?php endif; ?>
             </td>
           </tr>
