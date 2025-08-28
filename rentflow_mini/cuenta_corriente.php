@@ -74,7 +74,7 @@ $query_gastos = "SELECT
     pr.nombre AS propiedad, 
     pr.id AS propiedad_id,
     i.nombre AS nombre_inquilino,
-    0 AS validado
+    validado
 FROM gastos g
 LEFT JOIN propiedades pr ON g.propiedad_id = pr.id
 LEFT JOIN contratos c ON c.propiedad_id = pr.id
@@ -111,11 +111,14 @@ if ($filtro_tipo_pago && $filtro_tipo_pago !== 'Todos') {
 }
 if ($propietario_id) {
     $propietario_todos = "";
+    $propietario_todos_gastos = "";
     if ($propietario_id === 1) {
         // Si filtro por propietario id 1 (todos) agrego los pagos y gastos sin propíetario
         $propietario_todos = " OR pr.propietario_id = 2 OR pr.propietario_id IS NULL";
+        // para los gastos agrego los gastos de todos porque salen de nuestra cuenta 
+        $propietario_todos_gastos = " OR pr.propietario_id = 2 OR pr.propietario_id = 5 OR pr.propietario_id = 6 OR pr.propietario_id = 9 OR pr.propietario_id IS NULL";
     }
-    $query_gastos .= " AND (pr.propietario_id = ? $propietario_todos )";
+    $query_gastos .= " AND (pr.propietario_id = ? $propietario_todos_gastos )";
     $query_pagos .= " AND (pr.propietario_id = ? $propietario_todos )";
     $params[] = $propietario_id;
     $types .= 'i';
@@ -230,6 +233,7 @@ include 'includes/header_nav.php';
                     <tr>
                         <td><?php echo htmlspecialchars($mov['fecha']); ?></td>
                         <td>
+                            <input type="checkbox" name="validado" value="">
                             <?php if ($mov['validado'] == 1): ?>
                                 <small class="text-success">
                                     <i class="bi bi-check-circle-fill"></i>
