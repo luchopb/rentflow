@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
       $cuerpo .= '<b>Propietario:</b> ' . htmlspecialchars($info['propietario_nombre']) . '<br>';
       $cuerpo .= '<b>Período:</b> ' . htmlspecialchars($periodo) . '<br>';
       $cuerpo .= '<b>Fecha de pago:</b> ' . htmlspecialchars($fecha_pago) . '<br>';
-      $cuerpo .= '<b>Importe:</b> $' . number_format($importe,2,',','.') . '<br>';
+      $cuerpo .= '<b>Importe:</b> $' . number_format($importe, 2, ',', '.') . '<br>';
       $cuerpo .= '<b>Concepto:</b> ' . htmlspecialchars($concepto) . '<br>';
       $cuerpo .= '<b>Tipo de pago:</b> ' . htmlspecialchars($tipo_pago) . '<br>';
       if ($comentario) $cuerpo .= '<b>Comentario:</b> ' . htmlspecialchars($comentario) . '<br>';
@@ -128,7 +128,13 @@ include 'includes/header_nav.php';
 
 <main class="container container-main py-4">
 
-  <h1>Pagos</h1>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Pagos</h1>
+    <button class="btn btn-lg btn-primary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formPagoCollapse" aria-expanded="<?= $add_pago ? 'true' : 'false' ?>" aria-controls="formPagoCollapse" style="font-weight:600;">
+      <?= $add_pago ? 'Ocultar' : 'Agregar Nuevo Pago' ?>
+    </button>
+  </div>
+
   <p>
     Contrato: <a href="contratos.php?edit=<?= $contrato_id ?>" class="text-decoration-none text-dark"><strong>#<?= $contrato_id ?></strong></a><br>
     Inquilino: <a href="inquilinos.php?edit=<?= intval($contrato['inquilino_id']) ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['inquilino_nombre']) ?></strong> <?= htmlspecialchars($contrato['vehiculo']) ?> <?= htmlspecialchars($contrato['matricula']) ?> <?= htmlspecialchars($contrato['telefono']) ?></a><br>
@@ -147,10 +153,6 @@ include 'includes/header_nav.php';
     </div>
   <?php endif; ?>
 
-  <!-- Botón para mostrar/ocultar el formulario de nuevo pago -->
-  <button class="btn btn-outline-dark mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formPagoCollapse" aria-expanded="<?= $add_pago ? 'true' : 'false' ?>" aria-controls="formPagoCollapse" style="font-weight:600;">
-    <?= $add_pago ? 'Ocultar' : 'Agregar Nuevo Pago' ?>
-  </button>
 
   <div class="collapse <?= $add_pago ? 'show' : '' ?>" id="formPagoCollapse">
     <div class="card mb-4">
@@ -193,11 +195,11 @@ include 'includes/header_nav.php';
               <option value="Efectivo">Efectivo</option>
               <option value="Efectivo (Sobre)">Efectivo (Sobre)</option>
               <option value="Transferencia">Transferencia</option>
-              <option value="Transferencia Papá">Transferencia Papá</option>
+              <!--option value="Transferencia Papá">Transferencia Papá</option>
               <option value="Depósito RedPagos">Depósito RedPagos</option>
               <option value="Depósito Abitab">Depósito Abitab</option>
               <option value="Depósito Cuenta Papá">Depósito Cuenta Papá</option>
-              <option value="Depósito Cuenta Papá">Depósito Cuenta Lucho</option>
+              <option value="Depósito Cuenta Papá">Depósito Cuenta Lucho</option-->
             </select>
           </div>
 

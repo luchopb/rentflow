@@ -10,6 +10,7 @@ $message = '';
 $errors = [];
 $busqueda = clean_input($_GET['search'] ?? '');
 $filtro_concepto = clean_input($_GET['filtro_concepto'] ?? '');
+$filtro_forma_pago = clean_input($_GET['filtro_forma_pago'] ?? '');
 $propiedad_id = intval($_GET['propiedad_id'] ?? 0);
 
 // Verificar si se debe mostrar el formulario de nuevo gasto
@@ -143,8 +144,12 @@ $stmt->execute();
 $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Obtener datos para los filtros
-$stmt_conceptos = $pdo->query("SELECT DISTINCT concepto FROM pagos WHERE concepto IS NOT NULL ORDER BY concepto");
+$stmt_conceptos = $pdo->query("SELECT DISTINCT concepto FROM gastos WHERE concepto IS NOT NULL ORDER BY concepto");
 $conceptos = $stmt_conceptos->fetchAll(PDO::FETCH_COLUMN);
+
+// Obtener formas de pago disponibles para el filtro
+$stmt_formas_pago = $pdo->query("SELECT DISTINCT forma_pago FROM gastos WHERE forma_pago IS NOT NULL ORDER BY forma_pago");
+$formas_pago = $stmt_formas_pago->fetchAll(PDO::FETCH_COLUMN);
 
 // Filtros de fecha
 $fecha_desde = $_GET['fecha_desde'] ?? date('Y-m-01');
@@ -170,6 +175,10 @@ if ($filtro_concepto) {
 if ($propiedad_id) {
     $where_conditions[] = "g.propiedad_id = ?";
     $params[] = $propiedad_id;
+}
+if ($filtro_forma_pago) {
+    $where_conditions[] = "g.forma_pago = ?";
+    $params[] = $filtro_forma_pago;
 }
 if ($fecha_desde) {
     $where_conditions[] = "g.fecha >= ?";
@@ -199,7 +208,7 @@ include 'includes/header_nav.php';
 <main class="container container-main py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Gastos</h1>
-        <button class="btn btn-outline-dark" type="button" data-bs-toggle="collapse" data-bs-target="#formGastoCollapse" aria-expanded="<?= $show_form ? 'true' : 'false' ?>" aria-controls="formGastoCollapse" style="font-weight:600;">
+        <button class="btn btn-lg btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#formGastoCollapse" aria-expanded="<?= $show_form ? 'true' : 'false' ?>" aria-controls="formGastoCollapse" style="font-weight:600;">
             <?= $show_form ? 'Ocultar' : 'Agregar Nuevo Gasto' ?>
         </button>
     </div>
@@ -242,6 +251,7 @@ include 'includes/header_nav.php';
                                     <option value="Pago de Reparaciones" <?= ($edit_data['concepto'] ?? '') === 'Pago de Reparaciones' ? 'selected' : '' ?>>Pago de Reparaciones</option>
                                     <option value="Pago de Mantenimiento" <?= ($edit_data['concepto'] ?? '') === 'Pago de Mantenimiento' ? 'selected' : '' ?>>Pago de Mantenimiento</option>
                                     <option value="Pago de Convenios" <?= ($edit_data['concepto'] ?? '') === 'Pago de Convenios' ? 'selected' : '' ?>>Pago de Convenios</option>
+                                    <option value="Paganza" <?= ($edit_data['concepto'] ?? '') === 'Paganza' ? 'selected' : '' ?>>Paganza</option>
                                     <option value="Otros" <?= ($edit_data['concepto'] ?? '') === 'Otros' ? 'selected' : '' ?>>Otros</option>
                                 </select>
                             </div>
@@ -345,11 +355,11 @@ include 'includes/header_nav.php';
     <div class="card mb-4">
         <div class="card-body">
             <form method="GET" class="row g-3">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label for="fecha_desde" class="form-label">Fecha desde</label>
                     <input type="date" class="form-control" id="fecha_desde" name="fecha_desde" value="<?= htmlspecialchars($fecha_desde) ?>">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label for="fecha_hasta" class="form-label">Fecha hasta</label>
                     <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta" value="<?= htmlspecialchars($fecha_hasta) ?>">
                 </div>
@@ -360,6 +370,17 @@ include 'includes/header_nav.php';
                         <?php foreach ($conceptos as $concepto): ?>
                             <option value="<?= $concepto ?>" <?= $filtro_concepto === $concepto ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($concepto) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="filtro_forma_pago" class="form-label">Tipo de Pago</label>
+                    <select class="form-select" id="filtro_forma_pago" name="filtro_forma_pago">
+                        <option value="">Todos los tipos</option>
+                        <?php foreach ($formas_pago as $forma): ?>
+                            <option value="<?= $forma ?>" <?= $filtro_forma_pago === $forma ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($forma) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -452,12 +473,12 @@ include 'includes/header_nav.php';
                                     </td>
                                     <td>
                                         <div class="form-check d-flex">
-                                            <input class="form-check-input checkbox-validacion-gasto" 
-                                                   type="checkbox" 
-                                                   id="validado_gasto_<?= $gasto['id'] ?>"
-                                                   data-gasto-id="<?= $gasto['id'] ?>"
-                                                   <?= ($gasto['validado'] ?? false) ? 'checked' : '' ?>
-                                                   onclick="if(!confirm('¿Realmente desea validar este gasto?')) { event.preventDefault(); return false; }">
+                                            <input class="form-check-input checkbox-validacion-gasto"
+                                                type="checkbox"
+                                                id="validado_gasto_<?= $gasto['id'] ?>"
+                                                data-gasto-id="<?= $gasto['id'] ?>"
+                                                <?= ($gasto['validado'] ?? false) ? 'checked' : '' ?>
+                                                onclick="if(!confirm('¿Realmente desea validar este gasto?')) { event.preventDefault(); return false; }">
                                             <label class="form-check-label ms-2" for="validado_gasto_<?= $gasto['id'] ?>">
                                                 <?php if ($gasto['validado']): ?>
                                                     <small class="text-success">
@@ -496,7 +517,7 @@ include 'includes/header_nav.php';
 
 <?php include 'includes/footer.php'; ?>
 <script>
-// Manejar cambios en los checkboxes de validación de gastos
+    // Manejar cambios en los checkboxes de validación de gastos
     document.addEventListener('DOMContentLoaded', function() {
         const checkboxesValidacionGasto = document.querySelectorAll('.checkbox-validacion-gasto');
         checkboxesValidacionGasto.forEach(checkbox => {
@@ -517,25 +538,27 @@ include 'includes/header_nav.php';
         formData.append('gasto_id', gastoId);
         formData.append('validado', validado);
         fetch('validar_gasto.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const mensaje = document.createElement('div');
-                mensaje.className = 'alert alert-success alert-dismissible fade show position-fixed';
-                mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-                mensaje.innerHTML = `
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const mensaje = document.createElement('div');
+                    mensaje.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                    mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                    mensaje.innerHTML = `
                     ${data.message}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 `;
-                document.body.appendChild(mensaje);
-                setTimeout(() => { mensaje.remove(); }, 3000);
-                const checkbox = document.getElementById(`validado_gasto_${gastoId}`);
-                const label = checkbox.nextElementSibling;
-                if (validado) {
-                    label.innerHTML = `
+                    document.body.appendChild(mensaje);
+                    setTimeout(() => {
+                        mensaje.remove();
+                    }, 3000);
+                    const checkbox = document.getElementById(`validado_gasto_${gastoId}`);
+                    const label = checkbox.nextElementSibling;
+                    if (validado) {
+                        label.innerHTML = `
                         <small class="text-success">
                             <i class="bi bi-check-circle-fill"></i> Validado
                             <br><small>${data.fecha_validacion ? new Date(data.fecha_validacion).toLocaleString('es-ES', {
@@ -543,36 +566,40 @@ include 'includes/header_nav.php';
                             }) : ''}</small>
                         </small>
                     `;
+                    } else {
+                        label.innerHTML = '<small class="text-muted">Pendiente</small>';
+                    }
                 } else {
-                    label.innerHTML = '<small class="text-muted">Pendiente</small>';
+                    const mensaje = document.createElement('div');
+                    mensaje.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+                    mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                    mensaje.innerHTML = `
+                    Error: ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                    document.body.appendChild(mensaje);
+                    setTimeout(() => {
+                        mensaje.remove();
+                    }, 5000);
+                    const checkbox = document.getElementById(`validado_gasto_${gastoId}`);
+                    checkbox.checked = !validado;
                 }
-            } else {
+            })
+            .catch(error => {
+                console.error('Error:', error);
                 const mensaje = document.createElement('div');
                 mensaje.className = 'alert alert-danger alert-dismissible fade show position-fixed';
                 mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
                 mensaje.innerHTML = `
-                    Error: ${data.message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                `;
-                document.body.appendChild(mensaje);
-                setTimeout(() => { mensaje.remove(); }, 5000);
-                const checkbox = document.getElementById(`validado_gasto_${gastoId}`);
-                checkbox.checked = !validado;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            const mensaje = document.createElement('div');
-            mensaje.className = 'alert alert-danger alert-dismissible fade show position-fixed';
-            mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-            mensaje.innerHTML = `
                 Error de conexión. Intente nuevamente.
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
-            document.body.appendChild(mensaje);
-            setTimeout(() => { mensaje.remove(); }, 5000);
-            const checkbox = document.getElementById(`validado_gasto_${gastoId}`);
-            checkbox.checked = !validado;
-        });
+                document.body.appendChild(mensaje);
+                setTimeout(() => {
+                    mensaje.remove();
+                }, 5000);
+                const checkbox = document.getElementById(`validado_gasto_${gastoId}`);
+                checkbox.checked = !validado;
+            });
     }
 </script>

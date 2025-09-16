@@ -68,7 +68,12 @@ include 'includes/header_nav.php';
 ?>
 
 <main class="container container-main py-4">
-  <h1>Propietarios</h1>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Propietarios</h1>
+    <button class="btn btn-lg btn-primary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formPropietarioCollapse" aria-expanded="<?= $show_form || $edit_id || !empty($errors) ? 'true' : 'false' ?>" aria-controls="formPropietarioCollapse" style="font-weight:600;">
+      <?= $show_form || $edit_id || !empty($errors) ? 'Ocultar' : 'Agregar Nuevo Propietario' ?>
+    </button>
+  </div>
 
   <?php if ($msg): ?>
     <div class="alert alert-success"><?= htmlspecialchars($msg) ?></div>
@@ -79,9 +84,6 @@ include 'includes/header_nav.php';
     </div>
   <?php endif; ?>
 
-  <button class="btn btn-outline-dark mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formPropietarioCollapse" aria-expanded="<?= $show_form || $edit_id || !empty($errors) ? 'true' : 'false' ?>" aria-controls="formPropietarioCollapse" style="font-weight:600;">
-    <?= $show_form || $edit_id || !empty($errors) ? 'Ocultar' : 'Agregar Nuevo Propietario' ?>
-  </button>
 
   <div class="collapse <?= $show_form || $edit_id || !empty($errors) ? 'show' : '' ?>" id="formPropietarioCollapse">
     <div class="card p-4 mb-4 mt-3">

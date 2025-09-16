@@ -256,13 +256,13 @@ $total_pagos = count($pagos);
 $monto_total = array_sum(array_column($pagos, 'importe'));
 
 // Calcular estadísticas de validación
-$pagos_validados = array_filter($pagos, function($pago) {
+$pagos_validados = array_filter($pagos, function ($pago) {
     return $pago['validado'] ?? false;
 });
 $total_validados = count($pagos_validados);
 $monto_validados = array_sum(array_column($pagos_validados, 'importe'));
 
-$pagos_pendientes = array_filter($pagos, function($pago) {
+$pagos_pendientes = array_filter($pagos, function ($pago) {
     return !($pago['validado'] ?? false);
 });
 $total_pendientes = count($pagos_pendientes);
@@ -304,7 +304,7 @@ include 'includes/header_nav.php';
 <main class="container container-main py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Pagos</h1>
-        <a href="pagos.php" class="btn btn-outline-dark" style="font-weight:600;">Agregar Nuevo Pago</a>
+        <a href="pagos.php" class="btn btn-lg btn-primary" style="font-weight:600;">Agregar Nuevo Pago</a>
     </div>
 
     <?php if ($message): ?>
@@ -537,24 +537,24 @@ include 'includes/header_nav.php';
                                         <span class="badge bg-primary"><?= htmlspecialchars($pago['periodo']) ?></span>
                                     </td>
                                     <td>
-                                            <strong>
-                                                <a href="propiedades.php?edit=<?= intval($pago['propiedad_id']) ?>" class="text-decoration-none text-dark">
-                                                    <?= htmlspecialchars($pago['propiedad_nombre']) ?>
-                                                </a>
-                                            </strong>
-                                            <?php if ($pago['propiedad_direccion']): ?>
-                                                <br><small class="text-muted"><?= htmlspecialchars($pago['propiedad_direccion']) ?></small>
-                                            <?php endif; ?>
+                                        <strong>
+                                            <a href="propiedades.php?edit=<?= intval($pago['propiedad_id']) ?>" class="text-decoration-none text-dark">
+                                                <?= htmlspecialchars($pago['propiedad_nombre']) ?>
+                                            </a>
+                                        </strong>
+                                        <?php if ($pago['propiedad_direccion']): ?>
+                                            <br><small class="text-muted"><?= htmlspecialchars($pago['propiedad_direccion']) ?></small>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
-                                            <strong>
-                                                <a href="inquilinos.php?edit=<?= intval($pago['inquilino_id']) ?>" class="text-decoration-none text-dark">
-                                                    <?= htmlspecialchars($pago['inquilino_nombre']) ?>
-                                                </a>
-                                            </strong>
-                                            <?php if ($pago['inquilino_telefono']): ?>
-                                                <br><small class="text-muted"><?= htmlspecialchars($pago['inquilino_telefono']) ?></small>
-                                            <?php endif; ?>
+                                        <strong>
+                                            <a href="inquilinos.php?edit=<?= intval($pago['inquilino_id']) ?>" class="text-decoration-none text-dark">
+                                                <?= htmlspecialchars($pago['inquilino_nombre']) ?>
+                                            </a>
+                                        </strong>
+                                        <?php if ($pago['inquilino_telefono']): ?>
+                                            <br><small class="text-muted"><?= htmlspecialchars($pago['inquilino_telefono']) ?></small>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <strong class="text-success d-block">$<?= number_format($pago['importe'], 2, ',', '.') ?></strong>
@@ -569,12 +569,12 @@ include 'includes/header_nav.php';
                                     </td>
                                     <td>
                                         <div class="form-check d-flex">
-                                            <input class="form-check-input checkbox-validacion" 
-                                                   type="checkbox" 
-                                                   id="validado_<?= $pago['id'] ?>"
-                                                   data-pago-id="<?= $pago['id'] ?>"
-                                                   <?= ($pago['validado'] ?? false) ? 'checked' : '' ?>
-                                                   onclick="if(!confirm('¿Realmente desea validar el pago?')) { event.preventDefault(); return false; }">
+                                            <input class="form-check-input checkbox-validacion"
+                                                type="checkbox"
+                                                id="validado_<?= $pago['id'] ?>"
+                                                data-pago-id="<?= $pago['id'] ?>"
+                                                <?= ($pago['validado'] ?? false) ? 'checked' : '' ?>
+                                                onclick="if(!confirm('¿Realmente desea validar el pago?')) { event.preventDefault(); return false; }">
                                             <label class="form-check-label ms-2" for="validado_<?= $pago['id'] ?>">
                                                 <?php if ($pago['validado']): ?>
                                                     <small class="text-success">
@@ -638,33 +638,33 @@ include 'includes/header_nav.php';
         formData.append('validado', validado);
 
         fetch('validar_pago.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Mostrar mensaje de éxito
-                const mensaje = document.createElement('div');
-                mensaje.className = 'alert alert-success alert-dismissible fade show position-fixed';
-                mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-                mensaje.innerHTML = `
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Mostrar mensaje de éxito
+                    const mensaje = document.createElement('div');
+                    mensaje.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                    mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                    mensaje.innerHTML = `
                     ${data.message}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 `;
-                document.body.appendChild(mensaje);
+                    document.body.appendChild(mensaje);
 
-                // Remover el mensaje después de 3 segundos
-                setTimeout(() => {
-                    mensaje.remove();
-                }, 3000);
+                    // Remover el mensaje después de 3 segundos
+                    setTimeout(() => {
+                        mensaje.remove();
+                    }, 3000);
 
-                // Actualizar la etiqueta del checkbox
-                const checkbox = document.getElementById(`validado_${pagoId}`);
-                const label = checkbox.nextElementSibling;
-                
-                if (validado) {
-                    label.innerHTML = `
+                    // Actualizar la etiqueta del checkbox
+                    const checkbox = document.getElementById(`validado_${pagoId}`);
+                    const label = checkbox.nextElementSibling;
+
+                    if (validado) {
+                        label.innerHTML = `
                         <small class="text-success">
                             <i class="bi bi-check-circle-fill"></i> Validado
                             <br><small>${data.fecha_validacion ? new Date(data.fecha_validacion).toLocaleString('es-ES', {
@@ -676,18 +676,41 @@ include 'includes/header_nav.php';
                             }) : ''}</small>
                         </small>
                     `;
+                    } else {
+                        label.innerHTML = '<small class="text-muted">Pendiente</small>';
+                    }
                 } else {
-                    label.innerHTML = '<small class="text-muted">Pendiente</small>';
+                    // Mostrar mensaje de error
+                    const mensaje = document.createElement('div');
+                    mensaje.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+                    mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                    mensaje.innerHTML = `
+                    Error: ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                    document.body.appendChild(mensaje);
+
+                    // Remover el mensaje después de 5 segundos
+                    setTimeout(() => {
+                        mensaje.remove();
+                    }, 5000);
+
+                    // Revertir el checkbox
+                    const checkbox = document.getElementById(`validado_${pagoId}`);
+                    checkbox.checked = !validado;
                 }
-            } else {
+            })
+            .catch(error => {
+                console.error('Error:', error);
+
                 // Mostrar mensaje de error
                 const mensaje = document.createElement('div');
                 mensaje.className = 'alert alert-danger alert-dismissible fade show position-fixed';
                 mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
                 mensaje.innerHTML = `
-                    Error: ${data.message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                `;
+                Error de conexión. Intente nuevamente.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
                 document.body.appendChild(mensaje);
 
                 // Remover el mensaje después de 5 segundos
@@ -698,30 +721,7 @@ include 'includes/header_nav.php';
                 // Revertir el checkbox
                 const checkbox = document.getElementById(`validado_${pagoId}`);
                 checkbox.checked = !validado;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            
-            // Mostrar mensaje de error
-            const mensaje = document.createElement('div');
-            mensaje.className = 'alert alert-danger alert-dismissible fade show position-fixed';
-            mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-            mensaje.innerHTML = `
-                Error de conexión. Intente nuevamente.
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            document.body.appendChild(mensaje);
-
-            // Remover el mensaje después de 5 segundos
-            setTimeout(() => {
-                mensaje.remove();
-            }, 5000);
-
-            // Revertir el checkbox
-            const checkbox = document.getElementById(`validado_${pagoId}`);
-            checkbox.checked = !validado;
-        });
+            });
     }
 
     // Auto-submit del formulario cuando cambien los filtros
@@ -742,12 +742,12 @@ include 'includes/header_nav.php';
             checkbox.addEventListener('change', function() {
                 const pagoId = this.getAttribute('data-pago-id');
                 const validado = this.checked;
-                
+
                 // Deshabilitar el checkbox temporalmente para evitar múltiples clics
                 this.disabled = true;
-                
+
                 validarPago(pagoId, validado);
-                
+
                 // Habilitar el checkbox después de un breve delay
                 setTimeout(() => {
                     this.disabled = false;

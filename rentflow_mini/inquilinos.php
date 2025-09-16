@@ -112,17 +112,55 @@ $inquilino_id = intval($_GET['inquilino_id'] ?? 0);
 
 $inquilinos = $pdo->query("SELECT * FROM inquilinos ORDER BY id DESC")->fetchAll();
 
+
+
 include 'includes/header_nav.php';
 ?>
 
 <main class="container container-main py-4">
 
-  <h1>Inquilinos</h1>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Inquilinos</h1>
+    <button class="btn btn-lg btn-primary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formInquilinoCollapse" aria-expanded="<?= $show_form || $edit_id || !empty($errors) ? 'true' : 'false' ?>" aria-controls="formInquilinoCollapse" style="font-weight:600;">
+      <?= $show_form || $edit_id || !empty($errors) ? 'Ocultar' : 'Agregar Nuevo Inquilino' ?>
+    </button>
+  </div>
 
   <?php if ($msg): ?>
     <div class="alert alert-success"><?= htmlspecialchars($msg) ?></div>
     <?php if ($inquilino_id > 0): ?>
-      <a href="contratos.php?inquilino_id=<?= $inquilino_id ?>" class="btn btn-success mb-3">Crear Contrato</a>
+      <!-- Botones de acción después de guardar -->
+      <div class="d-flex gap-2 flex-wrap mb-3">
+        <a href="inquilinos.php?edit=<?= $inquilino_id ?>" class="btn btn-primary">
+          <i class="bi bi-eye"></i> Ver Inquilino
+        </a>
+        <?php 
+        // Verificar si el inquilino tiene contrato activo
+        $stmt_contrato_activo = $pdo->prepare("
+            SELECT c.id, c.fecha_inicio, c.fecha_fin, c.importe, p.nombre as propiedad_nombre 
+            FROM contratos c 
+            LEFT JOIN propiedades p ON c.propiedad_id = p.id 
+            WHERE c.inquilino_id = ? AND c.estado = 'activo' 
+            ORDER BY c.fecha_inicio DESC 
+            LIMIT 1
+        ");
+        $stmt_contrato_activo->execute([$inquilino_id]);
+        $contrato_activo = $stmt_contrato_activo->fetch(PDO::FETCH_ASSOC);
+        
+        if ($contrato_activo): ?>
+          <a href="contratos.php?edit=<?= $contrato_activo['id'] ?>" class="btn btn-success">
+            <i class="bi bi-file-earmark-text"></i> Ver Contrato Activo
+          </a>
+          <small class="text-muted d-block mt-2">
+            Contrato activo: <?= htmlspecialchars($contrato_activo['propiedad_nombre'] ?? 'Sin propiedad') ?> 
+            (<?= date('d/m/Y', strtotime($contrato_activo['fecha_inicio'])) ?> - <?= date('d/m/Y', strtotime($contrato_activo['fecha_fin'])) ?>)
+          </small>
+        <?php else: ?>
+          <a href="contratos.php?inquilino_id=<?= $inquilino_id ?>" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Crear Contrato
+          </a>
+        <?php endif; ?>
+      </div>
     <?php endif; ?>
   <?php endif; ?>
 
@@ -132,9 +170,6 @@ include 'includes/header_nav.php';
     </div>
   <?php endif; ?>
 
-  <button class="btn btn-outline-dark mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formInquilinoCollapse" aria-expanded="<?= $show_form || $edit_id || !empty($errors) ? 'true' : 'false' ?>" aria-controls="formInquilinoCollapse" style="font-weight:600;">
-    <?= $show_form || $edit_id || !empty($errors) ? 'Ocultar' : 'Agregar Nuevo Inquilino' ?>
-  </button>
 
   <div class="collapse <?= $show_form || $edit_id || !empty($errors) ? 'show' : '' ?>" id="formInquilinoCollapse">
     <div class="card p-4 mb-4 mt-3">

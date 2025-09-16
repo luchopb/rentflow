@@ -238,7 +238,12 @@ include 'includes/header_nav.php';
 ?>
 
 <main class="container container-main py-4">
-  <h1>Contratos</h1>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Contratos</h1>
+    <button class="btn btn-lg btn-primary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formContratoCollapse" aria-expanded="<?= ($edit_id || !empty($errors) || $propiedad_id_param) ? 'true' : 'false' ?>" aria-controls="formContratoCollapse" style="font-weight:600;">
+      <?= ($edit_id || !empty($errors) || $propiedad_id_param) ? 'Ocultar' : 'Agregar Nuevo Contrato' ?>
+    </button>
+  </div>
 
   <?php if ($message): ?>
     <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
@@ -254,12 +259,9 @@ include 'includes/header_nav.php';
   <?php endif; ?>
 
   <?php if ($edit_id): ?>
-      <a href="pagos.php?contrato_id=<?= intval($edit_id) ?>" class="btn btn-success mb-3">Registrar Pagos</a>
+    <a href="pagos.php?contrato_id=<?= intval($edit_id) ?>" class="btn btn-success mb-3">Registrar Pagos</a>
   <?php endif; ?>
 
-  <button class="btn btn-outline-dark mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formContratoCollapse" aria-expanded="<?= ($edit_id || !empty($errors) || $propiedad_id_param) ? 'true' : 'false' ?>" aria-controls="formContratoCollapse" style="font-weight:600;">
-    <?= ($edit_id || !empty($errors) || $propiedad_id_param) ? 'Ocultar' : 'Agregar Nuevo Contrato' ?>
-  </button>
 
   <div class="collapse <?= ($edit_id || !empty($errors) || $propiedad_id_param) ? 'show' : '' ?>" id="formContratoCollapse">
     <div class="card p-4 mb-4 mt-3">
