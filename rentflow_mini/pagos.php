@@ -204,8 +204,9 @@ include 'includes/header_nav.php';
           <div class="mb-3">
             <label for="periodo" class="form-label">Período *</label>
             <select name="periodo" id="periodo" class="form-select" required>
+              <option value="">Seleccione un período...</option>
               <?php foreach ($periodos as $periodo): ?>
-                <option value="<?= $periodo ?>" <?= $periodo === ($edit_data['periodo'] ?? $fecha_actual->format('Y-m')) ? 'selected' : '' ?>><?= $periodo ?></option>
+                <option value="<?= $periodo ?>" <?= $periodo === ($edit_data['periodo'] ?? '') ? 'selected' : '' ?>><?= $periodo ?></option>
               <?php endforeach; ?>
             </select>
           </div>
@@ -229,18 +230,17 @@ include 'includes/header_nav.php';
 
           <!-- Nuevo campo para Tipo de Pago -->
           <div class="mb-3">
-            <label for="tipo_pago" class="form-label">Tipo de Pago *</label>
-            <select name="tipo_pago" id="tipo_pago" class="form-select" required>
-              <option value="">Seleccione...</option>
-              <option value="Efectivo" <?= ($edit_data['tipo_pago'] ?? '') === 'Efectivo' ? 'selected' : '' ?>>Efectivo</option>
-              <option value="Efectivo (Sobre)" <?= ($edit_data['tipo_pago'] ?? '') === 'Efectivo (Sobre)' ? 'selected' : '' ?>>Efectivo (Sobre)</option>
-              <option value="Transferencia" <?= ($edit_data['tipo_pago'] ?? '') === 'Transferencia' ? 'selected' : '' ?>>Transferencia</option>
-              <!--option value="Transferencia Papá">Transferencia Papá</option>
-              <option value="Depósito RedPagos">Depósito RedPagos</option>
-              <option value="Depósito Abitab">Depósito Abitab</option>
-              <option value="Depósito Cuenta Papá">Depósito Cuenta Papá</option>
-              <option value="Depósito Cuenta Papá">Depósito Cuenta Lucho</option-->
-            </select>
+            <label class="form-label">Tipo de Pago *</label>
+            <div class="btn-group" role="group" aria-label="Tipo de pago">
+              <input type="radio" class="btn-check" name="tipo_pago" id="efectivo" value="Efectivo" <?= ($edit_data['tipo_pago'] ?? '') === 'Efectivo' ? 'checked' : '' ?> required>
+              <label class="btn btn-outline-primary" for="efectivo">Efectivo</label>
+
+              <input type="radio" class="btn-check" name="tipo_pago" id="efectivo_sobre" value="Efectivo (Sobre)" <?= ($edit_data['tipo_pago'] ?? '') === 'Efectivo (Sobre)' ? 'checked' : '' ?>>
+              <label class="btn btn-outline-primary" for="efectivo_sobre">Efectivo (Sobre)</label>
+
+              <input type="radio" class="btn-check" name="tipo_pago" id="transferencia" value="Transferencia" <?= ($edit_data['tipo_pago'] ?? '') === 'Transferencia' ? 'checked' : '' ?>>
+              <label class="btn btn-outline-primary" for="transferencia">Transferencia</label>
+            </div>
           </div>
 
 

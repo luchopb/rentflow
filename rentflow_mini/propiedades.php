@@ -841,20 +841,28 @@ include 'includes/header_nav.php';
                         <?php endif; ?>
                       </small>
                       <div class="mt-2">
+                        <a href="movimientos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-sm btn-info">
+                          Movimientos
+                        </a>
                         <a href="pagos.php?contrato_id=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-primary">
-                          <i class="bi bi-cash-coin"></i> Pagos
+                          Pagos
                         </a>
                         <a href="gastos.php?propiedad_id=<?= intval($p['id']) ?>&add=true" class="btn btn-sm btn-primary">
-                          <i class="bi bi-receipt"></i> Gastos
+                          Gastos
                         </a>
                         <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-secondary">
-                          <i class="bi bi-file-earmark-text"></i> Contrato
+                          Contrato
                         </a>
                       </div>
                     <?php else: ?>
-                      <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-secondary btn-sm" style="white-space: nowrap;">
-                        <i class="bi bi-file-earmark-plus"></i> Crear contrato
-                      </a>
+                      <div class="mt-2">
+                        <a href="movimientos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-sm btn-info me-2">
+                          Movimientos
+                        </a>
+                        <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-secondary btn-sm" style="white-space: nowrap;">
+                          Crear contrato
+                        </a>
+                      </div>
                     <?php endif; ?>
                   </td>
                   <!--<td>
@@ -928,6 +936,9 @@ include 'includes/header_nav.php';
                       </small>
                     </td>
                     <td>
+                      <a href="movimientos.php?propiedad_id=<?= intval($edit_id) ?>" class="btn btn-sm btn-info">
+                        Movimientos
+                      </a>
                       <a href="contratos.php?edit=<?= $contrato['contrato_id'] ?>" class="btn btn-sm btn-primary">
                         Contrato
                       </a>
