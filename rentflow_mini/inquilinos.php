@@ -370,10 +370,10 @@ include 'includes/header_nav.php';
                       </small>
                     </td>
                     <td>
-                      <a href="contratos.php?edit=<?= $contrato['contrato_id'] ?>" class="btn btn-sm btn-outline-primary">
+                      <a href="contratos.php?edit=<?= $contrato['contrato_id'] ?>" class="btn btn-sm btn-primary">
                         Contrato
                       </a>
-                      <a href="pagos.php?contrato_id=<?= $contrato['contrato_id'] ?>" class="btn btn-sm btn-outline-success">
+                      <a href="pagos.php?contrato_id=<?= $contrato['contrato_id'] ?>" class="btn btn-sm btn-success">
                         Pagos
                       </a>
                     </td>

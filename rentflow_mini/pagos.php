@@ -5,7 +5,9 @@ check_login();
 $page_title = 'Pagos - Inmobiliaria';
 
 $contrato_id = intval($_GET['contrato_id'] ?? 0);
+$edit_id = intval($_GET['edit'] ?? 0);
 $add_pago = isset($_GET['add']) && $_GET['add'] === 'true'; // Verificar si se debe mostrar el formulario de nuevo pago
+$show_form = $add_pago || $edit_id > 0; // Mostrar formulario si se agrega o edita
 
 if (!$contrato_id) {
   header("Location: contratos.php");
@@ -30,8 +32,21 @@ if ($msg) {
   $message = $msg;
 }
 
-// Manejo de formulario para agregar un nuevo pago
+// Cargar datos de edición si existe
+$edit_data = null;
+if ($edit_id) {
+  $stmt = $pdo->prepare("SELECT * FROM pagos WHERE id = ? AND contrato_id = ?");
+  $stmt->execute([$edit_id, $contrato_id]);
+  $edit_data = $stmt->fetch(PDO::FETCH_ASSOC);
+  if (!$edit_data) {
+    header("Location: pagos.php?contrato_id=$contrato_id");
+    exit();
+  }
+}
+
+// Manejo de formulario para agregar/editar pago
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
+  $edit_id_form = intval($_POST['edit_id'] ?? 0);
   $periodo = $_POST['periodo'] ?? '';
   $fecha_pago = $_POST['fecha_pago'] ?? '';
   $importe = floatval($_POST['importe'] ?? 0);
@@ -61,30 +76,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
   }
 
   if (empty($errors)) {
-    $stmt = $pdo->prepare("INSERT INTO pagos (contrato_id, usuario_id, periodo, fecha, fecha_creacion, importe, comentario, comprobante, concepto, tipo_pago) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$contrato_id, $usuario_id, $periodo, $fecha_pago, $fecha_creacion, $importe, $comentario, $basename ?? null, $concepto, $tipo_pago]);
-    $message = "Pago registrado correctamente.";
-    // Enviar email después de registrar pago
-    $stmt = $pdo->prepare("SELECT c.*, i.email as inquilino_email, i.nombre as inquilino_nombre, p.propietario_id, p.nombre as propiedad_nombre, p.direccion, pr.email as propietario_email, pr.nombre as propietario_nombre FROM contratos c JOIN inquilinos i ON c.inquilino_id = i.id JOIN propiedades p ON c.propiedad_id = p.id JOIN propietarios pr ON p.propietario_id = pr.id WHERE c.id = ?");
-    $stmt->execute([$contrato_id]);
-    $info = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($info) {
-      $destinatarios = array_filter(array_merge(
-        explode(',', $info['inquilino_email']),
-        explode(',', $info['propietario_email'])
-      ));
-      $asunto = 'Nuevo Pago registrado en RentFlow';
-      $cuerpo = '<h2>Detalle del Pago</h2>';
-      $cuerpo .= '<b>Propiedad:</b> ' . htmlspecialchars($info['propiedad_nombre']) . ' (' . htmlspecialchars($info['direccion']) . ')<br>';
-      $cuerpo .= '<b>Inquilino:</b> ' . htmlspecialchars($info['inquilino_nombre']) . '<br>';
-      $cuerpo .= '<b>Propietario:</b> ' . htmlspecialchars($info['propietario_nombre']) . '<br>';
-      $cuerpo .= '<b>Período:</b> ' . htmlspecialchars($periodo) . '<br>';
-      $cuerpo .= '<b>Fecha de pago:</b> ' . htmlspecialchars($fecha_pago) . '<br>';
-      $cuerpo .= '<b>Importe:</b> $' . number_format($importe, 2, ',', '.') . '<br>';
-      $cuerpo .= '<b>Concepto:</b> ' . htmlspecialchars($concepto) . '<br>';
-      $cuerpo .= '<b>Tipo de pago:</b> ' . htmlspecialchars($tipo_pago) . '<br>';
-      if ($comentario) $cuerpo .= '<b>Comentario:</b> ' . htmlspecialchars($comentario) . '<br>';
-      enviar_email($destinatarios, $asunto, $cuerpo);
+    if ($edit_id_form > 0) {
+      // Actualizar pago existente
+      $sql = "UPDATE pagos SET periodo=?, fecha=?, importe=?, comentario=?, concepto=?, tipo_pago=?";
+      $params = [$periodo, $fecha_pago, $importe, $comentario, $concepto, $tipo_pago];
+      
+      if ($basename) {
+        $sql .= ", comprobante=?";
+        $params[] = $basename;
+      }
+      
+      $sql .= " WHERE id=? AND contrato_id=?";
+      $params[] = $edit_id_form;
+      $params[] = $contrato_id;
+      
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute($params);
+      $message = "Pago actualizado correctamente.";
+    } else {
+      // Insertar nuevo pago
+      $stmt = $pdo->prepare("INSERT INTO pagos (contrato_id, usuario_id, periodo, fecha, fecha_creacion, importe, comentario, comprobante, concepto, tipo_pago) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+      $stmt->execute([$contrato_id, $usuario_id, $periodo, $fecha_pago, $fecha_creacion, $importe, $comentario, $basename ?? null, $concepto, $tipo_pago]);
+      $message = "Pago registrado correctamente.";
+    }
+    
+    // Solo enviar email cuando se crea un nuevo pago, no cuando se edita
+    if ($edit_id_form == 0) {
+      // Enviar email después de registrar pago
+      $stmt = $pdo->prepare("SELECT c.*, i.email as inquilino_email, i.nombre as inquilino_nombre, p.propietario_id, p.nombre as propiedad_nombre, p.direccion, pr.email as propietario_email, pr.nombre as propietario_nombre FROM contratos c JOIN inquilinos i ON c.inquilino_id = i.id JOIN propiedades p ON c.propiedad_id = p.id JOIN propietarios pr ON p.propietario_id = pr.id WHERE c.id = ?");
+      $stmt->execute([$contrato_id]);
+      $info = $stmt->fetch(PDO::FETCH_ASSOC);
+      if ($info) {
+        $destinatarios = array_filter(array_merge(
+          explode(',', $info['inquilino_email']),
+          explode(',', $info['propietario_email'])
+        ));
+        $asunto = 'Nuevo Pago registrado en RentFlow';
+        $cuerpo = '<h2>Detalle del Pago</h2>';
+        $cuerpo .= '<b>Propiedad:</b> ' . htmlspecialchars($info['propiedad_nombre']) . ' (' . htmlspecialchars($info['direccion']) . ')<br>';
+        $cuerpo .= '<b>Inquilino:</b> ' . htmlspecialchars($info['inquilino_nombre']) . '<br>';
+        $cuerpo .= '<b>Propietario:</b> ' . htmlspecialchars($info['propietario_nombre']) . '<br>';
+        $cuerpo .= '<b>Período:</b> ' . htmlspecialchars($periodo) . '<br>';
+        $cuerpo .= '<b>Fecha de pago:</b> ' . htmlspecialchars($fecha_pago) . '<br>';
+        $cuerpo .= '<b>Importe:</b> $' . number_format($importe, 2, ',', '.') . '<br>';
+        $cuerpo .= '<b>Concepto:</b> ' . htmlspecialchars($concepto) . '<br>';
+        $cuerpo .= '<b>Tipo de pago:</b> ' . htmlspecialchars($tipo_pago) . '<br>';
+        if ($comentario) $cuerpo .= '<b>Comentario:</b> ' . htmlspecialchars($comentario) . '<br>';
+        enviar_email($destinatarios, $asunto, $cuerpo);
+      }
     }
     header("Location: pagos.php?contrato_id=$contrato_id&msg=" . urlencode($message));
     exit();
@@ -130,8 +169,8 @@ include 'includes/header_nav.php';
 
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h1>Pagos</h1>
-    <button class="btn btn-lg btn-primary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formPagoCollapse" aria-expanded="<?= $add_pago ? 'true' : 'false' ?>" aria-controls="formPagoCollapse" style="font-weight:600;">
-      <?= $add_pago ? 'Ocultar' : 'Agregar Nuevo Pago' ?>
+    <button class="btn btn-lg btn-primary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formPagoCollapse" aria-expanded="<?= $show_form ? 'true' : 'false' ?>" aria-controls="formPagoCollapse" style="font-weight:600;">
+      <?= $show_form ? 'Ocultar' : 'Agregar Nuevo Pago' ?>
     </button>
   </div>
 
@@ -154,37 +193,38 @@ include 'includes/header_nav.php';
   <?php endif; ?>
 
 
-  <div class="collapse <?= $add_pago ? 'show' : '' ?>" id="formPagoCollapse">
+  <div class="collapse <?= $show_form ? 'show' : '' ?>" id="formPagoCollapse">
     <div class="card mb-4">
       <div class="card-header">
-        <h5>Registrar Nuevo Pago</h5>
+        <h5><?= $edit_id ? 'Editar Pago' : 'Registrar Nuevo Pago' ?></h5>
       </div>
       <div class="card-body">
         <form method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="edit_id" value="<?= $edit_id ?>">
           <div class="mb-3">
             <label for="periodo" class="form-label">Período *</label>
             <select name="periodo" id="periodo" class="form-select" required>
               <?php foreach ($periodos as $periodo): ?>
-                <option value="<?= $periodo ?>" <?= $periodo === $fecha_actual->format('Y-m') ? 'selected' : '' ?>><?= $periodo ?></option>
+                <option value="<?= $periodo ?>" <?= $periodo === ($edit_data['periodo'] ?? $fecha_actual->format('Y-m')) ? 'selected' : '' ?>><?= $periodo ?></option>
               <?php endforeach; ?>
             </select>
           </div>
           <div class="mb-3">
             <label for="fecha_pago" class="form-label">Fecha *</label>
-            <input type="date" class="form-control" id="fecha_pago" name="fecha_pago" value="<?= date('Y-m-d') ?>" required>
+            <input type="date" class="form-control" id="fecha_pago" name="fecha_pago" value="<?= $edit_data['fecha'] ?? date('Y-m-d') ?>" required>
           </div>
           <div class="mb-3">
             <label for="concepto" class="form-label">Concepto *</label>
             <select name="concepto" id="concepto" class="form-select" required>
               <option value="">Seleccione...</option>
-              <option value="Pago mensual">Pago mensual</option>
-              <option value="Impuestos">Impuestos</option>
-              <option value="Gastos comunes">Gastos comunes</option>
+              <option value="Pago mensual" <?= ($edit_data['concepto'] ?? '') === 'Pago mensual' ? 'selected' : '' ?>>Pago mensual</option>
+              <option value="Impuestos" <?= ($edit_data['concepto'] ?? '') === 'Impuestos' ? 'selected' : '' ?>>Impuestos</option>
+              <option value="Gastos comunes" <?= ($edit_data['concepto'] ?? '') === 'Gastos comunes' ? 'selected' : '' ?>>Gastos comunes</option>
             </select>
           </div>
           <div class="mb-3">
             <label for="importe" class="form-label">Importe *</label>
-            <input type="number" step="0.01" min="0" class="form-control" id="importe" name="importe" value="<?= htmlspecialchars($contrato['importe']) ?>" required>
+            <input type="number" step="0.01" min="0" class="form-control" id="importe" name="importe" value="<?= htmlspecialchars($edit_data['importe'] ?? $contrato['importe']) ?>" required>
           </div>
 
           <!-- Nuevo campo para Tipo de Pago -->
@@ -192,9 +232,9 @@ include 'includes/header_nav.php';
             <label for="tipo_pago" class="form-label">Tipo de Pago *</label>
             <select name="tipo_pago" id="tipo_pago" class="form-select" required>
               <option value="">Seleccione...</option>
-              <option value="Efectivo">Efectivo</option>
-              <option value="Efectivo (Sobre)">Efectivo (Sobre)</option>
-              <option value="Transferencia">Transferencia</option>
+              <option value="Efectivo" <?= ($edit_data['tipo_pago'] ?? '') === 'Efectivo' ? 'selected' : '' ?>>Efectivo</option>
+              <option value="Efectivo (Sobre)" <?= ($edit_data['tipo_pago'] ?? '') === 'Efectivo (Sobre)' ? 'selected' : '' ?>>Efectivo (Sobre)</option>
+              <option value="Transferencia" <?= ($edit_data['tipo_pago'] ?? '') === 'Transferencia' ? 'selected' : '' ?>>Transferencia</option>
               <!--option value="Transferencia Papá">Transferencia Papá</option>
               <option value="Depósito RedPagos">Depósito RedPagos</option>
               <option value="Depósito Abitab">Depósito Abitab</option>
@@ -206,13 +246,23 @@ include 'includes/header_nav.php';
 
           <div class="mb-3">
             <label for="comentario" class="form-label">Comentario</label>
-            <textarea class="form-control" id="comentario" name="comentario" rows="3"></textarea>
+            <textarea class="form-control" id="comentario" name="comentario" rows="3"><?= htmlspecialchars($edit_data['comentario'] ?? '') ?></textarea>
           </div>
           <div class="mb-3">
             <label for="comprobante" class="form-label">Comprobante</label>
             <input type="file" class="form-control" id="comprobante" name="comprobante" accept="image/*,application/pdf">
+            <?php if ($edit_data && $edit_data['comprobante']): ?>
+              <small class="form-text text-muted">Comprobante actual: <a href="uploads/<?= htmlspecialchars($edit_data['comprobante']) ?>" target="_blank"><?= htmlspecialchars($edit_data['comprobante']) ?></a></small>
+            <?php endif; ?>
           </div>
-          <button type="submit" name="nuevo_pago" class="btn btn-primary">Registrar Pago</button>
+          <div class="d-flex gap-2">
+            <button type="submit" name="nuevo_pago" class="btn btn-primary">
+              <?= $edit_id ? 'Actualizar Pago' : 'Registrar Pago' ?>
+            </button>
+            <?php if ($edit_id): ?>
+              <a href="pagos.php?contrato_id=<?= $contrato_id ?>" class="btn btn-outline-secondary">Cancelar</a>
+            <?php endif; ?>
+          </div>
         </form>
       </div>
     </div>
@@ -250,14 +300,21 @@ include 'includes/header_nav.php';
               </td>
               <td>
                 <?php if ($_SESSION['user_role'] === 'admin'): ?>
-                  <a href="pagos.php?contrato_id=<?= $contrato_id ?>&delete=<?= intval($pago['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar este pago?')">Eliminar</a>
+                  <div class="btn-group btn-group-sm" role="group">
+                    <a href="pagos.php?contrato_id=<?= $contrato_id ?>&edit=<?= intval($pago['id']) ?>" class="btn btn-outline-primary" title="Editar">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="pagos.php?contrato_id=<?= $contrato_id ?>&delete=<?= intval($pago['id']) ?>" class="btn btn-outline-danger" title="Eliminar" onclick="return confirm('¿Seguro que desea eliminar este pago?')">
+                      <i class="bi bi-trash"></i>
+                    </a>
+                  </div>
                 <?php endif; ?>
               </td>
             </tr>
           <?php endforeach; ?>
         </tbody>
       </table>
-      <a href="contratos.php" class="btn btn-outline-secondary ms-2">Volver a Contratos</a>
+      <a href="contratos.php" class="btn btn-secondary ms-2">Volver a Contratos</a>
     </form>
   <?php endif; ?>
 
