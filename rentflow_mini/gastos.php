@@ -282,7 +282,7 @@ include 'includes/header_nav.php';
                         <select name="propiedad_id" id="propiedad_id_form" class="form-select">
                             <option value="">Sin propiedad específica</option>
                             <?php foreach ($propiedades as $prop): ?>
-                                <option value="<?= $prop['id'] ?>" <?= ($edit_data['propiedad_id'] ?? '') == $prop['id'] ? 'selected' : '' ?>>
+                                <option value="<?= $prop['id'] ?>" <?= (($edit_data['propiedad_id'] ?? $propiedad_id) ?? '') == $prop['id'] ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($prop['nombre']) ?> - <?= htmlspecialchars($prop['direccion']) ?>
                                 </option>
                             <?php endforeach; ?>

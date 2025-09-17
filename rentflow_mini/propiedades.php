@@ -840,16 +840,21 @@ include 'includes/header_nav.php';
                           <span class="badge bg-danger">Sin pago</span>
                         <?php endif; ?>
                       </small>
-                      <div class="text-nowrap mt-2">
-                        <a href="pagos.php?contrato_id=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-success">
-                          Pagos
+                      <div class="mt-2">
+                        <a href="pagos.php?contrato_id=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-primary">
+                          <i class="bi bi-cash-coin"></i> Pagos
                         </a>
-                        <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-outline-success">
-                          Contrato
+                        <a href="gastos.php?propiedad_id=<?= intval($p['id']) ?>&add=true" class="btn btn-sm btn-primary">
+                          <i class="bi bi-receipt"></i> Gastos
+                        </a>
+                        <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-secondary">
+                          <i class="bi bi-file-earmark-text"></i> Contrato
                         </a>
                       </div>
                     <?php else: ?>
-                      <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-outline-success btn-sm" style="white-space: nowrap;">Crear contrato</a>
+                      <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-secondary btn-sm" style="white-space: nowrap;">
+                        <i class="bi bi-file-earmark-plus"></i> Crear contrato
+                      </a>
                     <?php endif; ?>
                   </td>
                   <!--<td>
@@ -923,11 +928,14 @@ include 'includes/header_nav.php';
                       </small>
                     </td>
                     <td>
-                      <a href="contratos.php?edit=<?= $contrato['contrato_id'] ?>" class="btn btn-sm btn-outline-primary">
+                      <a href="contratos.php?edit=<?= $contrato['contrato_id'] ?>" class="btn btn-sm btn-primary">
                         Contrato
                       </a>
-                      <a href="pagos.php?contrato_id=<?= $contrato['contrato_id'] ?>" class="btn btn-sm btn-outline-success">
+                      <a href="pagos.php?contrato_id=<?= $contrato['contrato_id'] ?>" class="btn btn-sm btn-success">
                         Pagos
+                      </a>
+                      <a href="gastos.php?propiedad_id=<?= intval($edit_id) ?>&add=true" class="btn btn-sm btn-warning">
+                        Gastos
                       </a>
                     </td>
                   </tr>
