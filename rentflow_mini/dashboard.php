@@ -4,11 +4,19 @@ check_login();
 $page_title = 'Dashboard - Inmobiliaria';
 include 'includes/header_nav.php';
 
-// Obtener el mes y año actual
-$mes_actual = date('m');
-$anio_actual = date('Y');
-$periodo = date('Y-m');
+// Obtener filtros de fecha
+$fecha_desde = $_GET['fecha_desde'] ?? date('Y-m-01'); // Primer día del mes actual por defecto
+$fecha_hasta = $_GET['fecha_hasta'] ?? date('Y-m-t'); // Último día del mes actual por defecto
 $busqueda = clean_input($_GET['search'] ?? '');
+
+// Validar fechas
+$fecha_desde = DateTime::createFromFormat('Y-m-d', $fecha_desde) ? $fecha_desde : date('Y-m-01');
+$fecha_hasta = DateTime::createFromFormat('Y-m-d', $fecha_hasta) ? $fecha_hasta : date('Y-m-t');
+
+// Obtener mes y año para compatibilidad con código existente
+$mes_actual = date('m', strtotime($fecha_desde));
+$anio_actual = date('Y', strtotime($fecha_desde));
+$periodo = date('Y-m', strtotime($fecha_desde));
 
 // Obtener conteo de propiedades y contratos activos por tipo
 $stmt_propiedades = $pdo->query("
@@ -95,36 +103,87 @@ $stmt_vencidos = $pdo->prepare("
 $stmt_vencidos->execute();
 $contratos_vencidos = $stmt_vencidos->fetchAll(PDO::FETCH_ASSOC);
 
+// Obtener gastos del período seleccionado (excluyendo arqueos)
+$stmt_gastos = $pdo->prepare("
+    SELECT COALESCE(SUM(importe), 0) as total_gastos
+    FROM gastos 
+    WHERE fecha BETWEEN ? AND ? AND concepto != 'Arqueo de Caja (resta)'
+");
+$stmt_gastos->execute([$fecha_desde, $fecha_hasta]);
+$total_gastos = $stmt_gastos->fetch(PDO::FETCH_ASSOC)['total_gastos'];
+
+// Obtener cobros del período seleccionado (pagos mensuales, excluyendo arqueos)
+$stmt_cobros = $pdo->prepare("
+    SELECT COALESCE(SUM(importe), 0) as total_cobros
+    FROM pagos 
+    WHERE fecha BETWEEN ? AND ? AND concepto != 'Arqueo de Caja (suma)'
+");
+$stmt_cobros->execute([$fecha_desde, $fecha_hasta]);
+$total_cobros = $stmt_cobros->fetch(PDO::FETCH_ASSOC)['total_cobros'];
+
+// Calcular diferencia (cobros - gastos)
+$diferencia = $total_cobros - $total_gastos;
+
+// Definir nombre del mes para mostrar en las tarjetas
+$fecha = new DateTime("$anio_actual-$mes_actual-01");
+$meses = [
+  1 => 'Enero',
+  2 => 'Febrero',
+  3 => 'Marzo',
+  4 => 'Abril',
+  5 => 'Mayo',
+  6 => 'Junio',
+  7 => 'Julio',
+  8 => 'Agosto',
+  9 => 'Septiembre',
+  10 => 'Octubre',
+  11 => 'Noviembre',
+  12 => 'Diciembre'
+];
+$nombre_mes = $meses[(int)$fecha->format('n')];
+
 ?>
 
 <main class="container container-main">
   <h1>Bienvenido, <?= htmlspecialchars($_SESSION['user_name']) ?></h1>
 
-  <form action="propiedades.php" method="GET" class="mb-4" role="search" aria-label="Buscar propiedades">
-    <div class="input-group" style="max-width:480px;">
-      <input
-        type="search"
-        name="search"
-        class="form-control"
-        placeholder="Buscar por nombre, dirección, local o inquilino"
-        value="<?= htmlspecialchars($busqueda) ?>"
-        aria-label="Buscar propiedades" autocomplete="off" />
-      <button class="btn btn-primary" type="submit" aria-label="Buscar">Buscar</button>
-      <?php if ($busqueda): ?>
-        <a href="dashboard.php" class="btn btn-outline-secondary" aria-label="Limpiar búsqueda">Limpiar</a>
-      <?php endif; ?>
+  <!-- Filtros de fecha y búsqueda -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <form action="dashboard.php" method="GET" class="row g-3">
+        <div class="col-md-3">
+          <label for="fecha_desde" class="form-label">Desde:</label>
+          <input type="date" class="form-control" id="fecha_desde" name="fecha_desde" 
+                 value="<?= htmlspecialchars($fecha_desde) ?>" required>
+        </div>
+        <div class="col-md-3">
+          <label for="fecha_hasta" class="form-label">Hasta:</label>
+          <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta" 
+                 value="<?= htmlspecialchars($fecha_hasta) ?>" required>
+        </div>
+        <div class="col-md-4">
+          <label for="search" class="form-label">Buscar:</label>
+          <input type="search" class="form-control" id="search" name="search" 
+                 placeholder="Buscar por nombre, dirección, local o inquilino"
+                 value="<?= htmlspecialchars($busqueda) ?>" autocomplete="off">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button class="btn btn-primary me-2" type="submit">Filtrar</button>
+          <a href="dashboard.php" class="btn btn-outline-secondary">Limpiar</a>
+        </div>
+      </form>
     </div>
-  </form>
+  </div>
 
   <!-- Tarjetas del Dashboard -->
-  <div class="row mb-4">
-    <div class="col-md-4 h-100">
+  <div class="row mb-3">
+    <div class="col-md-4">
       <a href="propiedades.php" class="text-decoration-none">
-        <div class="card text-bg-primary h-100 mb-3">
-          <div class="card-body d-flex flex-column justify-content-between">
-            <h5 class="card-title">Propiedades</h5>
-            <p class="card-text display-4 mb-0"><?= $total_propiedades ?></p>
-            <div class="small mt-2">
+        <div class="card text-bg-primary mb-2">
+          <div class="card-body py-2">
+            <h6 class="card-title mb-1">Propiedades</h6>
+            <p class="card-text h4 mb-1"><?= $total_propiedades ?></p>
+            <div class="small">
               <?php foreach ($propiedades_por_tipo as $tipo): ?>
                 <div class="d-flex justify-content-between">
                   <span class="text-capitalize"><?= htmlspecialchars($tipo['tipo']) ?>:</span>
@@ -136,16 +195,16 @@ $contratos_vencidos = $stmt_vencidos->fetchAll(PDO::FETCH_ASSOC);
         </div>
       </a>
     </div>
-    <div class="col-md-4 h-100">
+    <div class="col-md-4">
       <a href="contratos.php" class="text-decoration-none">
-        <div class="card text-bg-success h-100 mb-3">
-          <div class="card-body d-flex flex-column justify-content-between">
-            <h5 class="card-title">Propiedades Ocupadas</h5>
-            <p class="card-text display-4"><?= $total_ocupadas ?> de <?= $total_propiedades ?></p>
-            <div class="progress mb-2" role="progressbar" aria-label="Progreso de ocupación">
-              <div class="progress-bar" style="width: <?= $ratio_ocupacion ?>%"><?= $ratio_ocupacion ?>%</div>
+        <div class="card text-bg-success mb-2">
+          <div class="card-body py-2">
+            <h6 class="card-title mb-1">Propiedades Ocupadas</h6>
+            <p class="card-text h4 mb-1"><?= $total_ocupadas ?>/<?= $total_propiedades ?></p>
+            <div class="progress mb-1" role="progressbar" aria-label="Progreso de ocupación" style="height: 6px;">
+              <div class="progress-bar" style="width: <?= $ratio_ocupacion ?>%"></div>
             </div>
-            <div class="small mt-2">
+            <div class="small">
               <?php foreach ($propiedades_por_tipo as $tipo): ?>
                 <?php
                 $ratio_tipo = $tipo['total'] > 0 ? round(($tipo['ocupadas'] / $tipo['total']) * 100) : 0;
@@ -160,18 +219,59 @@ $contratos_vencidos = $stmt_vencidos->fetchAll(PDO::FETCH_ASSOC);
         </div>
       </a>
     </div>
-    <div class="col-md-4 h-100">
+    <div class="col-md-4">
       <a href="listado_pagos.php" class="text-decoration-none">
-        <div class="card text-bg-info h-100 mb-3">
-          <div class="card-body d-flex flex-column justify-content-between">
-            <h5 class="card-title">Pagos del Mes</h5>
-            <p class="card-text display-4"><?= $pagos_recibidos ?> de <?= $total_contratos ?></p>
-            <div class="progress" role="progressbar" aria-label="Progreso de pagos">
-              <div class="progress-bar" style="width: <?= $ratio_pagos ?>%"><?= $ratio_pagos ?>%</div>
+        <div class="card text-bg-info mb-2">
+          <div class="card-body py-2">
+            <h6 class="card-title mb-1">Pagos del Mes</h6>
+            <p class="card-text h4 mb-1"><?= $pagos_recibidos ?>/<?= $total_contratos ?></p>
+            <div class="progress" role="progressbar" aria-label="Progreso de pagos" style="height: 6px;">
+              <div class="progress-bar" style="width: <?= $ratio_pagos ?>%"></div>
             </div>
           </div>
         </div>
       </a>
+    </div>
+  </div>
+
+  <!-- Indicadores Financieros del Mes -->
+  <div class="row mb-3">
+    <div class="col-md-4">
+      <a href="listado_pagos.php" class="text-decoration-none">
+        <div class="card text-bg-success mb-2">
+          <div class="card-body py-2">
+            <h6 class="card-title mb-1">Pagos del Mes</h6>
+            <p class="card-text h4 mb-1">$<?= number_format($total_cobros, 0, ',', '.') ?></p>
+            <div class="small">
+              <span>Total de pagos mensuales recibidos del <?= date('d/m/Y', strtotime($fecha_desde)) ?> al <?= date('d/m/Y', strtotime($fecha_hasta)) ?></span>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <a href="gastos.php" class="text-decoration-none">
+        <div class="card text-bg-danger mb-2">
+          <div class="card-body py-2">
+            <h6 class="card-title mb-1">Gastos del Mes</h6>
+            <p class="card-text h4 mb-1">$<?= number_format($total_gastos, 0, ',', '.') ?></p>
+            <div class="small">
+              <span>Total de gastos registrados del <?= date('d/m/Y', strtotime($fecha_desde)) ?> al <?= date('d/m/Y', strtotime($fecha_hasta)) ?></span>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <div class="card <?= $diferencia >= 0 ? 'text-bg-success' : 'text-bg-warning' ?> mb-2">
+        <div class="card-body py-2">
+          <h6 class="card-title mb-1">Diferencia del Mes</h6>
+          <p class="card-text h4 mb-1">$<?= number_format($diferencia, 0, ',', '.') ?></p>
+          <div class="small">
+            <span><?= $diferencia >= 0 ? 'Ganancia neta' : 'Pérdida neta' ?> del <?= date('d/m/Y', strtotime($fecha_desde)) ?> al <?= date('d/m/Y', strtotime($fecha_hasta)) ?></span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -230,25 +330,7 @@ $contratos_vencidos = $stmt_vencidos->fetchAll(PDO::FETCH_ASSOC);
         <tr>
           <th>ID</th>
           <th>Contrato</th>
-          <th>Pago <?php
-                    $fecha = new DateTime("$anio_actual-$mes_actual-01");
-                    $meses = [
-                      1 => 'Enero',
-                      2 => 'Febrero',
-                      3 => 'Marzo',
-                      4 => 'Abril',
-                      5 => 'Mayo',
-                      6 => 'Junio',
-                      7 => 'Julio',
-                      8 => 'Agosto',
-                      9 => 'Septiembre',
-                      10 => 'Octubre',
-                      11 => 'Noviembre',
-                      12 => 'Diciembre'
-                    ];
-                    $nombre_mes = $meses[(int)$fecha->format('n')];
-                    echo ucfirst($nombre_mes) . ' ' . $anio_actual;
-                    ?></th>
+          <th>Pago <?= ucfirst($nombre_mes) . ' ' . $anio_actual ?> (<?= date('d/m', strtotime($fecha_desde)) ?> - <?= date('d/m', strtotime($fecha_hasta)) ?>)</th>
         </tr>
       </thead>
       <tbody>
