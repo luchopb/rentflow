@@ -163,6 +163,8 @@ $sql = "SELECT g.*, p.nombre as propiedad_nombre, p.direccion as propiedad_direc
         LEFT JOIN usuarios u ON g.usuario_id = u.id";
 
 $where_conditions = [];
+// Excluir gastos con concepto "Arqueo de Caja (resta)"
+$where_conditions[] = "g.concepto != 'Arqueo de Caja (resta)'";
 if ($busqueda) {
     $where_conditions[] = "(g.concepto LIKE ? OR g.observaciones LIKE ? OR p.nombre LIKE ? OR p.direccion LIKE ?)";
     $like_search = '%' . $busqueda . '%';

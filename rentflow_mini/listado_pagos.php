@@ -172,7 +172,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     exit();
 }
 
-// Construir la consulta base
+// Construir la consulta base (excluyendo "Arqueo de Caja (suma)")
 $sql_base = "
     SELECT 
         p.id,
@@ -195,10 +195,10 @@ $sql_base = "
         i.nombre as inquilino_nombre,
         i.telefono as inquilino_telefono
     FROM pagos p
-    JOIN contratos c ON p.contrato_id = c.id
-    JOIN propiedades prop ON c.propiedad_id = prop.id
-    JOIN inquilinos i ON c.inquilino_id = i.id
-    WHERE 1=1
+    LEFT JOIN contratos c ON p.contrato_id = c.id
+    LEFT JOIN propiedades prop ON c.propiedad_id = prop.id
+    LEFT JOIN inquilinos i ON c.inquilino_id = i.id
+    WHERE 1=1 AND p.concepto != 'Arqueo de Caja (suma)'
 ";
 
 $params = [];
