@@ -12,6 +12,7 @@ $search = clean_input($_GET['search'] ?? '');
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
   <link href="includes/styles.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <link rel="apple-touch-icon" sizes="57x57" href="images/favicon/apple-icon-57x57.png">
   <link rel="apple-touch-icon" sizes="60x60" href="images/favicon/apple-icon-60x60.png">
@@ -62,6 +63,7 @@ $search = clean_input($_GET['search'] ?? '');
       <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'inquilinos.php' ? 'active' : '' ?>" href="inquilinos.php">Inquilinos</a></li>
       <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'contratos.php' ? 'active' : '' ?>" href="contratos.php">Contratos</a></li>
       <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'listado_pagos.php' ? 'active' : '' ?>" href="listado_pagos.php">Pagos</a></li>
+      <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'control_pagos.php' ? 'active' : '' ?>" href="control_pagos.php">Control de Pagos</a></li>
       <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'gastos.php' ? 'active' : '' ?>" href="gastos.php">Gastos</a></li>
       <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'propietarios.php' ? 'active' : '' ?>" href="propietarios.php">Propietarios</a></li>
       <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'cuenta_corriente.php' ? 'active' : '' ?>" href="cuenta_corriente.php">Cuenta Corrientes</a></li>

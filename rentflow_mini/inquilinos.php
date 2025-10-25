@@ -232,9 +232,9 @@ include 'includes/header_nav.php';
           </div>
         <?php endif; ?>
 
-        <button type="submit" class="btn btn-primary fw-semibold"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
+        <button type="submit" class="btn btn-lg btn-primary fw-semibold"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
         <?php if ($edit_id): ?>
-          <a href="inquilinos.php" class="btn btn-outline-secondary ms-2">Cancelar</a>
+          <a href="inquilinos.php" class="btn btn-lg btn-outline-secondary ms-2">Cancelar</a>
         <?php endif; ?>
       </form>
     </div>

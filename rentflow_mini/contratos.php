@@ -366,9 +366,9 @@ include 'includes/header_nav.php';
         <?php endif;
         endif; ?>
 
-        <button type="submit" class="btn btn-primary fw-semibold mt-3"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
+        <button type="submit" class="btn btn-lg btn-primary fw-semibold mt-3"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
         <?php if ($edit_id): ?>
-          <a href="contratos.php" class="btn btn-outline-secondary ms-2 mt-3">Cancelar</a>
+          <a href="contratos.php" class="btn btn-lg btn-outline-secondary ms-2 mt-3">Cancelar</a>
         <?php endif; ?>
       </form>
     </div>

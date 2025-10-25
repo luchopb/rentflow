@@ -124,6 +124,65 @@ $total_cobros = $stmt_cobros->fetch(PDO::FETCH_ASSOC)['total_cobros'];
 // Calcular diferencia (cobros - gastos)
 $diferencia = $total_cobros - $total_gastos;
 
+// Obtener datos para gráficos - ingresos y egresos por mes
+$stmt_grafico = $pdo->prepare("
+    SELECT 
+        DATE_FORMAT(fecha, '%Y-%m') as mes,
+        DATE_FORMAT(fecha, '%M %Y') as mes_nombre,
+        'ingresos' as tipo,
+        COALESCE(SUM(importe), 0) as total
+    FROM pagos 
+    WHERE fecha BETWEEN ? AND ? AND concepto != 'Arqueo de Caja (suma)'
+    GROUP BY DATE_FORMAT(fecha, '%Y-%m')
+    
+    UNION ALL
+    
+    SELECT 
+        DATE_FORMAT(fecha, '%Y-%m') as mes,
+        DATE_FORMAT(fecha, '%M %Y') as mes_nombre,
+        'egresos' as tipo,
+        COALESCE(SUM(importe), 0) as total
+    FROM gastos 
+    WHERE fecha BETWEEN ? AND ? AND concepto != 'Arqueo de Caja (resta)'
+    GROUP BY DATE_FORMAT(fecha, '%Y-%m')
+    
+    ORDER BY mes, tipo
+");
+$stmt_grafico->execute([$fecha_desde, $fecha_hasta, $fecha_desde, $fecha_hasta]);
+$datos_grafico = $stmt_grafico->fetchAll(PDO::FETCH_ASSOC);
+
+// Procesar datos para el gráfico
+$meses_grafico = [];
+$ingresos_grafico = [];
+$egresos_grafico = [];
+
+foreach ($datos_grafico as $dato) {
+    if (!in_array($dato['mes_nombre'], $meses_grafico)) {
+        $meses_grafico[] = $dato['mes_nombre'];
+    }
+    
+    if ($dato['tipo'] === 'ingresos') {
+        $ingresos_grafico[$dato['mes']] = floatval($dato['total']);
+    } else {
+        $egresos_grafico[$dato['mes']] = floatval($dato['total']);
+    }
+}
+
+// Asegurar que todos los meses tengan datos (0 si no hay)
+$meses_unicos = array_unique(array_column($datos_grafico, 'mes'));
+foreach ($meses_unicos as $mes) {
+    if (!isset($ingresos_grafico[$mes])) {
+        $ingresos_grafico[$mes] = 0;
+    }
+    if (!isset($egresos_grafico[$mes])) {
+        $egresos_grafico[$mes] = 0;
+    }
+}
+
+// Ordenar por mes
+ksort($ingresos_grafico);
+ksort($egresos_grafico);
+
 // Definir nombre del mes para mostrar en las tarjetas
 $fecha = new DateTime("$anio_actual-$mes_actual-01");
 $meses = [
@@ -275,6 +334,20 @@ $nombre_mes = $meses[(int)$fecha->format('n')];
     </div>
   </div>
 
+  <!-- Gráficos de Estadísticas -->
+  <section class="mt-4">
+    <h2 class="fw-semibold">Estadísticas de Movimientos</h2>
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <canvas id="graficoMovimientos" width="400" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Reporte: Contratos por vencer -->
   <section class="mt-4">
     <h2 class="fw-semibold">Contratos por vencer <small>(próximos 60 días)</small></h2>
@@ -323,48 +396,72 @@ $nombre_mes = $meses[(int)$fecha->format('n')];
     <?php endif; ?>
   </section>
 
-  <section class="mt-5">
-    <h2 class="fw-semibold">Pagos Mensuales</h2>
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Contrato</th>
-          <th>Pago <?= ucfirst($nombre_mes) . ' ' . $anio_actual ?> (<?= date('d/m', strtotime($fecha_desde)) ?> - <?= date('d/m', strtotime($fecha_hasta)) ?>)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($propiedades_inquilinos as $fila): ?>
-          <tr>
-            <td><?= htmlspecialchars($fila['id']) ?></td>
-            <td>
-              <a href="contratos.php?edit=<?= $fila['id'] ?>" class="text-decoration-none text-dark">
-                <b><?= htmlspecialchars($fila['propiedad_nombre']) ?></b></a><br>
-              <a href="inquilinos.php?edit=<?= $fila['inquilino_id'] ?>" class="text-decoration-none text-dark">
-                <?= htmlspecialchars($fila['inquilino_nombre'] ?? 'N/A') ?>
-              </a>
-            </td>
-            <td>
-              <?php if (in_array($fila['id'], $pagos_mes_actual)): ?>
-                <a href="pagos.php?contrato_id=<?= $fila['id'] ?>" class="btn btn-success btn-sm">Pago recibido</a>
-              <?php else: ?>
-                <a href="pagos.php?contrato_id=<?= $fila['id'] ?>&add=true" class="btn btn-outline-success btn-sm">Registrar pago</a>
-              <?php endif; ?>
-              <?php if ($fila['fecha_ultimo_pago'] && $fila['periodo_ultimo_pago']): ?>
-                <div class="small text-muted mt-1">
-                  <b><?= date('Y-m-d', strtotime($fila['fecha_ultimo_pago'])) ?></b> Último pago<br>
-                  <b><?= htmlspecialchars($fila['periodo_ultimo_pago']) ?></b> Período
-                </div>
-              <?php else: ?>
-                <div class="small text-muted mt-1">Sin pagos registrados</div>
-              <?php endif; ?>
-            </td>
-          </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
+  <!-- Enlace a Control de Pagos -->
+  <section class="mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="fw-semibold">Control de Pagos</h2>
+      <a href="control_pagos.php" class="btn btn-primary">Ver Control de Pagos</a>
+    </div>
+    <p class="text-muted">Gestiona los pagos mensuales de tus propiedades desde la página dedicada.</p>
   </section>
 </main>
+
+<script>
+// Datos para el gráfico
+const datosGrafico = {
+    meses: <?= json_encode(array_values($meses_grafico)) ?>,
+    ingresos: <?= json_encode(array_values($ingresos_grafico)) ?>,
+    egresos: <?= json_encode(array_values($egresos_grafico)) ?>
+};
+
+// Crear gráfico de movimientos
+const ctx = document.getElementById('graficoMovimientos').getContext('2d');
+const graficoMovimientos = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: datosGrafico.meses,
+        datasets: [
+            {
+                label: 'Ingresos',
+                data: datosGrafico.ingresos,
+                backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                borderColor: 'rgba(40, 167, 69, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Egresos',
+                data: datosGrafico.egresos,
+                backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                borderColor: 'rgba(220, 53, 69, 1)',
+                borderWidth: 1
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toLocaleString('es-ES');
+                    }
+                }
+            }
+        },
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': $' + context.parsed.y.toLocaleString('es-ES');
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
 
 <?php
 include 'includes/footer.php';

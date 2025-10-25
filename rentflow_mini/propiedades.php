@@ -163,7 +163,7 @@ function estado_label($e)
     case 'alquilado':
       return '<span class="badge bg-success">Alquilado</span>';
     case 'uso propio':
-      return '<span class="badge bg-info">Uso Propio</span>';
+      return '<span class="badge bg-secondary">Uso Propio</span>';
     case 'en venta':
       return '<span class="badge bg-warning text-dark">En Venta</span>';
     default:
@@ -679,9 +679,9 @@ include 'includes/header_nav.php';
             </div>
           </div>
 
-          <button type="submit" class="btn btn-primary fw-semibold"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
+          <button type="submit" class="btn btn-lg btn-primary fw-semibold"><?= $edit_id ? "Actualizar" : "Guardar" ?></button>
           <?php if ($edit_id): ?>
-            <a href="propiedades.php" class="btn btn-outline-secondary ms-2">Cancelar</a>
+            <a href="propiedades.php" class="btn btn-lg btn-outline-secondary ms-2">Cancelar</a>
           <?php endif; ?>
         </form>
       </div>
@@ -771,10 +771,10 @@ include 'includes/header_nav.php';
     <section>
       <h2 class="fw-semibold mb-3">Listado de Propiedades</h2>
       <div class="mb-3">
-        <span class="badge bg-primary">Total: <?= $total_propiedades ?></span>
+        <span class="badge bg-dark-subtle text-black">Total: <?= $total_propiedades ?></span>
         <?php foreach ($tipos as $tipo): ?>
           <?php if ($contador_tipos[$tipo] > 0): ?>
-            <span class="badge bg-secondary"><?= htmlspecialchars($tipo) ?>: <?= $contador_tipos[$tipo] ?></span>
+            <span class="badge bg-body-secondary text-black"><?= htmlspecialchars($tipo) ?>: <?= $contador_tipos[$tipo] ?></span>
           <?php endif; ?>
         <?php endforeach; ?>
       </div>
@@ -841,26 +841,26 @@ include 'includes/header_nav.php';
                         <?php endif; ?>
                       </small>
                       <div class="mt-2">
-                        <a href="movimientos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-sm btn-info">
-                          Movimientos
-                        </a>
-                        <a href="pagos.php?contrato_id=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-primary">
+                        <a href="pagos.php?contrato_id=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-light bg-dark-subtle mb-1">
                           Pagos
                         </a>
-                        <a href="gastos.php?propiedad_id=<?= intval($p['id']) ?>&add=true" class="btn btn-sm btn-primary">
+                        <a href="gastos.php?propiedad_id=<?= intval($p['id']) ?>&add=true" class="btn btn-sm btn-light bg-dark-subtle mb-1">
                           Gastos
                         </a>
-                        <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-secondary">
+                        <a href="contratos.php?edit=<?= intval($p['contrato_id']) ?>" class="btn btn-sm btn-light bg-dark-subtle mb-1">
                           Contrato
+                        </a>
+                        <a href="movimientos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-sm btn-light bg-dark-subtle mb-1">
+                          Movimientos
                         </a>
                       </div>
                     <?php else: ?>
                       <div class="mt-2">
-                        <a href="movimientos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-sm btn-info me-2">
-                          Movimientos
-                        </a>
-                        <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-secondary btn-sm" style="white-space: nowrap;">
+                        <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-sm btn-light bg-dark-subtle mb-1 me-2" style="white-space: nowrap;">
                           Crear contrato
+                        </a>
+                        <a href="movimientos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-sm btn-light bg-dark-subtle mb-1 me-2">
+                          Movimientos
                         </a>
                       </div>
                     <?php endif; ?>

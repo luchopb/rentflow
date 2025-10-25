@@ -305,11 +305,11 @@ include 'includes/header_nav.php';
                     </div>
 
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-lg btn-primary">
                             <?= $edit_id ? 'Actualizar Gasto' : 'Registrar Gasto' ?>
                         </button>
                         <?php if ($edit_id): ?>
-                            <a href="gastos.php" class="btn btn-outline-secondary">Cancelar</a>
+                            <a href="gastos.php" class="btn btn-lgbtn-outline-secondary">Cancelar</a>
                         <?php endif; ?>
                     </div>
                 </form>

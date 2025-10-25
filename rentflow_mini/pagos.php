@@ -256,7 +256,7 @@ include 'includes/header_nav.php';
             <?php endif; ?>
           </div>
           <div class="d-flex gap-2">
-            <button type="submit" name="nuevo_pago" class="btn btn-primary">
+            <button type="submit" name="nuevo_pago" class="btn btn-lg btn-primary">
               <?= $edit_id ? 'Actualizar Pago' : 'Registrar Pago' ?>
             </button>
             <?php if ($edit_id): ?>

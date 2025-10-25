@@ -43,6 +43,7 @@ $filtro_tipo_pago = isset($_GET['filtro_tipo_pago']) ? $_GET['filtro_tipo_pago']
 // --- Consulta de pagos ---
 // Levantar también el nombre del inquilino (alias: nombre_inquilino)
 $query_pagos = "SELECT 
+    p.id AS pago_id,
     p.fecha, 
     p.concepto, 
     p.tipo_pago AS forma_pago, 
@@ -64,6 +65,7 @@ WHERE 1=1";
 // --- Consulta de gastos ---
 // Levantar también el nombre del inquilino (alias: nombre_inquilino)
 $query_gastos = "SELECT 
+    g.id AS gasto_id,
     g.fecha, 
     g.concepto, 
     g.forma_pago, 
@@ -215,9 +217,14 @@ include 'includes/header_nav.php';
     </div>
 
     <div class="table-responsive mt-4">
-        <h3>Saldo final: $<?php echo number_format($saldo, 2, ',', '.'); ?></h3>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>Saldo final: $<?php echo number_format($saldo, 2, ',', '.'); ?></h3>
+            <button class="btn btn-success" onclick="exportarCuentaCorriente()">
+                <i class="bi bi-file-excel"></i> Exportar a Excel
+            </button>
+        </div>
         <!-- Tabla de cuenta corriente -->
-        <table class="table table-bordered table-sm table-hover tabla-cuentacorriente">
+        <table class="table table-bordered table-sm table-hover tabla-cuentacorriente" id="tabla_cuenta_corriente">
             <thead>
                 <tr>
                     <th>Fecha</th>
@@ -233,12 +240,39 @@ include 'includes/header_nav.php';
                     <tr>
                         <td><?php echo htmlspecialchars($mov['fecha']); ?></td>
                         <td>
-                            <input type="checkbox" name="validado" value="">
-                            <?php if ($mov['validado'] == 1): ?>
-                                <small class="text-success">
-                                    <i class="bi bi-check-circle-fill"></i>
-                                </small>
-                            <?php endif; ?>
+                            <div class="d-flex align-items-center mb-2">
+                                <?php if ($mov['tipo'] == 'pago'): ?>
+                                    <input type="checkbox" 
+                                           class="form-check-input checkbox-validacion-pago" 
+                                           id="validado_pago_<?php echo $mov['pago_id']; ?>"
+                                           data-pago-id="<?php echo $mov['pago_id']; ?>"
+                                           <?php echo $mov['validado'] ? 'checked' : ''; ?>>
+                                    <label for="validado_pago_<?php echo $mov['pago_id']; ?>" class="form-check-label ms-2">
+                                        <?php if ($mov['validado'] == 1): ?>
+                                            <small class="text-success">
+                                                <i class="bi bi-check-circle-fill"></i> Validado
+                                            </small>
+                                        <?php else: ?>
+                                            <small class="text-muted">Pendiente</small>
+                                        <?php endif; ?>
+                                    </label>
+                                <?php else: ?>
+                                    <input type="checkbox" 
+                                           class="form-check-input checkbox-validacion-gasto" 
+                                           id="validado_gasto_<?php echo $mov['gasto_id']; ?>"
+                                           data-gasto-id="<?php echo $mov['gasto_id']; ?>"
+                                           <?php echo $mov['validado'] ? 'checked' : ''; ?>>
+                                    <label for="validado_gasto_<?php echo $mov['gasto_id']; ?>" class="form-check-label ms-2">
+                                        <?php if ($mov['validado'] == 1): ?>
+                                            <small class="text-success">
+                                                <i class="bi bi-check-circle-fill"></i> Validado
+                                            </small>
+                                        <?php else: ?>
+                                            <small class="text-muted">Pendiente</small>
+                                        <?php endif; ?>
+                                    </label>
+                                <?php endif; ?>
+                            </div>
                             <?php if (!is_null($mov['propiedad'])): ?>
                                 <a href="propiedades.php?edit=<?= $mov['propiedad_id'] ?>" class="text-decoration-none text-dark">
                                     <strong><?php echo htmlspecialchars($mov['propiedad']); ?></strong>
@@ -324,6 +358,255 @@ include 'includes/header_nav.php';
         </div>
     </div>
 </div>
+
+<script>
+    // Manejar cambios en los checkboxes de validación de pagos
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkboxesValidacionPago = document.querySelectorAll('.checkbox-validacion-pago');
+        checkboxesValidacionPago.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const pagoId = this.getAttribute('data-pago-id');
+                const validado = this.checked;
+                this.disabled = true;
+                validarPago(pagoId, validado);
+                setTimeout(() => {
+                    this.disabled = false;
+                }, 1000);
+            });
+        });
+
+        // Manejar cambios en los checkboxes de validación de gastos
+        const checkboxesValidacionGasto = document.querySelectorAll('.checkbox-validacion-gasto');
+        checkboxesValidacionGasto.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const gastoId = this.getAttribute('data-gasto-id');
+                const validado = this.checked;
+                this.disabled = true;
+                validarGasto(gastoId, validado);
+                setTimeout(() => {
+                    this.disabled = false;
+                }, 1000);
+            });
+        });
+    });
+
+    // Función para validar/desvalidar pagos
+    function validarPago(pagoId, validado) {
+        const formData = new FormData();
+        formData.append('pago_id', pagoId);
+        formData.append('validado', validado);
+
+        fetch('validar_pago.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Mostrar mensaje de éxito
+                    const mensaje = document.createElement('div');
+                    mensaje.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                    mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                    mensaje.innerHTML = `
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                    document.body.appendChild(mensaje);
+
+                    // Remover el mensaje después de 3 segundos
+                    setTimeout(() => {
+                        mensaje.remove();
+                    }, 3000);
+
+                    // Actualizar la etiqueta del checkbox
+                    const checkbox = document.getElementById(`validado_pago_${pagoId}`);
+                    const label = checkbox.nextElementSibling;
+
+                    if (validado) {
+                        label.innerHTML = `
+                        <small class="text-success">
+                            <i class="bi bi-check-circle-fill"></i> Validado
+                            <br><small>${data.fecha_validacion ? new Date(data.fecha_validacion).toLocaleString('es-ES', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            }) : ''}</small>
+                        </small>
+                    `;
+                    } else {
+                        label.innerHTML = '<small class="text-muted">Pendiente</small>';
+                    }
+                } else {
+                    // Mostrar mensaje de error
+                    const mensaje = document.createElement('div');
+                    mensaje.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+                    mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                    mensaje.innerHTML = `
+                    Error: ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                    document.body.appendChild(mensaje);
+
+                    // Remover el mensaje después de 5 segundos
+                    setTimeout(() => {
+                        mensaje.remove();
+                    }, 5000);
+
+                    // Revertir el checkbox
+                    const checkbox = document.getElementById(`validado_pago_${pagoId}`);
+                    checkbox.checked = !validado;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+
+                // Mostrar mensaje de error
+                const mensaje = document.createElement('div');
+                mensaje.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+                mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                mensaje.innerHTML = `
+                Error de conexión. Intente nuevamente.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+                document.body.appendChild(mensaje);
+
+                // Remover el mensaje después de 5 segundos
+                setTimeout(() => {
+                    mensaje.remove();
+                }, 5000);
+
+                // Revertir el checkbox
+                const checkbox = document.getElementById(`validado_pago_${pagoId}`);
+                checkbox.checked = !validado;
+            });
+    }
+
+    // Función para validar/desvalidar gastos
+    function validarGasto(gastoId, validado) {
+        const formData = new FormData();
+        formData.append('gasto_id', gastoId);
+        formData.append('validado', validado);
+        fetch('validar_gasto.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const mensaje = document.createElement('div');
+                    mensaje.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                    mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                    mensaje.innerHTML = `
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                    document.body.appendChild(mensaje);
+                    setTimeout(() => {
+                        mensaje.remove();
+                    }, 3000);
+                    const checkbox = document.getElementById(`validado_gasto_${gastoId}`);
+                    const label = checkbox.nextElementSibling;
+                    if (validado) {
+                        label.innerHTML = `
+                        <small class="text-success">
+                            <i class="bi bi-check-circle-fill"></i> Validado
+                            <br><small>${data.fecha_validacion ? new Date(data.fecha_validacion).toLocaleString('es-ES', {
+                                day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                            }) : ''}</small>
+                        </small>
+                    `;
+                    } else {
+                        label.innerHTML = '<small class="text-muted">Pendiente</small>';
+                    }
+                } else {
+                    const mensaje = document.createElement('div');
+                    mensaje.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+                    mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                    mensaje.innerHTML = `
+                    Error: ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                    document.body.appendChild(mensaje);
+                    setTimeout(() => {
+                        mensaje.remove();
+                    }, 5000);
+                    const checkbox = document.getElementById(`validado_gasto_${gastoId}`);
+                    checkbox.checked = !validado;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const mensaje = document.createElement('div');
+                mensaje.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+                mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                mensaje.innerHTML = `
+                Error de conexión. Intente nuevamente.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+                document.body.appendChild(mensaje);
+                setTimeout(() => {
+                    mensaje.remove();
+                }, 5000);
+                const checkbox = document.getElementById(`validado_gasto_${gastoId}`);
+                checkbox.checked = !validado;
+            });
+    }
+
+    // Función para exportar la cuenta corriente a Excel
+    function exportarCuentaCorriente() {
+        const tabla = document.getElementById('tabla_cuenta_corriente');
+        const fechaFin = document.querySelector('input[name="fecha_fin"]').value;
+        const propietarioSelect = document.querySelector('select[name="propietario_id"]');
+        const propietarioNombre = propietarioSelect.options[propietarioSelect.selectedIndex].text;
+        const tipoPagoSelect = document.querySelector('select[name="filtro_tipo_pago"]');
+        const tipoPago = tipoPagoSelect.options[tipoPagoSelect.selectedIndex].text;
+        
+        // Crear nombre de archivo con formato: CC_tipodepago_propietario_hasta_fecha_hoy
+        let nombreArchivo = 'CC';
+        
+        // Agregar tipo de pago
+        if (tipoPago && tipoPago !== 'Todos') {
+            nombreArchivo += `_${tipoPago}`;
+        } else {
+            nombreArchivo += '_Todos';
+        }
+        
+        // Agregar propietario
+        if (propietarioNombre && propietarioNombre !== 'Todos') {
+            nombreArchivo += `_${propietarioNombre.replace(/\s+/g, '_')}`;
+        } else {
+            nombreArchivo += '_Todos';
+        }
+        
+        // Agregar fecha hasta
+        if (fechaFin) {
+            nombreArchivo += `_hasta_${fechaFin}`;
+        }
+        
+        // Agregar fecha de hoy
+        const fechaHoy = new Date().toISOString().slice(0, 10);
+        nombreArchivo += `_${fechaHoy}`;
+        
+        exportarTablaAExcel(tabla, nombreArchivo);
+    }
+
+    // Función genérica para exportar tabla a Excel
+    function exportarTablaAExcel(tabla, nombreArchivo = '') {
+        const tipoDatos = 'application/vnd.ms-excel';
+        const htmlTabla = tabla.outerHTML;
+        const nombreArchivoFinal = nombreArchivo ? nombreArchivo + '.xls' : 'excel_data.xls';
+        const utf8BOM = '\uFEFF';
+        const blob = new Blob([utf8BOM + htmlTabla], { type: tipoDatos });
+        const enlaceDescarga = document.createElement('a');
+        enlaceDescarga.href = URL.createObjectURL(blob);
+        enlaceDescarga.download = nombreArchivoFinal;
+        document.body.appendChild(enlaceDescarga);
+        enlaceDescarga.click();
+        document.body.removeChild(enlaceDescarga);
+    }
+</script>
 
 <?php
 // Incluir pie de página
