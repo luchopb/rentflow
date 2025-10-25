@@ -6,10 +6,13 @@ error_reporting(E_ALL);
 // Archivo config.php: conexión a base de datos y funciones comunes
 session_start();
 
+// Incluir funciones comunes
+require_once __DIR__ . '/includes/functions.php';
+
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'drakon_luchorentflow_min');
-define('DB_USER', 'root');
-define('DB_PASS', 'root'); // Changed password to 'root' which is the default MAMP password
+define('DB_USER', 'drakon_luchorentflow');
+define('DB_PASS', 'CpB09hsCeKiz'); // Changed password to 'root' which is the default MAMP password
 
 // Crear conexión PDO
 try {
@@ -32,9 +35,5 @@ function is_admin() {
     return (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin');
 }
 
-// Función para sanitizar entradas
-function clean_input($data) {
-    return htmlspecialchars(trim($data));
-}
 ?>
 
