@@ -22,18 +22,4 @@ try {
     die("Error conexión DB: " . $e->getMessage());
 }
 
-// Función para verificar login
-function check_login() {
-    if (!isset($_SESSION['user_id'])) {
-        header("Location: index.php");
-        exit();
-    }
-}
-
-// Función para verificar rol admin
-function is_admin() {
-    return (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin');
-}
-
 ?>
-

@@ -18,20 +18,6 @@ $mes_actual = date('m', strtotime($fecha_desde));
 $anio_actual = date('Y', strtotime($fecha_desde));
 $periodo = date('Y-m', strtotime($fecha_desde));
 
-// Obtener conteo de propiedades y contratos activos por tipo
-$stmt_propiedades = $pdo->query("
-    SELECT p.tipo, 
-           COUNT(*) as total,
-           SUM(CASE WHEN c.estado = 'activo' THEN 1 ELSE 0 END) as ocupadas
-    FROM propiedades p
-    LEFT JOIN contratos c ON p.id = c.propiedad_id AND c.estado = 'activo'
-    GROUP BY p.tipo
-    ORDER BY total DESC
-");
-$propiedades_por_tipo = $stmt_propiedades->fetchAll(PDO::FETCH_ASSOC);
-$total_propiedades = array_sum(array_column($propiedades_por_tipo, 'total'));
-$total_ocupadas = array_sum(array_column($propiedades_por_tipo, 'ocupadas'));
-$ratio_ocupacion = $total_propiedades > 0 ? round(($total_ocupadas / $total_propiedades) * 100) : 0;
 
 // Obtener propiedades y sus inquilinos actuales junto a último pago mensual
 $stmt = $pdo->prepare("
@@ -234,72 +220,14 @@ $nombre_mes = $meses[(int)$fecha->format('n')];
     </div>
   </div>
 
-  <!-- Tarjetas del Dashboard -->
-  <div class="row mb-3">
-    <div class="col-md-4">
-      <a href="propiedades.php" class="text-decoration-none">
-        <div class="card text-bg-primary mb-2">
-          <div class="card-body py-2">
-            <h6 class="card-title mb-1">Propiedades</h6>
-            <p class="card-text h4 mb-1"><?= $total_propiedades ?></p>
-            <div class="small">
-              <?php foreach ($propiedades_por_tipo as $tipo): ?>
-                <div class="d-flex justify-content-between">
-                  <span class="text-capitalize"><?= htmlspecialchars($tipo['tipo']) ?>:</span>
-                  <span><?= $tipo['total'] ?></span>
-                </div>
-              <?php endforeach; ?>
-            </div>
-          </div>
-        </div>
-      </a>
-    </div>
-    <div class="col-md-4">
-      <a href="contratos.php" class="text-decoration-none">
-        <div class="card text-bg-success mb-2">
-          <div class="card-body py-2">
-            <h6 class="card-title mb-1">Propiedades Ocupadas</h6>
-            <p class="card-text h4 mb-1"><?= $total_ocupadas ?>/<?= $total_propiedades ?></p>
-            <div class="progress mb-1" role="progressbar" aria-label="Progreso de ocupación" style="height: 6px;">
-              <div class="progress-bar" style="width: <?= $ratio_ocupacion ?>%"></div>
-            </div>
-            <div class="small">
-              <?php foreach ($propiedades_por_tipo as $tipo): ?>
-                <?php
-                $ratio_tipo = $tipo['total'] > 0 ? round(($tipo['ocupadas'] / $tipo['total']) * 100) : 0;
-                ?>
-                <div class="d-flex justify-content-between">
-                  <span class="text-capitalize"><?= htmlspecialchars($tipo['tipo']) ?>:</span>
-                  <span><?= $tipo['ocupadas'] ?>/<?= $tipo['total'] ?> (<?= $ratio_tipo ?>%)</span>
-                </div>
-              <?php endforeach; ?>
-            </div>
-          </div>
-        </div>
-      </a>
-    </div>
-    <div class="col-md-4">
-      <a href="listado_pagos.php" class="text-decoration-none">
-        <div class="card text-bg-info mb-2">
-          <div class="card-body py-2">
-            <h6 class="card-title mb-1">Pagos del Mes</h6>
-            <p class="card-text h4 mb-1"><?= $pagos_recibidos ?>/<?= $total_contratos ?></p>
-            <div class="progress" role="progressbar" aria-label="Progreso de pagos" style="height: 6px;">
-              <div class="progress-bar" style="width: <?= $ratio_pagos ?>%"></div>
-            </div>
-          </div>
-        </div>
-      </a>
-    </div>
-  </div>
 
   <!-- Indicadores Financieros del Mes -->
   <div class="row mb-3">
     <div class="col-md-4">
       <a href="listado_pagos.php" class="text-decoration-none">
-        <div class="card text-bg-success mb-2">
+        <div class="card mb-2">
           <div class="card-body py-2">
-            <h6 class="card-title mb-1">Pagos del Mes</h6>
+            <h6 class="card-title mb-1 text-success">Ingresos</h6>
             <p class="card-text h4 mb-1">$<?= number_format($total_cobros, 0, ',', '.') ?></p>
             <div class="small">
               <span>Total de pagos mensuales recibidos del <?= date('d/m/Y', strtotime($fecha_desde)) ?> al <?= date('d/m/Y', strtotime($fecha_hasta)) ?></span>
@@ -310,9 +238,9 @@ $nombre_mes = $meses[(int)$fecha->format('n')];
     </div>
     <div class="col-md-4">
       <a href="gastos.php" class="text-decoration-none">
-        <div class="card text-bg-danger mb-2">
+        <div class="card mb-2">
           <div class="card-body py-2">
-            <h6 class="card-title mb-1">Gastos del Mes</h6>
+            <h6 class="card-title mb-1 text-danger">Egresos</h6>
             <p class="card-text h4 mb-1">$<?= number_format($total_gastos, 0, ',', '.') ?></p>
             <div class="small">
               <span>Total de gastos registrados del <?= date('d/m/Y', strtotime($fecha_desde)) ?> al <?= date('d/m/Y', strtotime($fecha_hasta)) ?></span>
@@ -322,9 +250,9 @@ $nombre_mes = $meses[(int)$fecha->format('n')];
       </a>
     </div>
     <div class="col-md-4">
-      <div class="card <?= $diferencia >= 0 ? 'text-bg-success' : 'text-bg-warning' ?> mb-2">
+      <div class="card mb-2">
         <div class="card-body py-2">
-          <h6 class="card-title mb-1">Diferencia del Mes</h6>
+          <h6 class="card-title mb-1 <?= $diferencia >= 0 ? 'text-success' : 'text-warning' ?>">Diferencia</h6>
           <p class="card-text h4 mb-1">$<?= number_format($diferencia, 0, ',', '.') ?></p>
           <div class="small">
             <span><?= $diferencia >= 0 ? 'Ganancia neta' : 'Pérdida neta' ?> del <?= date('d/m/Y', strtotime($fecha_desde)) ?> al <?= date('d/m/Y', strtotime($fecha_hasta)) ?></span>

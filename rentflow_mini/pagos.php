@@ -80,16 +80,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
       // Actualizar pago existente
       $sql = "UPDATE pagos SET periodo=?, fecha=?, importe=?, comentario=?, concepto=?, tipo_pago=?";
       $params = [$periodo, $fecha_pago, $importe, $comentario, $concepto, $tipo_pago];
-      
+
       if ($basename) {
         $sql .= ", comprobante=?";
         $params[] = $basename;
       }
-      
+
       $sql .= " WHERE id=? AND contrato_id=?";
       $params[] = $edit_id_form;
       $params[] = $contrato_id;
-      
+
       $stmt = $pdo->prepare($sql);
       $stmt->execute($params);
       $message = "Pago actualizado correctamente.";
@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
       $stmt->execute([$contrato_id, $usuario_id, $periodo, $fecha_pago, $fecha_creacion, $importe, $comentario, $basename ?? null, $concepto, $tipo_pago]);
       $message = "Pago registrado correctamente.";
     }
-    
+
     // Solo enviar email cuando se crea un nuevo pago, no cuando se edita
     if ($edit_id_form == 0) {
       // Enviar email después de registrar pago
@@ -315,6 +315,7 @@ include 'includes/header_nav.php';
         </tbody>
       </table>
       <a href="contratos.php" class="btn btn-secondary ms-2">Volver a Contratos</a>
+      <a href="movimientos.php?propiedad_id=<?= $contrato['propiedad_id'] ?>" class="btn btn-info ms-2">Ver Movimientos</a>
     </form>
   <?php endif; ?>
 

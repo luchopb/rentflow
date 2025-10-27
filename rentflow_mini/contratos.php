@@ -221,18 +221,6 @@ if ($edit_id > 0) {
   }
 }
 
-// Añadimos función estado_label con badges coloreados
-function estado_label($e)
-{
-  switch ($e) {
-    case 'activo':
-      return '<span class="badge bg-success">Activo</span>';
-    case 'finalizado':
-      return '<span class="badge bg-danger">Finalizado</span>';
-    default:
-      return ucfirst($e);
-  }
-}
 
 include 'includes/header_nav.php';
 ?>
@@ -395,7 +383,7 @@ include 'includes/header_nav.php';
                   <td><?= htmlspecialchars($c['id']) ?></td>
                   <td>
                     <a href="contratos.php?edit=<?= intval($c['id']) ?>" class="text-decoration-none text-dark"><b><?= htmlspecialchars($c['propiedad_nombre']) ?></b> <?= htmlspecialchars($c['inquilino_nombre']) ?><br>
-                      <?= estado_label($c['estado']) ?>
+                      <?= estado_contrato_label($c['estado']) ?>
                       <small>
                         <nobr>$ <?= number_format($c['importe'], 2, ",", ".") ?></nobr><br>
                         <?= date('d/m/Y', strtotime($c['fecha_inicio'])) ?> a <?= date('d/m/Y', strtotime($c['fecha_fin'])) ?>

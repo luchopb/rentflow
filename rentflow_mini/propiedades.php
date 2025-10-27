@@ -154,22 +154,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 }
 
-// Añadimos función estado_label con badges coloreados
-function estado_label($e)
-{
-  switch ($e) {
-    case 'libre':
-      return '<span class="badge bg-danger">Libre</span>';
-    case 'alquilado':
-      return '<span class="badge bg-success">Alquilado</span>';
-    case 'uso propio':
-      return '<span class="badge bg-secondary">Uso Propio</span>';
-    case 'en venta':
-      return '<span class="badge bg-warning text-dark">En Venta</span>';
-    default:
-      return ucfirst($e);
-  }
-}
 
 // Consulta con búsqueda y filtros
 $busqueda = clean_input($_GET['search'] ?? '');
@@ -356,6 +340,21 @@ foreach ($tipos as $tipo) {
   $stmt_count->execute($params_count);
   $contador_tipos[$tipo] = $stmt_count->fetch()['total'];
 }
+
+// Obtener conteo de propiedades y contratos activos por tipo para la tarjeta
+$stmt_propiedades_tarjeta = $pdo->query("
+    SELECT p.tipo, 
+           COUNT(*) as total,
+           SUM(CASE WHEN c.estado = 'activo' THEN 1 ELSE 0 END) as ocupadas
+    FROM propiedades p
+    LEFT JOIN contratos c ON p.id = c.propiedad_id AND c.estado = 'activo'
+    GROUP BY p.tipo
+    ORDER BY total DESC
+");
+$propiedades_por_tipo_tarjeta = $stmt_propiedades_tarjeta->fetchAll(PDO::FETCH_ASSOC);
+$total_propiedades_tarjeta = array_sum(array_column($propiedades_por_tipo_tarjeta, 'total'));
+$total_ocupadas_tarjeta = array_sum(array_column($propiedades_por_tipo_tarjeta, 'ocupadas'));
+$ratio_ocupacion_tarjeta = $total_propiedades_tarjeta > 0 ? round(($total_ocupadas_tarjeta / $total_propiedades_tarjeta) * 100) : 0;
 
 include 'includes/header_nav.php';
 
@@ -768,6 +767,35 @@ include 'includes/header_nav.php';
         </form>
       </div>
     </div>
+
+    <!-- Tarjeta de Resumen de Propiedades -->
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <a href="contratos.php" class="text-decoration-none">
+          <div class="card mb-2">
+            <div class="card-body py-2">
+              <h6 class="card-title mb-1 text-success">Propiedades Ocupadas</h6>
+              <p class="card-text h4 mb-1"><?= $total_ocupadas_tarjeta ?>/<?= $total_propiedades_tarjeta ?></p>
+              <div class="progress mb-1" role="progressbar" aria-label="Progreso de ocupación" style="height: 6px;">
+                <div class="progress-bar" style="width: <?= $ratio_ocupacion_tarjeta ?>%"></div>
+              </div>
+              <div class="small">
+                <?php foreach ($propiedades_por_tipo_tarjeta as $tipo): ?>
+                  <?php
+                  $ratio_tipo = $tipo['total'] > 0 ? round(($tipo['ocupadas'] / $tipo['total']) * 100) : 0;
+                  ?>
+                  <div class="d-flex justify-content-between">
+                    <span class="text-capitalize"><?= htmlspecialchars($tipo['tipo']) ?>:</span>
+                    <span><?= $tipo['ocupadas'] ?>/<?= $tipo['total'] ?> (<?= $ratio_tipo ?>%)</span>
+                  </div>
+                <?php endforeach; ?>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
     <section>
       <h2 class="fw-semibold mb-3">Listado de Propiedades</h2>
       <div class="mb-3">
