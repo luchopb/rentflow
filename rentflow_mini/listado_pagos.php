@@ -89,10 +89,15 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
         $sql_export .= " AND prop.nombre LIKE ?";
         $params_export[] = "%$filtro_propiedad%";
     }
-    if ($filtro_propietario) {
-        $sql_export .= " AND prop.propietario_id = ?";
-        $params_export[] = $filtro_propietario;
+if ($filtro_propietario) {
+    $propietario_todos = "";
+    if ($filtro_propietario == 1) {
+        // Si filtro por propietario id 1 (todos) agrego los pagos sin propietario y la propiedad de raul hijo
+        $propietario_todos = " OR prop.propietario_id = 2 OR prop.propietario_id IS NULL";
     }
+    $sql_export .= " AND (prop.propietario_id = ? $propietario_todos)";
+    $params_export[] = $filtro_propietario;
+}
     if ($filtro_fecha_desde) {
         $sql_export .= " AND p.fecha >= ?";
         $params_export[] = $filtro_fecha_desde;
@@ -210,7 +215,12 @@ if ($filtro_propiedad) {
 }
 
 if ($filtro_propietario) {
-    $sql_base .= " AND prop.propietario_id = ?";
+    $propietario_todos = "";
+    if ($filtro_propietario == 1) {
+        // Si filtro por propietario id 1 (todos) agrego los pagos sin propietario y la propiedad de raul hijo
+        $propietario_todos = " OR prop.propietario_id = 2 OR prop.propietario_id IS NULL";
+    }
+    $sql_base .= " AND (prop.propietario_id = ? $propietario_todos)";
     $params[] = $filtro_propietario;
 }
 
@@ -245,6 +255,14 @@ if ($filtro_validado !== '') {
 }
 
 $sql_base .= " ORDER BY p.fecha DESC, p.id DESC";
+
+// Debug: Imprimir consulta y parámetros
+/*echo '<pre style="background: #f4f4f4; padding: 10px; border: 1px solid #ddd; margin: 10px;">';
+echo 'DEBUG SQL: ' . $sql_base . "\n";
+echo 'DEBUG PARAMS: ';
+print_r($params);
+echo '</pre>';*/
+// die(); // Descomenta esto si quieres frenar la ejecución aquí
 
 // Ejecutar consulta
 $stmt = $pdo->prepare($sql_base);
@@ -328,52 +346,52 @@ include 'includes/header_nav.php';
     <!-- Indicadores -->
     <div class="row mb-4">
         <div class="col-md-3 mb-2">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Total Pagos</h5>
-                    <h3 class="card-text"><?= number_format($total_pagos) ?></h3>
+            <div class="card mb-2">
+                <div class="card-body py-2">
+                    <h6 class="card-title mb-1 text-primary">Total Pagos</h6>
+                    <p class="card-text h4 mb-1"><?= number_format($total_pagos) ?></p>
                 </div>
             </div>
         </div>
         <div class="col-md-3 mb-2">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Monto Total</h5>
-                    <h3 class="card-text">$<?= number_format($monto_total, 2, ',', '.') ?></h3>
+            <div class="card mb-2">
+                <div class="card-body py-2">
+                    <h6 class="card-title mb-1 text-success">Monto Total</h6>
+                    <p class="card-text h4 mb-1">$<?= number_format($monto_total, 2, ',', '.') ?></p>
                 </div>
             </div>
         </div>
         <div class="col-md-3 mb-2">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Promedio</h5>
-                    <h3 class="card-text">$<?= $total_pagos > 0 ? number_format($monto_total / $total_pagos, 2, ',', '.') : '0,00' ?></h3>
+            <div class="card mb-2">
+                <div class="card-body py-2">
+                    <h6 class="card-title mb-1 text-info">Promedio</h6>
+                    <p class="card-text h4 mb-1">$<?= $total_pagos > 0 ? number_format($monto_total / $total_pagos, 2, ',', '.') : '0,00' ?></p>
                 </div>
             </div>
         </div>
         <div class="col-md-3 mb-2">
-            <div class="card bg-warning text-dark">
-                <div class="card-body">
-                    <h5 class="card-title">Tipos de Pago</h5>
-                    <h3 class="card-text"><?= count($desglose_tipo) ?></h3>
+            <div class="card mb-2">
+                <div class="card-body py-2">
+                    <h6 class="card-title mb-1 text-warning">Tipos de Pago</h6>
+                    <p class="card-text h4 mb-1"><?= count($desglose_tipo) ?></p>
                 </div>
             </div>
         </div>
         <div class="col-md-3 mb-2">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Pagos Validados</h5>
-                    <h3 class="card-text"><?= $total_validados ?></h3>
-                    <small>$<?= number_format($monto_validados, 2, ',', '.') ?></small>
+            <div class="card mb-2">
+                <div class="card-body py-2">
+                    <h6 class="card-title mb-1 text-success">Pagos Validados</h6>
+                    <p class="card-text h4 mb-1"><?= $total_validados ?></p>
+                    <div class="small">$<?= number_format($monto_validados, 2, ',', '.') ?></div>
                 </div>
             </div>
         </div>
         <div class="col-md-3 mb-2">
-            <div class="card bg-warning text-dark">
-                <div class="card-body">
-                    <h5 class="card-title">Pagos Pendientes</h5>
-                    <h3 class="card-text"><?= $total_pendientes ?></h3>
-                    <small>$<?= number_format($monto_pendientes, 2, ',', '.') ?></small>
+            <div class="card mb-2">
+                <div class="card-body py-2">
+                    <h6 class="card-title mb-1 text-warning">Pagos Pendientes</h6>
+                    <p class="card-text h4 mb-1"><?= $total_pendientes ?></p>
+                    <div class="small">$<?= number_format($monto_pendientes, 2, ',', '.') ?></div>
                 </div>
             </div>
         </div>

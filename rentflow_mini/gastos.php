@@ -12,6 +12,7 @@ $busqueda = clean_input($_GET['search'] ?? '');
 $filtro_concepto = clean_input($_GET['filtro_concepto'] ?? '');
 $filtro_forma_pago = clean_input($_GET['filtro_forma_pago'] ?? '');
 $propiedad_id = intval($_GET['propiedad_id'] ?? 0);
+$filtro_propietario = intval($_GET['propietario'] ?? 0);
 
 // Verificar si se debe mostrar el formulario de nuevo gasto
 $show_form = (isset($_GET['add']) && $_GET['add'] === 'true') || $edit_id > 0;
@@ -143,6 +144,10 @@ $stmt = $pdo->prepare("SELECT id, nombre, direccion FROM propiedades ORDER BY no
 $stmt->execute();
 $propiedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Obtener propietarios para el filtro
+$stmt_propietarios = $pdo->query("SELECT id, nombre FROM propietarios ORDER BY nombre");
+$propietarios = $stmt_propietarios->fetchAll(PDO::FETCH_ASSOC);
+
 // Obtener datos para los filtros
 $stmt_conceptos = $pdo->query("SELECT DISTINCT concepto FROM gastos WHERE concepto IS NOT NULL ORDER BY concepto");
 $conceptos = $stmt_conceptos->fetchAll(PDO::FETCH_COLUMN);
@@ -189,6 +194,16 @@ if ($fecha_desde) {
 if ($fecha_hasta) {
     $where_conditions[] = "g.fecha <= ?";
     $params[] = $fecha_hasta;
+}
+// Filtro por propietario con condición especial para propietario_id = 1
+if ($filtro_propietario) {
+    $propietario_todos_gastos = "";
+    if ($filtro_propietario === 1) {
+        // Si filtro por propietario id 1 (todos) agrego los gastos de todos porque salen de nuestra cuenta
+        $propietario_todos_gastos = " OR p.propietario_id = 2 OR p.propietario_id = 5 OR p.propietario_id = 6 OR p.propietario_id = 9 OR p.propietario_id IS NULL";
+    }
+    $where_conditions[] = "(p.propietario_id = ? $propietario_todos_gastos)";
+    $params[] = $filtro_propietario;
 }
 if (!empty($where_conditions)) {
     $sql .= " WHERE " . implode(' AND ', $where_conditions);
@@ -320,34 +335,34 @@ include 'includes/header_nav.php';
     <!-- Indicadores estadísticos -->
     <div class="row mb-4">
         <div class="col-md-3 mb-2">
-            <div class="card text-white bg-primary h-100">
-                <div class="card-body">
-                    <h5 class="card-text">Total Gastos</h3>
-                        <h3 class="card-title"><?= $cantidad_gastos ?></h3>
+            <div class="card mb-2">
+                <div class="card-body py-2">
+                    <h6 class="card-title mb-1 text-primary">Total Gastos</h6>
+                    <p class="card-text h4 mb-1"><?= $cantidad_gastos ?></p>
                 </div>
             </div>
         </div>
         <div class="col-md-3 mb-2">
-            <div class="card text-white bg-success h-100">
-                <div class="card-body">
-                    <h5 class="card-text">Monto Total</h3>
-                        <h3 class="card-title">$<?= number_format($total_gastos, 2, ',', '.') ?></h3>
+            <div class="card mb-2">
+                <div class="card-body py-2">
+                    <h6 class="card-title mb-1 text-danger">Monto Total</h6>
+                    <p class="card-text h4 mb-1">$<?= number_format($total_gastos, 2, ',', '.') ?></p>
                 </div>
             </div>
         </div>
         <div class="col-md-3 mb-2">
-            <div class="card text-white bg-info h-100">
-                <div class="card-body">
-                    <h5 class="card-text">Promedio</h3>
-                        <h3 class="card-title">$<?= number_format($promedio_gastos, 2, ',', '.') ?></h3>
+            <div class="card mb-2">
+                <div class="card-body py-2">
+                    <h6 class="card-title mb-1 text-info">Promedio</h6>
+                    <p class="card-text h4 mb-1">$<?= number_format($promedio_gastos, 2, ',', '.') ?></p>
                 </div>
             </div>
         </div>
         <div class="col-md-3 mb-2">
-            <div class="card text-dark bg-warning h-100">
-                <div class="card-body">
-                    <h5 class="card-text">Tipos de Concepto</h5>
-                    <h3 class="card-title"><?= $tipos_concepto ?></h3>
+            <div class="card mb-2">
+                <div class="card-body py-2">
+                    <h6 class="card-title mb-1 text-warning">Tipos de Concepto</h6>
+                    <p class="card-text h4 mb-1"><?= $tipos_concepto ?></p>
                 </div>
             </div>
         </div>
@@ -365,7 +380,7 @@ include 'includes/header_nav.php';
                     <label for="fecha_hasta" class="form-label">Fecha hasta</label>
                     <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta" value="<?= htmlspecialchars($fecha_hasta) ?>">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label for="filtro_concepto" class="form-label">Concepto</label>
                     <select class="form-select" id="filtro_concepto" name="filtro_concepto">
                         <option value="">Todos los conceptos</option>
@@ -387,13 +402,24 @@ include 'includes/header_nav.php';
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label for="propiedad_id" class="form-label">Propiedad</label>
                     <select class="form-select" id="propiedad_id" name="propiedad_id">
                         <option value="">Todas las propiedades</option>
                         <?php foreach ($propiedades as $prop): ?>
                             <option value="<?= $prop['id'] ?>" <?= $propiedad_id == $prop['id'] ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($prop['nombre']) ?> - <?= htmlspecialchars($prop['direccion']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="propietario" class="form-label">Propietario</label>
+                    <select class="form-select" id="propietario" name="propietario">
+                        <option value="">Todos los propietarios</option>
+                        <?php foreach ($propietarios as $propietario): ?>
+                            <option value="<?= $propietario['id'] ?>" <?= $filtro_propietario == $propietario['id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($propietario['nombre']) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>

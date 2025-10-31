@@ -237,7 +237,13 @@ include 'includes/header_nav.php';
             </thead>
             <tbody>
                 <?php foreach ($movimientos as $mov): ?>
-                    <tr>
+                    <tr class="<?php 
+                        if ($mov['concepto'] === 'Arqueo de Caja (suma)') {
+                            echo 'table-success';
+                        } elseif ($mov['concepto'] === 'Arqueo de Caja (resta)') {
+                            echo 'table-danger';
+                        }
+                    ?>">
                         <td><?php echo htmlspecialchars($mov['fecha']); ?></td>
                         <td>
                             <div class="d-flex align-items-center mb-2">
