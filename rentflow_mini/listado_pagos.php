@@ -364,22 +364,6 @@ include 'includes/header_nav.php';
         <div class="col-md-3 mb-2">
             <div class="card mb-2">
                 <div class="card-body py-2">
-                    <h6 class="card-title mb-1 text-info">Promedio</h6>
-                    <p class="card-text h4 mb-1">$<?= $total_pagos > 0 ? number_format($monto_total / $total_pagos, 2, ',', '.') : '0,00' ?></p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-2">
-            <div class="card mb-2">
-                <div class="card-body py-2">
-                    <h6 class="card-title mb-1 text-warning">Tipos de Pago</h6>
-                    <p class="card-text h4 mb-1"><?= count($desglose_tipo) ?></p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-2">
-            <div class="card mb-2">
-                <div class="card-body py-2">
                     <h6 class="card-title mb-1 text-success">Pagos Validados</h6>
                     <p class="card-text h4 mb-1"><?= $total_validados ?></p>
                     <div class="small">$<?= number_format($monto_validados, 2, ',', '.') ?></div>
@@ -396,43 +380,6 @@ include 'includes/header_nav.php';
             </div>
         </div>
     </div>
-
-    <!-- Desglose por tipo de pago -->
-    <?php if (!empty($desglose_tipo)): ?>
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Desglose por Tipo de Pago</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered table-striped align-middle mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Tipo de Pago</th>
-                                        <th>Cantidad</th>
-                                        <th>Total</th>
-                                        <th>Porcentaje</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($desglose_tipo as $tipo => $datos): ?>
-                                        <tr>
-                                            <td><?= htmlspecialchars($tipo) ?></td>
-                                            <td><?= $datos['cantidad'] ?></td>
-                                            <td>$<?= number_format($datos['monto'], 2, ',', '.') ?></td>
-                                            <td><?= $monto_total > 0 ? round(($datos['monto'] / $monto_total) * 100, 2) : 0 ?>%</td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    <?php endif; ?>
 
     <!-- Filtros -->
     <div class="card mb-4">
@@ -521,6 +468,44 @@ include 'includes/header_nav.php';
             </form>
         </div>
     </div>
+    
+    <!-- Desglose por tipo de pago -->
+    <?php if (!empty($desglose_tipo)): ?>
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#desgloseTipoPagoCollapse" aria-expanded="false" aria-controls="desgloseTipoPagoCollapse">
+                        <h5 class="mb-0">Desglose por Tipo de Pago</h5>
+                    </div>
+                    <div id="desgloseTipoPagoCollapse" class="card-body collapse">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered table-striped align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo de Pago</th>
+                                        <th>Cantidad</th>
+                                        <th>Total</th>
+                                        <th>Porcentaje</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($desglose_tipo as $tipo => $datos): ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars($tipo) ?></td>
+                                            <td><?= $datos['cantidad'] ?></td>
+                                            <td>$<?= number_format($datos['monto'], 2, ',', '.') ?></td>
+                                            <td><?= $monto_total > 0 ? round(($datos['monto'] / $monto_total) * 100, 2) : 0 ?>%</td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+
 
     <!-- Tabla de pagos -->
     <div class="card">

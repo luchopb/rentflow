@@ -300,7 +300,7 @@ include 'includes/header_nav.php';
                         </td>
                         <td>
                             <?php if (!empty($mov['comprobante'])): ?>
-                                <a href="uploads/<?php echo urlencode($mov['comprobante']); ?>" target="_blank" class="badge bg-info">
+                                <a href="uploads/<?php echo ($mov['comprobante']); ?>" target="_blank" class="badge bg-info">
                                     Comprobante
                                 </a>
                             <?php else: ?>
@@ -308,8 +308,8 @@ include 'includes/header_nav.php';
                             <?php endif; ?><br>
                             <?php echo htmlspecialchars($mov['forma_pago']); ?>
                         </td>
-                        <td><?php echo $mov['credito'] ? number_format($mov['credito'], 2, ',', '.') : ''; ?></td>
-                        <td class="text-danger"><?php echo $mov['debito'] ? '-' . number_format($mov['debito'], 2, ',', '.') : ''; ?></td>
+                        <td class="text-success fw-bold"><?php echo $mov['credito'] ? number_format($mov['credito'], 2, ',', '.') : ''; ?></td>
+                        <td class="text-danger fw-bold"><?php echo $mov['debito'] ? '-' . number_format($mov['debito'], 2, ',', '.') : ''; ?></td>
                         <td><?php echo number_format($mov['saldo'], 2, ',', '.'); ?></td>
                     </tr>
                 <?php endforeach; ?>
