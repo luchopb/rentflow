@@ -64,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
   if (!$tipo_pago) $errors[] = "El tipo de pago es obligatorio.";
 
   // Manejo de archivo de comprobante
+  $basename = null; // Inicializar variable para evitar errores
   if ($comprobante && $comprobante['error'] === UPLOAD_ERR_OK) {
     $upload_dir = __DIR__ . '/uploads/';
     if (!file_exists($upload_dir)) {
