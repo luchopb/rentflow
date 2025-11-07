@@ -10,7 +10,7 @@ session_start();
 require_once __DIR__ . '/includes/functions.php';
 
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'drakon_luchorentflow_min');
+define('DB_NAME', 'drakon_luchorentflow');
 define('DB_USER', 'drakon_luchorentflow');
 define('DB_PASS', 'CpB09hsCeKiz'); // Changed password to 'root' which is the default MAMP password
 
