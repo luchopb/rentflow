@@ -1,7 +1,7 @@
 {
     "name": "MilVentas",
     "short_name": "MilVentas",
-    "start_url": "/_site_luchorentflow/rentflow_mini/dashboard.php",
+    "start_url": "/_site_luchorentflow/dashboard.php",
     "display": "standalone",
     "background_color": "#0d6ffd",
     "theme_color": "#0d6ffd",
