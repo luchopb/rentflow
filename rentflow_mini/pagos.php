@@ -221,6 +221,7 @@ include 'includes/header_nav.php';
               <option value="Pago mensual" <?= ($edit_data['concepto'] ?? '') === 'Pago mensual' ? 'selected' : '' ?>>Pago mensual</option>
               <option value="Impuestos" <?= ($edit_data['concepto'] ?? '') === 'Impuestos' ? 'selected' : '' ?>>Impuestos</option>
               <option value="Gastos comunes" <?= ($edit_data['concepto'] ?? '') === 'Gastos comunes' ? 'selected' : '' ?>>Gastos comunes</option>
+              <option value="Comisiones" <?= ($edit_data['concepto'] ?? '') === 'Comisiones' ? 'selected' : '' ?>>Comisiones</option>
             </select>
           </div>
           <div class="mb-3">

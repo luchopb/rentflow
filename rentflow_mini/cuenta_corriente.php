@@ -39,6 +39,7 @@ $propietario_id = isset($_GET['propietario_id']) ? intval($_GET['propietario_id'
 $fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] ? $_GET['fecha_inicio'] : '2025-01-01';
 $fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] ? $_GET['fecha_fin'] : date('Y-m-d');
 $filtro_tipo_pago = isset($_GET['filtro_tipo_pago']) ? $_GET['filtro_tipo_pago'] : 'Efectivo';
+$filtro_validado = isset($_GET['filtro_validado']) ? $_GET['filtro_validado'] : '';
 
 // --- Consulta de pagos ---
 // Levantar también el nombre del inquilino (alias: nombre_inquilino)
@@ -80,6 +81,7 @@ $query_gastos = "SELECT
 FROM gastos g
 LEFT JOIN propiedades pr ON g.propiedad_id = pr.id
 LEFT JOIN contratos c ON c.propiedad_id = pr.id
+    AND g.fecha BETWEEN c.fecha_inicio AND c.fecha_fin
 LEFT JOIN inquilinos i ON c.inquilino_id = i.id
 WHERE 1=1";
 
@@ -115,14 +117,20 @@ if ($propietario_id) {
     $propietario_todos = "";
     $propietario_todos_gastos = "";
     if ($propietario_id === 1) {
-        // Si filtro por propietario id 1 (todos) agrego los pagos y gastos sin propíetario
-        $propietario_todos = " OR pr.propietario_id = 2 OR pr.propietario_id IS NULL";
+        // Si filtro por propietario id 1 (todos) agrego los pagos y gastos sin propíetario y de 
+        $propietario_todos = " OR pr.propietario_id = 2 OR pr.propietario_id = 9 OR pr.propietario_id IS NULL";
         // para los gastos agrego los gastos de todos porque salen de nuestra cuenta 
         $propietario_todos_gastos = " OR pr.propietario_id = 2 OR pr.propietario_id = 5 OR pr.propietario_id = 6 OR pr.propietario_id = 9 OR pr.propietario_id IS NULL";
     }
     $query_gastos .= " AND (pr.propietario_id = ? $propietario_todos_gastos )";
     $query_pagos .= " AND (pr.propietario_id = ? $propietario_todos )";
     $params[] = $propietario_id;
+    $types .= 'i';
+}
+if ($filtro_validado !== '') {
+    $query_gastos .= " AND g.validado = ?";
+    $query_pagos .= " AND p.validado = ?";
+    $params[] = $filtro_validado === '1' ? 1 : 0;
     $types .= 'i';
 }
 
@@ -207,6 +215,14 @@ include 'includes/header_nav.php';
                         <?php foreach ($propietarios as $prop): ?>
                             <option value="<?php echo $prop['id']; ?>" <?php if ($propietario_id == $prop['id']) echo 'selected'; ?>><?php echo htmlspecialchars($prop['nombre']); ?></option>
                         <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="filtro_validado">Estado de Validación:</label>
+                    <select class="form-control" name="filtro_validado">
+                        <option value="" <?php if ($filtro_validado === '') echo 'selected'; ?>>Todos</option>
+                        <option value="1" <?php if ($filtro_validado === '1') echo 'selected'; ?>>Validados</option>
+                        <option value="0" <?php if ($filtro_validado === '0') echo 'selected'; ?>>Pendientes</option>
                     </select>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
