@@ -131,6 +131,83 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
   }
 }
 
+// Manejo de exportación a CSV
+if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+    $stmt_export = $pdo->prepare("
+        SELECT 
+            p.id,
+            p.periodo,
+            p.fecha,
+            p.concepto,
+            p.tipo_pago,
+            p.importe,
+            p.comentario,
+            p.comprobante,
+            p.validado,
+            p.fecha_validacion,
+            i.nombre as inquilino_nombre,
+            prop.nombre as propiedad_nombre,
+            prop.direccion as propiedad_direccion
+        FROM pagos p
+        JOIN contratos c ON p.contrato_id = c.id
+        JOIN inquilinos i ON c.inquilino_id = i.id
+        JOIN propiedades prop ON c.propiedad_id = prop.id
+        WHERE p.contrato_id = ?
+        ORDER BY p.periodo DESC, p.fecha DESC
+    ");
+    $stmt_export->execute([$contrato_id]);
+    $pagos_export = $stmt_export->fetchAll(PDO::FETCH_ASSOC);
+
+    // Configurar headers para descarga CSV
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="pagos_contrato_' . $contrato_id . '_' . date('Y-m-d_H-i-s') . '.csv"');
+
+    // Crear archivo CSV
+    $output = fopen('php://output', 'w');
+
+    // BOM para UTF-8
+    fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+    // Headers del CSV
+    fputcsv($output, [
+        'ID',
+        'Período',
+        'Fecha',
+        'Concepto',
+        'Tipo de Pago',
+        'Importe',
+        'Comentario',
+        'Comprobante',
+        'Validado',
+        'Fecha Validación',
+        'Inquilino',
+        'Propiedad',
+        'Dirección'
+    ], ';');
+
+    // Datos
+    foreach ($pagos_export as $pago) {
+        fputcsv($output, [
+            $pago['id'],
+            $pago['periodo'],
+            $pago['fecha'],
+            $pago['concepto'],
+            $pago['tipo_pago'],
+            $pago['importe'],
+            $pago['comentario'],
+            $pago['comprobante'] ?? '',
+            $pago['validado'] ? 'Sí' : 'No',
+            $pago['fecha_validacion'] ?? '',
+            $pago['inquilino_nombre'],
+            $pago['propiedad_nombre'],
+            $pago['propiedad_direccion']
+        ], ';');
+    }
+
+    fclose($output);
+    exit();
+}
+
 // Obtener pagos para este contrato
 $pagos = $pdo->prepare("SELECT * FROM pagos WHERE contrato_id = ? ORDER BY periodo DESC, fecha DESC");
 $pagos->execute([$contrato_id]);
@@ -274,11 +351,17 @@ include 'includes/header_nav.php';
     <p>No hay pagos registrados para este contrato.</p>
   <?php else: ?>
     <form method="POST">
+      <div class="mb-3">
+        <a href="pagos.php?contrato_id=<?= $contrato_id ?>&export=csv" class="btn btn-success">
+          <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+        </a>
+      </div>
       <table class="table table-striped align-middle">
         <thead>
           <tr>
             <th>Fecha</th>
             <th>Concepto</th>
+            <th>Validado</th>
             <th></th>
           </tr>
         </thead>
@@ -299,6 +382,28 @@ include 'includes/header_nav.php';
                     <a href="uploads/<?= htmlspecialchars($pago['comprobante']) ?>" target="_blank">Ver Comprobante</a>
                   <?php endif; ?>
                 </small>
+              </td>
+              <td>
+                <div class="form-check d-flex">
+                  <input class="form-check-input checkbox-validacion"
+                      type="checkbox"
+                      id="validado_<?= $pago['id'] ?>"
+                      data-pago-id="<?= $pago['id'] ?>"
+                      <?= ($pago['validado'] ?? false) ? 'checked' : '' ?>
+                      onclick="if(!confirm('¿Realmente desea validar el pago?')) { event.preventDefault(); return false; }">
+                  <label class="form-check-label ms-2" for="validado_<?= $pago['id'] ?>">
+                    <?php if ($pago['validado'] ?? false): ?>
+                      <small class="text-success">
+                        <i class="bi bi-check-circle-fill"></i> Validado
+                        <?php if ($pago['fecha_validacion'] ?? null): ?>
+                          <br><small><?= date('d/m/Y H:i', strtotime($pago['fecha_validacion'])) ?></small>
+                        <?php endif; ?>
+                      </small>
+                    <?php else: ?>
+                      <small class="text-muted">Pendiente</small>
+                    <?php endif; ?>
+                  </label>
+                </div>
               </td>
               <td>
                 <?php if ($_SESSION['user_role'] === 'admin'): ?>
@@ -328,6 +433,120 @@ include 'includes/header_nav.php';
   const toggleBtnInquilino = document.querySelector('button[data-bs-target="#formPagoCollapse"]');
   collapseInquilino.addEventListener('show.bs.collapse', () => toggleBtnInquilino.textContent = 'Ocultar');
   collapseInquilino.addEventListener('hide.bs.collapse', () => toggleBtnInquilino.textContent = 'Agregar Nuevo Pago');
+
+  // Función para validar/desvalidar pagos
+  function validarPago(pagoId, validado) {
+    const formData = new FormData();
+    formData.append('pago_id', pagoId);
+    formData.append('validado', validado);
+
+    fetch('validar_pago.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Mostrar mensaje de éxito
+          const mensaje = document.createElement('div');
+          mensaje.className = 'alert alert-success alert-dismissible fade show position-fixed';
+          mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+          mensaje.innerHTML = `
+            ${data.message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          `;
+          document.body.appendChild(mensaje);
+
+          // Remover el mensaje después de 3 segundos
+          setTimeout(() => {
+            mensaje.remove();
+          }, 3000);
+
+          // Actualizar la etiqueta del checkbox
+          const checkbox = document.getElementById(`validado_${pagoId}`);
+          const label = checkbox.nextElementSibling;
+
+          if (validado) {
+            label.innerHTML = `
+              <small class="text-success">
+                <i class="bi bi-check-circle-fill"></i> Validado
+                <br><small>${data.fecha_validacion ? new Date(data.fecha_validacion).toLocaleString('es-ES', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }) : ''}</small>
+              </small>
+            `;
+          } else {
+            label.innerHTML = '<small class="text-muted">Pendiente</small>';
+          }
+        } else {
+          // Mostrar mensaje de error
+          const mensaje = document.createElement('div');
+          mensaje.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+          mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+          mensaje.innerHTML = `
+            Error: ${data.message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          `;
+          document.body.appendChild(mensaje);
+
+          // Remover el mensaje después de 5 segundos
+          setTimeout(() => {
+            mensaje.remove();
+          }, 5000);
+
+          // Revertir el checkbox
+          const checkbox = document.getElementById(`validado_${pagoId}`);
+          checkbox.checked = !validado;
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+
+        // Mostrar mensaje de error
+        const mensaje = document.createElement('div');
+        mensaje.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+        mensaje.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        mensaje.innerHTML = `
+          Error de conexión. Intente nuevamente.
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(mensaje);
+
+        // Remover el mensaje después de 5 segundos
+        setTimeout(() => {
+          mensaje.remove();
+        }, 5000);
+
+        // Revertir el checkbox
+        const checkbox = document.getElementById(`validado_${pagoId}`);
+        checkbox.checked = !validado;
+      });
+  }
+
+  // Manejar cambios en los checkboxes de validación
+  document.addEventListener('DOMContentLoaded', function() {
+    const checkboxesValidacion = document.querySelectorAll('.checkbox-validacion');
+    checkboxesValidacion.forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const pagoId = this.getAttribute('data-pago-id');
+        const validado = this.checked;
+
+        // Deshabilitar el checkbox temporalmente para evitar múltiples clics
+        this.disabled = true;
+
+        validarPago(pagoId, validado);
+
+        // Habilitar el checkbox después de un breve delay
+        setTimeout(() => {
+          this.disabled = false;
+        }, 1000);
+      });
+    });
+  });
 </script>
 
 <?php
