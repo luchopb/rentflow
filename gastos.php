@@ -101,29 +101,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare("INSERT INTO gastos (fecha, concepto, importe, forma_pago, observaciones, comprobante, propiedad_id, usuario_id, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([$fecha, $concepto, $importe, $forma_pago, $observaciones, $comprobante, $propiedad_id_form ?: null, $usuario_id, $fecha_hora]);
             $message = "Gasto registrado correctamente.";
-        }
 
-        // Enviar email a los emails del propietario id=1
-        $stmt = $pdo->prepare("SELECT email, nombre FROM propietarios WHERE id = 1");
-        $stmt->execute();
-        $prop = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($prop && $prop['email']) {
-            $destinatarios = array_filter(explode(',', $prop['email']));
-            $asunto = 'Nuevo Gasto registrado en RentFlow';
-            $cuerpo = '<h2>Detalle del Gasto</h2>';
-            $cuerpo .= '<b>Concepto:</b> ' . htmlspecialchars($concepto) . '<br>';
-            $cuerpo .= '<b>Importe:</b> $' . number_format($importe, 2, ',', '.') . '<br>';
-            $cuerpo .= '<b>Forma de pago:</b> ' . htmlspecialchars($forma_pago) . '<br>';
-            if ($propiedad_id_form) {
-                $stmt2 = $pdo->prepare("SELECT nombre, direccion FROM propiedades WHERE id = ?");
-                $stmt2->execute([$propiedad_id_form]);
-                $pinfo = $stmt2->fetch(PDO::FETCH_ASSOC);
-                if ($pinfo) {
-                    $cuerpo .= '<b>Propiedad:</b> ' . htmlspecialchars($pinfo['nombre']) . ' (' . htmlspecialchars($pinfo['direccion']) . ')<br>';
+            // Enviar email a los emails del propietario id=1 solo cuando es un gasto nuevo
+            $stmt = $pdo->prepare("SELECT email, nombre FROM propietarios WHERE id = 1");
+            $stmt->execute();
+            $prop = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($prop && $prop['email']) {
+                $destinatarios = array_filter(explode(',', $prop['email']));
+                $asunto = 'Nuevo Gasto registrado en RentFlow';
+                $cuerpo = '<h2>Detalle del Gasto</h2>';
+                $cuerpo .= '<b>Concepto:</b> ' . htmlspecialchars($concepto) . '<br>';
+                $cuerpo .= '<b>Importe:</b> $' . number_format($importe, 2, ',', '.') . '<br>';
+                $cuerpo .= '<b>Forma de pago:</b> ' . htmlspecialchars($forma_pago) . '<br>';
+                if ($propiedad_id_form) {
+                    $stmt2 = $pdo->prepare("SELECT nombre, direccion FROM propiedades WHERE id = ?");
+                    $stmt2->execute([$propiedad_id_form]);
+                    $pinfo = $stmt2->fetch(PDO::FETCH_ASSOC);
+                    if ($pinfo) {
+                        $cuerpo .= '<b>Propiedad:</b> ' . htmlspecialchars($pinfo['nombre']) . ' (' . htmlspecialchars($pinfo['direccion']) . ')<br>';
+                    }
                 }
+                if ($observaciones) $cuerpo .= '<b>Observaciones:</b> ' . htmlspecialchars($observaciones) . '<br>';
+                enviar_email($destinatarios, $asunto, $cuerpo);
             }
-            if ($observaciones) $cuerpo .= '<b>Observaciones:</b> ' . htmlspecialchars($observaciones) . '<br>';
-            enviar_email($destinatarios, $asunto, $cuerpo);
         }
         header("Location: gastos.php?msg=" . urlencode($message));
         exit();
