@@ -36,6 +36,7 @@ $propietarios = $pdo->query("SELECT id, nombre FROM propietarios ORDER BY nombre
 
 // --- Filtros ---
 $propietario_id = isset($_GET['propietario_id']) ? intval($_GET['propietario_id']) : 1;
+$busqueda_propiedad = isset($_GET['busqueda_propiedad']) ? clean_input($_GET['busqueda_propiedad']) : '';
 $fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] ? $_GET['fecha_inicio'] : '2025-01-01';
 $fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] ? $_GET['fecha_fin'] : date('Y-m-d');
 $filtro_tipo_pago = isset($_GET['filtro_tipo_pago']) ? $_GET['filtro_tipo_pago'] : 'Efectivo';
@@ -133,6 +134,12 @@ if ($filtro_validado !== '') {
     $params[] = $filtro_validado === '1' ? 1 : 0;
     $types .= 'i';
 }
+if ($busqueda_propiedad) {
+    $query_gastos .= " AND pr.nombre LIKE ?";
+    $query_pagos .= " AND pr.nombre LIKE ?";
+    $params[] = '%' . $busqueda_propiedad . '%';
+    $types .= 's';
+}
 
 
 // Ejecutar consultas
@@ -224,6 +231,12 @@ include 'includes/header_nav.php';
                         <option value="1" <?php if ($filtro_validado === '1') echo 'selected'; ?>>Validados</option>
                         <option value="0" <?php if ($filtro_validado === '0') echo 'selected'; ?>>Pendientes</option>
                     </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="busqueda_propiedad">Propiedad:</label>
+                    <input type="text" class="form-control" name="busqueda_propiedad" 
+                           placeholder="Buscar por nombre de propiedad..." 
+                           value="<?php echo htmlspecialchars($busqueda_propiedad); ?>">
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary">Aplicar filtros</button>
@@ -448,7 +461,7 @@ include 'includes/header_nav.php';
                         label.innerHTML = `
                         <small class="text-success">
                             <i class="bi bi-check-circle-fill"></i> Validado
-                            <br><small>${data.fecha_validacion ? new Date(data.fecha_validacion).toLocaleString('es-ES', {
+                            <small>${data.fecha_validacion ? new Date(data.fecha_validacion).toLocaleString('es-ES', {
                                 day: '2-digit',
                                 month: '2-digit',
                                 year: 'numeric',
@@ -534,7 +547,7 @@ include 'includes/header_nav.php';
                         label.innerHTML = `
                         <small class="text-success">
                             <i class="bi bi-check-circle-fill"></i> Validado
-                            <br><small>${data.fecha_validacion ? new Date(data.fecha_validacion).toLocaleString('es-ES', {
+                            <small>${data.fecha_validacion ? new Date(data.fecha_validacion).toLocaleString('es-ES', {
                                 day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
                             }) : ''}</small>
                         </small>

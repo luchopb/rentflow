@@ -46,7 +46,7 @@ $propietarios = $stmt_propietarios->fetchAll(PDO::FETCH_ASSOC);
 
 
 // Obtener propiedades y sus inquilinos actuales junto a último pago mensual
-$stmt = $pdo->prepare("
+$sql_propiedades = "
     SELECT c.id AS id, p.nombre AS propiedad_nombre, i.nombre AS inquilino_nombre, i.id AS inquilino_id, c.fecha_fin,
            (
                SELECT pa.fecha FROM pagos pa 
@@ -61,9 +61,19 @@ $stmt = $pdo->prepare("
     FROM propiedades p
     INNER JOIN contratos c ON p.id = c.propiedad_id AND c.estado = 'activo'
     LEFT JOIN inquilinos i ON c.inquilino_id = i.id
-    ORDER BY c.id DESC
-");
-$stmt->execute();
+    WHERE 1=1
+";
+
+$params_propiedades = [];
+if ($busqueda) {
+    $sql_propiedades .= " AND (p.nombre LIKE ? OR p.direccion LIKE ? OR p.local LIKE ? OR i.nombre LIKE ?)";
+    $like_search = '%' . $busqueda . '%';
+    $params_propiedades = array_merge($params_propiedades, [$like_search, $like_search, $like_search, $like_search]);
+}
+
+$sql_propiedades .= " ORDER BY c.id DESC";
+$stmt = $pdo->prepare($sql_propiedades);
+$stmt->execute($params_propiedades);
 $propiedades_inquilinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Obtener pagos del mes actual
@@ -81,38 +91,56 @@ $pagos_recibidos = count($pagos_mes_actual);
 $pagos_pendientes = $total_contratos - $pagos_recibidos;
 $ratio_pagos = $total_contratos > 0 ? round(($pagos_recibidos / $total_contratos) * 100) : 0;
 
-// Obtener contratos por vencer en los próximos 60 días
-$stmt_vencer = $pdo->prepare("
+// Obtener contratos por vencer en los próximos 120 días
+$sql_vencer = "
     SELECT c.id, p.nombre AS propiedad_nombre, p.id AS propiedad_id, i.nombre AS inquilino_nombre, c.fecha_fin,
            DATEDIFF(c.fecha_fin, CURDATE()) AS dias_restantes
     FROM contratos c
     JOIN propiedades p ON c.propiedad_id = p.id
     LEFT JOIN inquilinos i ON c.inquilino_id = i.id
     WHERE c.estado = 'activo'
-      AND c.fecha_fin BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 60 DAY)
-    ORDER BY c.fecha_fin ASC
-");
-$stmt_vencer->execute();
+      AND c.fecha_fin BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 120 DAY)
+";
+
+$params_vencer = [];
+if ($busqueda) {
+    $sql_vencer .= " AND (p.nombre LIKE ? OR p.direccion LIKE ? OR p.local LIKE ? OR i.nombre LIKE ?)";
+    $like_search = '%' . $busqueda . '%';
+    $params_vencer = array_merge($params_vencer, [$like_search, $like_search, $like_search, $like_search]);
+}
+
+$sql_vencer .= " ORDER BY c.fecha_fin ASC";
+$stmt_vencer = $pdo->prepare($sql_vencer);
+$stmt_vencer->execute($params_vencer);
 $contratos_por_vencer = $stmt_vencer->fetchAll(PDO::FETCH_ASSOC);
 
-// Obtener contratos vencidos sin renovación en los últimos 30 días
-$stmt_vencidos = $pdo->prepare("
+// Obtener contratos vencidos sin renovación en los últimos 120 días
+$sql_vencidos = "
     SELECT c1.id, p.nombre AS propiedad_nombre, p.id AS propiedad_id, i.nombre AS inquilino_nombre, c1.fecha_fin,
            DATEDIFF(CURDATE(), c1.fecha_fin) AS dias_vencido
     FROM contratos c1
     JOIN propiedades p ON c1.propiedad_id = p.id
     LEFT JOIN inquilinos i ON c1.inquilino_id = i.id
     WHERE c1.estado = 'finalizado'
-      AND c1.fecha_fin BETWEEN DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND CURDATE()
+      AND c1.fecha_fin BETWEEN DATE_SUB(CURDATE(), INTERVAL 120 DAY) AND CURDATE()
       AND NOT EXISTS (
         SELECT 1 FROM contratos c2
         WHERE c2.propiedad_id = c1.propiedad_id
           AND c2.estado = 'activo'
           AND c2.fecha_inicio > c1.fecha_fin
       )
-    ORDER BY c1.fecha_fin DESC
-");
-$stmt_vencidos->execute();
+";
+
+$params_vencidos = [];
+if ($busqueda) {
+    $sql_vencidos .= " AND (p.nombre LIKE ? OR p.direccion LIKE ? OR p.local LIKE ? OR i.nombre LIKE ?)";
+    $like_search = '%' . $busqueda . '%';
+    $params_vencidos = array_merge($params_vencidos, [$like_search, $like_search, $like_search, $like_search]);
+}
+
+$sql_vencidos .= " ORDER BY c1.fecha_fin DESC";
+$stmt_vencidos = $pdo->prepare($sql_vencidos);
+$stmt_vencidos->execute($params_vencidos);
 $contratos_vencidos = $stmt_vencidos->fetchAll(PDO::FETCH_ASSOC);
 
 // Obtener gastos del período seleccionado (excluyendo arqueos)
@@ -125,6 +153,11 @@ $sql_gastos = "
 ";
 $params_gastos = [$fecha_desde, $fecha_hasta];
 $params_gastos = array_merge($params_gastos, $params_propietario_gastos);
+if ($busqueda) {
+    $sql_gastos .= " AND (pr.nombre LIKE ? OR pr.direccion LIKE ? OR pr.local LIKE ?)";
+    $like_search = '%' . $busqueda . '%';
+    $params_gastos = array_merge($params_gastos, [$like_search, $like_search, $like_search]);
+}
 $stmt_gastos = $pdo->prepare($sql_gastos);
 $stmt_gastos->execute($params_gastos);
 $total_gastos = $stmt_gastos->fetch(PDO::FETCH_ASSOC)['total_gastos'];
@@ -140,6 +173,11 @@ $sql_cobros = "
 ";
 $params_cobros = [$fecha_desde, $fecha_hasta];
 $params_cobros = array_merge($params_cobros, $params_propietario_pagos);
+if ($busqueda) {
+    $sql_cobros .= " AND (pr.nombre LIKE ? OR pr.direccion LIKE ? OR pr.local LIKE ?)";
+    $like_search = '%' . $busqueda . '%';
+    $params_cobros = array_merge($params_cobros, [$like_search, $like_search, $like_search]);
+}
 $stmt_cobros = $pdo->prepare($sql_cobros);
 $stmt_cobros->execute($params_cobros);
 $total_cobros = $stmt_cobros->fetch(PDO::FETCH_ASSOC)['total_cobros'];
@@ -166,8 +204,11 @@ $sql_grafico_pagos = "
     LEFT JOIN propiedades pr ON c.propiedad_id = pr.id
     WHERE p.fecha BETWEEN ? AND ? AND p.concepto != 'Arqueo de Caja (suma)'
     $condicion_propietario_pagos
-    GROUP BY DATE_FORMAT(p.fecha, '%Y-%m')
 ";
+if ($busqueda) {
+    $sql_grafico_pagos .= " AND (pr.nombre LIKE ? OR pr.direccion LIKE ? OR pr.local LIKE ?)";
+}
+$sql_grafico_pagos .= " GROUP BY DATE_FORMAT(p.fecha, '%Y-%m')";
 
 $sql_grafico_gastos = "
     SELECT 
@@ -179,15 +220,26 @@ $sql_grafico_gastos = "
     LEFT JOIN propiedades pr ON g.propiedad_id = pr.id
     WHERE g.fecha BETWEEN ? AND ? AND g.concepto != 'Arqueo de Caja (resta)'
     $condicion_propietario_gastos
-    GROUP BY DATE_FORMAT(g.fecha, '%Y-%m')
 ";
+if ($busqueda) {
+    $sql_grafico_gastos .= " AND (pr.nombre LIKE ? OR pr.direccion LIKE ? OR pr.local LIKE ?)";
+}
+$sql_grafico_gastos .= " GROUP BY DATE_FORMAT(g.fecha, '%Y-%m')";
 
 $sql_grafico = $sql_grafico_pagos . " UNION ALL " . $sql_grafico_gastos . " ORDER BY mes, tipo";
 
 $params_grafico = [$fecha_desde, $fecha_hasta];
 $params_grafico = array_merge($params_grafico, $params_propietario_pagos);
+if ($busqueda) {
+    $like_search = '%' . $busqueda . '%';
+    $params_grafico = array_merge($params_grafico, [$like_search, $like_search, $like_search]);
+}
 $params_grafico = array_merge($params_grafico, [$fecha_desde, $fecha_hasta]);
 $params_grafico = array_merge($params_grafico, $params_propietario_gastos);
+if ($busqueda) {
+    $like_search = '%' . $busqueda . '%';
+    $params_grafico = array_merge($params_grafico, [$like_search, $like_search, $like_search]);
+}
 
 $stmt_grafico = $pdo->prepare($sql_grafico);
 $stmt_grafico->execute($params_grafico);
@@ -365,9 +417,9 @@ $nombre_mes = $meses[(int)$fecha->format('n')];
 
   <!-- Reporte: Contratos por vencer -->
   <section class="mt-4">
-    <h2 class="fw-semibold">Contratos por vencer <small>(próximos 60 días)</small></h2>
+    <h2 class="fw-semibold">Contratos por vencer <small>(próximos 120 días)</small></h2>
     <?php if (count($contratos_por_vencer) === 0): ?>
-      <p>No hay contratos por vencer en los próximos 60 días.</p>
+      <p>No hay contratos por vencer en los próximos 120 días.</p>
     <?php else: ?>
       <div class="table-responsive">
         <table class="table table-sm align-middle">
@@ -389,9 +441,9 @@ $nombre_mes = $meses[(int)$fecha->format('n')];
 
   <!-- Reporte: Contratos vencidos sin renovación -->
   <section class="mt-4">
-    <h2 class="fw-semibold">Contratos vencidos sin renovación <small>(últimos 30 días)</small></h2>
+    <h2 class="fw-semibold">Contratos vencidos sin renovación <small>(últimos 120 días)</small></h2>
     <?php if (count($contratos_vencidos) === 0): ?>
-      <p>No hay contratos vencidos sin renovación en los últimos 30 días.</p>
+      <p>No hay contratos vencidos sin renovación en los últimos 120 días.</p>
     <?php else: ?>
       <div class="table-responsive">
         <table class="table table-sm align-middle">

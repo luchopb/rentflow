@@ -164,7 +164,8 @@ $filtro_contrato = clean_input($_GET['filtro_contrato'] ?? '');
 $filtro_ultimo_pago = clean_input($_GET['filtro_ultimo_pago'] ?? '');
 $params = [];
 $sql = "SELECT p.*, c.id AS contrato_id, i.nombre AS inquilino_nombre, i.id AS inquilino_id, pr.nombre AS propietario,
-        (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') AS fecha_ultimo_pago,
+        (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') AS periodo_ultimo_pago,
+        (SELECT MAX(fecha) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') AS fecha_ultimo_pago,
         (SELECT tipo_pago FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual' AND periodo = (SELECT MAX(periodo) FROM pagos WHERE contrato_id = c.id AND concepto = 'Pago mensual') LIMIT 1) AS tipo_ultimo_pago
         FROM propiedades p 
         LEFT JOIN contratos c ON c.propiedad_id = p.id 
@@ -857,13 +858,23 @@ include 'includes/header_nav.php';
                       </a>
                       <small class="d-block">
                         <?php if ($p['fecha_ultimo_pago']): ?>
+
                           <?php
-                          $ultimo_pago = date('m/Y', strtotime($p['fecha_ultimo_pago']));
+                          $fecha_ultimo_pago = date('d/m/Y', strtotime($p['fecha_ultimo_pago']));
+                          $mes_pago = date('Y-m', strtotime($p['fecha_ultimo_pago']));
+                          $mes_actual = date('Y-m');
+                          $badge_class_fecha = ($mes_pago === $mes_actual) ? 'bg-success' : 'bg-warning text-dark';
+
+                          $periodo_ultimo_pago = date('m/Y', strtotime($p['periodo_ultimo_pago']));
                           $periodo_actual = date('m/Y');
-                          $badge_class = ($ultimo_pago === $periodo_actual) ? 'bg-success' : 'bg-warning text-dark';
+                          $badge_class_periodo = ($periodo_ultimo_pago === $periodo_actual) ? 'bg-success' : 'bg-warning text-dark';
                           $tipo_pago = $p['tipo_ultimo_pago'] ?? '';
                           ?>
-                          <span class="badge <?= $badge_class ?>" style="max-width: 130px; overflow: hidden; text-overflow: ellipsis;"><?= $ultimo_pago ?><?= $tipo_pago ? ' ' . htmlspecialchars($tipo_pago) : '' ?></span>
+
+                          <span class="badge <?= $badge_class_periodo ?>" style="max-width: 130px; overflow: hidden; text-overflow: ellipsis;"><?= $periodo_ultimo_pago ?><?= $tipo_pago ? ' ' . htmlspecialchars($tipo_pago) : '' ?></span>
+
+                          <span class="badge <?= $badge_class_fecha ?>" style="max-width: 130px; overflow: hidden; text-overflow: ellipsis;"><?= $fecha_ultimo_pago ?></span>
+
                         <?php else: ?>
                           <span class="badge bg-danger">Sin pago</span>
                         <?php endif; ?>
