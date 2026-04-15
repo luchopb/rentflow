@@ -56,6 +56,7 @@ $query_pagos = "SELECT
     pr.nombre AS propiedad, 
     pr.id AS propiedad_id,
     i.nombre AS nombre_inquilino,
+    i.id AS inquilino_id,
     validado
 FROM pagos p
 LEFT JOIN contratos c ON p.contrato_id = c.id
@@ -78,6 +79,7 @@ $query_gastos = "SELECT
     pr.nombre AS propiedad, 
     pr.id AS propiedad_id,
     i.nombre AS nombre_inquilino,
+    i.id AS inquilino_id,
     validado
 FROM gastos g
 LEFT JOIN propiedades pr ON g.propiedad_id = pr.id
@@ -314,7 +316,9 @@ include 'includes/header_nav.php';
                                 </a>
                             <?php endif; ?>
                             <?php if (!is_null($mov['nombre_inquilino'])): ?>
-                                <strong><?php echo htmlspecialchars($mov['nombre_inquilino']); ?></strong><br>
+                                <a href="inquilinos.php?edit=<?= $mov['inquilino_id'] ?>" class="text-decoration-none text-dark">
+                                    <strong><?php echo htmlspecialchars($mov['nombre_inquilino']); ?></strong>
+                                </a><br>
                             <?php endif; ?>
                             <?php echo htmlspecialchars($mov['concepto']); ?>
                             <?php if (!is_null($mov['comentario']) && $mov['comentario'] !== ''): ?>
