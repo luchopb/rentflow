@@ -5,27 +5,48 @@ check_login();
 $page_title = 'Pagos - Inmobiliaria';
 
 $contrato_id = intval($_GET['contrato_id'] ?? 0);
+$propiedad_id = intval($_GET['propiedad_id'] ?? 0);
 $edit_id = intval($_GET['edit'] ?? 0);
-$add_pago = isset($_GET['add']) && $_GET['add'] === 'true'; // Verificar si se debe mostrar el formulario de nuevo pago
-$show_form = $add_pago || $edit_id > 0; // Mostrar formulario si se agrega o edita
-
-if (!$contrato_id) {
-  header("Location: contratos.php");
-  exit();
-}
+$add_pago = isset($_GET['add']) && $_GET['add'] === 'true';
+$show_form = $add_pago || $edit_id > 0;
 
 $message = '';
 $errors = [];
+$contrato = null;
+$propiedad = null;
+$sin_contrato = false;
 
-// Obtener información del contrato
-$stmt = $pdo->prepare("SELECT c.*, i.nombre as inquilino_nombre, i.vehiculo, i.matricula, i.telefono, p.nombre as propiedad_nombre, p.tipo as propiedad_tipo, p.direccion as propiedad_direccion FROM contratos c JOIN inquilinos i ON c.inquilino_id = i.id JOIN propiedades p ON c.propiedad_id = p.id WHERE c.id = ?");
-$stmt->execute([$contrato_id]);
-$contrato = $stmt->fetch(PDO::FETCH_ASSOC);
+if ($contrato_id) {
+  // Obtener información del contrato
+  $stmt = $pdo->prepare("SELECT c.*, i.nombre as inquilino_nombre, i.vehiculo, i.matricula, i.telefono, p.nombre as propiedad_nombre, p.tipo as propiedad_tipo, p.direccion as propiedad_direccion, p.precio as propiedad_precio FROM contratos c JOIN inquilinos i ON c.inquilino_id = i.id JOIN propiedades p ON c.propiedad_id = p.id WHERE c.id = ?");
+  $stmt->execute([$contrato_id]);
+  $contrato = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$contrato) {
-  header("Location: contratos.php");
+  if (!$contrato) {
+    header("Location: contratos.php");
+    exit();
+  }
+  $propiedad_id = intval($contrato['propiedad_id']);
+} elseif ($propiedad_id) {
+  // Pago asociado solo a la propiedad (sin contrato)
+  $sin_contrato = true;
+  $stmt = $pdo->prepare("SELECT p.*, pr.nombre as propietario_nombre FROM propiedades p LEFT JOIN propietarios pr ON p.propietario_id = pr.id WHERE p.id = ?");
+  $stmt->execute([$propiedad_id]);
+  $propiedad = $stmt->fetch(PDO::FETCH_ASSOC);
+
+  if (!$propiedad) {
+    header("Location: propiedades.php");
+    exit();
+  }
+} else {
+  header("Location: propiedades.php");
   exit();
 }
+
+// URL base para redirecciones y enlaces de esta pantalla
+$url_base = $sin_contrato
+  ? "pagos.php?propiedad_id=$propiedad_id"
+  : "pagos.php?contrato_id=$contrato_id";
 
 $msg = $_GET['msg'] ?? '';
 if ($msg) {
@@ -35,11 +56,16 @@ if ($msg) {
 // Cargar datos de edición si existe
 $edit_data = null;
 if ($edit_id) {
-  $stmt = $pdo->prepare("SELECT * FROM pagos WHERE id = ? AND contrato_id = ?");
-  $stmt->execute([$edit_id, $contrato_id]);
+  if ($sin_contrato) {
+    $stmt = $pdo->prepare("SELECT * FROM pagos WHERE id = ? AND propiedad_id = ? AND contrato_id IS NULL");
+    $stmt->execute([$edit_id, $propiedad_id]);
+  } else {
+    $stmt = $pdo->prepare("SELECT * FROM pagos WHERE id = ? AND contrato_id = ?");
+    $stmt->execute([$edit_id, $contrato_id]);
+  }
   $edit_data = $stmt->fetch(PDO::FETCH_ASSOC);
   if (!$edit_data) {
-    header("Location: pagos.php?contrato_id=$contrato_id");
+    header("Location: $url_base");
     exit();
   }
 }
@@ -87,105 +113,127 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_pago'])) {
         $params[] = $basename;
       }
 
-      $sql .= " WHERE id=? AND contrato_id=?";
-      $params[] = $edit_id_form;
-      $params[] = $contrato_id;
+      if ($sin_contrato) {
+        $sql .= " WHERE id=? AND propiedad_id=? AND contrato_id IS NULL";
+        $params[] = $edit_id_form;
+        $params[] = $propiedad_id;
+      } else {
+        $sql .= " WHERE id=? AND contrato_id=?";
+        $params[] = $edit_id_form;
+        $params[] = $contrato_id;
+      }
 
       $stmt = $pdo->prepare($sql);
       $stmt->execute($params);
       $message = "Pago actualizado correctamente.";
     } else {
-      // Insertar nuevo pago
-      $stmt = $pdo->prepare("INSERT INTO pagos (contrato_id, usuario_id, periodo, fecha, fecha_creacion, importe, comentario, comprobante, concepto, tipo_pago) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-      $stmt->execute([$contrato_id, $usuario_id, $periodo, $fecha_pago, $fecha_creacion, $importe, $comentario, $basename ?? null, $concepto, $tipo_pago]);
+      // Insertar nuevo pago (con o sin contrato)
+      $contrato_id_insert = $sin_contrato ? null : $contrato_id;
+      $stmt = $pdo->prepare("INSERT INTO pagos (contrato_id, propiedad_id, usuario_id, periodo, fecha, fecha_creacion, importe, comentario, comprobante, concepto, tipo_pago) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+      $stmt->execute([$contrato_id_insert, $propiedad_id, $usuario_id, $periodo, $fecha_pago, $fecha_creacion, $importe, $comentario, $basename ?? null, $concepto, $tipo_pago]);
       $message = "Pago registrado correctamente.";
     }
 
     // Solo enviar email cuando se crea un nuevo pago, no cuando se edita
     if ($edit_id_form == 0) {
-      // Enviar email después de registrar pago
-      $stmt = $pdo->prepare("SELECT c.*, i.email as inquilino_email, i.nombre as inquilino_nombre, p.propietario_id, p.nombre as propiedad_nombre, p.direccion, pr.email as propietario_email, pr.nombre as propietario_nombre FROM contratos c JOIN inquilinos i ON c.inquilino_id = i.id JOIN propiedades p ON c.propiedad_id = p.id JOIN propietarios pr ON p.propietario_id = pr.id WHERE c.id = ?");
-      $stmt->execute([$contrato_id]);
-      $info = $stmt->fetch(PDO::FETCH_ASSOC);
-      if ($info) {
-        $destinatarios = array_filter(array_merge(
-          explode(',', $info['inquilino_email']),
-          explode(',', $info['propietario_email'])
-        ));
-        $asunto = 'Nuevo Pago registrado en RentFlow';
-        $cuerpo = '<h2>Detalle del Pago</h2>';
-        $cuerpo .= '<b>Propiedad:</b> ' . htmlspecialchars($info['propiedad_nombre']) . ' (' . htmlspecialchars($info['direccion']) . ')<br>';
-        $cuerpo .= '<b>Inquilino:</b> ' . htmlspecialchars($info['inquilino_nombre']) . '<br>';
-        $cuerpo .= '<b>Propietario:</b> ' . htmlspecialchars($info['propietario_nombre']) . '<br>';
-        $cuerpo .= '<b>Período:</b> ' . htmlspecialchars($periodo) . '<br>';
-        $cuerpo .= '<b>Fecha de pago:</b> ' . htmlspecialchars($fecha_pago) . '<br>';
-        $cuerpo .= '<b>Importe:</b> $' . number_format($importe, 2, ',', '.') . '<br>';
-        $cuerpo .= '<b>Concepto:</b> ' . htmlspecialchars($concepto) . '<br>';
-        $cuerpo .= '<b>Tipo de pago:</b> ' . htmlspecialchars($tipo_pago) . '<br>';
-        if ($comentario) $cuerpo .= '<b>Comentario:</b> ' . htmlspecialchars($comentario) . '<br>';
-        enviar_email($destinatarios, $asunto, $cuerpo);
+      if (!$sin_contrato) {
+        $stmt = $pdo->prepare("SELECT c.*, i.email as inquilino_email, i.nombre as inquilino_nombre, p.propietario_id, p.nombre as propiedad_nombre, p.direccion, pr.email as propietario_email, pr.nombre as propietario_nombre FROM contratos c JOIN inquilinos i ON c.inquilino_id = i.id JOIN propiedades p ON c.propiedad_id = p.id JOIN propietarios pr ON p.propietario_id = pr.id WHERE c.id = ?");
+        $stmt->execute([$contrato_id]);
+        $info = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($info) {
+          $destinatarios = array_filter(array_merge(
+            explode(',', $info['inquilino_email']),
+            explode(',', $info['propietario_email'])
+          ));
+          $asunto = 'Nuevo Pago registrado en RentFlow';
+          $cuerpo = '<h2>Detalle del Pago</h2>';
+          $cuerpo .= '<b>Propiedad:</b> ' . htmlspecialchars($info['propiedad_nombre']) . ' (' . htmlspecialchars($info['direccion']) . ')<br>';
+          $cuerpo .= '<b>Inquilino:</b> ' . htmlspecialchars($info['inquilino_nombre']) . '<br>';
+          $cuerpo .= '<b>Propietario:</b> ' . htmlspecialchars($info['propietario_nombre']) . '<br>';
+          $cuerpo .= '<b>Período:</b> ' . htmlspecialchars($periodo) . '<br>';
+          $cuerpo .= '<b>Fecha de pago:</b> ' . htmlspecialchars($fecha_pago) . '<br>';
+          $cuerpo .= '<b>Importe:</b> $' . number_format($importe, 2, ',', '.') . '<br>';
+          $cuerpo .= '<b>Concepto:</b> ' . htmlspecialchars($concepto) . '<br>';
+          $cuerpo .= '<b>Tipo de pago:</b> ' . htmlspecialchars($tipo_pago) . '<br>';
+          if ($comentario) $cuerpo .= '<b>Comentario:</b> ' . nl2br(htmlspecialchars($comentario)) . '<br>';
+          enviar_email($destinatarios, $asunto, $cuerpo);
+        }
+      } else {
+        // Notificar solo al propietario cuando no hay contrato/inquilino
+        $stmt = $pdo->prepare("SELECT p.nombre as propiedad_nombre, p.direccion, pr.email as propietario_email, pr.nombre as propietario_nombre FROM propiedades p LEFT JOIN propietarios pr ON p.propietario_id = pr.id WHERE p.id = ?");
+        $stmt->execute([$propiedad_id]);
+        $info = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($info && !empty($info['propietario_email'])) {
+          $destinatarios = array_filter(explode(',', $info['propietario_email']));
+          $asunto = 'Nuevo Pago registrado en RentFlow';
+          $cuerpo = '<h2>Detalle del Pago</h2>';
+          $cuerpo .= '<b>Propiedad:</b> ' . htmlspecialchars($info['propiedad_nombre']) . ' (' . htmlspecialchars($info['direccion']) . ')<br>';
+          $cuerpo .= '<b>Propietario:</b> ' . htmlspecialchars($info['propietario_nombre'] ?? '') . '<br>';
+          $cuerpo .= '<b>Sin contrato asociado</b><br>';
+          $cuerpo .= '<b>Período:</b> ' . htmlspecialchars($periodo) . '<br>';
+          $cuerpo .= '<b>Fecha de pago:</b> ' . htmlspecialchars($fecha_pago) . '<br>';
+          $cuerpo .= '<b>Importe:</b> $' . number_format($importe, 2, ',', '.') . '<br>';
+          $cuerpo .= '<b>Concepto:</b> ' . htmlspecialchars($concepto) . '<br>';
+          $cuerpo .= '<b>Tipo de pago:</b> ' . htmlspecialchars($tipo_pago) . '<br>';
+          if ($comentario) $cuerpo .= '<b>Comentario:</b> ' . nl2br(htmlspecialchars($comentario)) . '<br>';
+          enviar_email($destinatarios, $asunto, $cuerpo);
+        }
       }
     }
-    header("Location: pagos.php?contrato_id=$contrato_id&msg=" . urlencode($message));
+    header("Location: $url_base&msg=" . urlencode($message));
     exit();
   }
 }
 
 // Manejo de exportación a CSV
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
-    $stmt_export = $pdo->prepare("
-        SELECT 
-            p.id,
-            p.periodo,
-            p.fecha,
-            p.concepto,
-            p.tipo_pago,
-            p.importe,
-            p.comentario,
-            p.comprobante,
-            p.validado,
-            p.fecha_validacion,
-            i.nombre as inquilino_nombre,
-            prop.nombre as propiedad_nombre,
-            prop.direccion as propiedad_direccion
-        FROM pagos p
-        JOIN contratos c ON p.contrato_id = c.id
-        JOIN inquilinos i ON c.inquilino_id = i.id
-        JOIN propiedades prop ON c.propiedad_id = prop.id
-        WHERE p.contrato_id = ?
-        ORDER BY p.periodo DESC, p.fecha DESC
-    ");
-    $stmt_export->execute([$contrato_id]);
+    if ($sin_contrato) {
+      $stmt_export = $pdo->prepare("
+          SELECT 
+              p.id, p.periodo, p.fecha, p.concepto, p.tipo_pago, p.importe,
+              p.comentario, p.comprobante, p.validado, p.fecha_validacion,
+              NULL as inquilino_nombre,
+              prop.nombre as propiedad_nombre,
+              prop.direccion as propiedad_direccion
+          FROM pagos p
+          JOIN propiedades prop ON p.propiedad_id = prop.id
+          WHERE p.propiedad_id = ? AND p.contrato_id IS NULL
+          ORDER BY p.fecha DESC, p.periodo DESC
+      ");
+      $stmt_export->execute([$propiedad_id]);
+      $nombre_archivo = 'pagos_propiedad_' . $propiedad_id;
+    } else {
+      $stmt_export = $pdo->prepare("
+          SELECT 
+              p.id, p.periodo, p.fecha, p.concepto, p.tipo_pago, p.importe,
+              p.comentario, p.comprobante, p.validado, p.fecha_validacion,
+              i.nombre as inquilino_nombre,
+              prop.nombre as propiedad_nombre,
+              prop.direccion as propiedad_direccion
+          FROM pagos p
+          JOIN contratos c ON p.contrato_id = c.id
+          JOIN inquilinos i ON c.inquilino_id = i.id
+          JOIN propiedades prop ON c.propiedad_id = prop.id
+          WHERE p.contrato_id = ?
+          ORDER BY p.fecha DESC, p.periodo DESC
+      ");
+      $stmt_export->execute([$contrato_id]);
+      $nombre_archivo = 'pagos_contrato_' . $contrato_id;
+    }
     $pagos_export = $stmt_export->fetchAll(PDO::FETCH_ASSOC);
 
-    // Configurar headers para descarga CSV
     header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="pagos_contrato_' . $contrato_id . '_' . date('Y-m-d_H-i-s') . '.csv"');
+    header('Content-Disposition: attachment; filename="' . $nombre_archivo . '_' . date('Y-m-d_H-i-s') . '.csv"');
 
-    // Crear archivo CSV
     $output = fopen('php://output', 'w');
-
-    // BOM para UTF-8
     fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-    // Headers del CSV
     fputcsv($output, [
-        'ID',
-        'Período',
-        'Fecha',
-        'Concepto',
-        'Tipo de Pago',
-        'Importe',
-        'Comentario',
-        'Comprobante',
-        'Validado',
-        'Fecha Validación',
-        'Inquilino',
-        'Propiedad',
-        'Dirección'
+        'ID', 'Período', 'Fecha', 'Concepto', 'Tipo de Pago', 'Importe',
+        'Comentario', 'Comprobante', 'Validado', 'Fecha Validación',
+        'Inquilino', 'Propiedad', 'Dirección'
     ], ';');
 
-    // Datos
     foreach ($pagos_export as $pago) {
         fputcsv($output, [
             $pago['id'],
@@ -198,7 +246,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
             $pago['comprobante'] ?? '',
             $pago['validado'] ? 'Sí' : 'No',
             $pago['fecha_validacion'] ?? '',
-            $pago['inquilino_nombre'],
+            $pago['inquilino_nombre'] ?? '',
             $pago['propiedad_nombre'],
             $pago['propiedad_direccion']
         ], ';');
@@ -208,15 +256,20 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     exit();
 }
 
-// Obtener pagos para este contrato
-$pagos = $pdo->prepare("SELECT * FROM pagos WHERE contrato_id = ? ORDER BY periodo DESC, fecha DESC");
-$pagos->execute([$contrato_id]);
+// Obtener pagos (por contrato o por propiedad sin contrato)
+if ($sin_contrato) {
+  $pagos = $pdo->prepare("SELECT * FROM pagos WHERE propiedad_id = ? AND contrato_id IS NULL ORDER BY fecha DESC, periodo DESC");
+  $pagos->execute([$propiedad_id]);
+} else {
+  $pagos = $pdo->prepare("SELECT * FROM pagos WHERE contrato_id = ? ORDER BY fecha DESC, periodo DESC");
+  $pagos->execute([$contrato_id]);
+}
 $pagos_list = $pagos->fetchAll();
 
-// Obtener períodos para el desplegable
-$fecha_actual = new DateTime();
+// Obtener períodos para el desplegable (desde el día 1 para evitar duplicados el 31)
+$fecha_actual = new DateTime('first day of this month');
 $periodos = [];
-for ($i = -3; $i <= 3; $i++) {
+for ($i = -9; $i <= 2; $i++) {
   $fecha = clone $fecha_actual;
   $fecha->modify($i . ' month');
   $periodos[] = $fecha->format('Y-m');
@@ -225,20 +278,33 @@ for ($i = -3; $i <= 3; $i++) {
 // Manejo de eliminación de pago
 if (isset($_GET['delete']) && $_SESSION['user_role'] === 'admin') {
   $delete_id = intval($_GET['delete']);
-  // Buscar comprobante para eliminar archivo
-  $stmt = $pdo->prepare("SELECT comprobante FROM pagos WHERE id = ? AND contrato_id = ?");
-  $stmt->execute([$delete_id, $contrato_id]);
+  if ($sin_contrato) {
+    $stmt = $pdo->prepare("SELECT comprobante FROM pagos WHERE id = ? AND propiedad_id = ? AND contrato_id IS NULL");
+    $stmt->execute([$delete_id, $propiedad_id]);
+  } else {
+    $stmt = $pdo->prepare("SELECT comprobante FROM pagos WHERE id = ? AND contrato_id = ?");
+    $stmt->execute([$delete_id, $contrato_id]);
+  }
   $row = $stmt->fetch();
   if ($row && $row['comprobante']) {
     $upload_dir = __DIR__ . '/uploads/';
     $path = $upload_dir . basename($row['comprobante']);
     if (is_file($path)) unlink($path);
   }
-  $pdo->prepare("DELETE FROM pagos WHERE id = ? AND contrato_id = ?")->execute([$delete_id, $contrato_id]);
+  if ($sin_contrato) {
+    $pdo->prepare("DELETE FROM pagos WHERE id = ? AND propiedad_id = ? AND contrato_id IS NULL")->execute([$delete_id, $propiedad_id]);
+  } else {
+    $pdo->prepare("DELETE FROM pagos WHERE id = ? AND contrato_id = ?")->execute([$delete_id, $contrato_id]);
+  }
   $message = "Pago eliminado correctamente.";
-  header("Location: pagos.php?contrato_id=$contrato_id&msg=" . urlencode($message));
+  header("Location: $url_base&msg=" . urlencode($message));
   exit();
 }
+
+// Importe sugerido en el formulario
+$importe_sugerido = $sin_contrato
+  ? ($propiedad['precio'] ?? '')
+  : ($contrato['importe'] ?? '');
 
 include 'includes/header_nav.php';
 ?>
@@ -253,11 +319,18 @@ include 'includes/header_nav.php';
   </div>
 
   <p>
-    Contrato: <a href="contratos.php?edit=<?= $contrato_id ?>" class="text-decoration-none text-dark"><strong>#<?= $contrato_id ?></strong></a><br>
-    Inquilino: <a href="inquilinos.php?edit=<?= intval($contrato['inquilino_id']) ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['inquilino_nombre']) ?></strong> <?= htmlspecialchars($contrato['vehiculo']) ?> <?= htmlspecialchars($contrato['matricula']) ?> <?= htmlspecialchars($contrato['telefono']) ?></a><br>
-    Propiedad: <a href="propiedades.php?edit=<?= htmlspecialchars($contrato['propiedad_id'] ?? '') ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['propiedad_nombre']) ?></strong></a><br>
-    Tipo: <strong><?= htmlspecialchars($contrato['propiedad_tipo'] ?? '') ?></strong><br>
-    Dirección: <strong><?= htmlspecialchars($contrato['propiedad_direccion'] ?? '') ?></strong>
+    <?php if ($sin_contrato): ?>
+      Propiedad: <a href="propiedades.php?edit=<?= $propiedad_id ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($propiedad['nombre']) ?></strong></a><br>
+      Tipo: <strong><?= htmlspecialchars($propiedad['tipo'] ?? '') ?></strong><br>
+      Dirección: <strong><?= htmlspecialchars($propiedad['direccion'] ?? '') ?></strong><br>
+      <span class="badge bg-secondary">Sin contrato</span>
+    <?php else: ?>
+      Contrato: <a href="contratos.php?edit=<?= $contrato_id ?>" class="text-decoration-none text-dark"><strong>#<?= $contrato_id ?></strong></a><br>
+      Inquilino: <a href="inquilinos.php?edit=<?= intval($contrato['inquilino_id']) ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['inquilino_nombre']) ?></strong> <?= htmlspecialchars($contrato['vehiculo']) ?> <?= htmlspecialchars($contrato['matricula']) ?> <?= htmlspecialchars($contrato['telefono']) ?></a><br>
+      Propiedad: <a href="propiedades.php?edit=<?= htmlspecialchars($contrato['propiedad_id'] ?? '') ?>" class="text-decoration-none text-dark"><strong><?= htmlspecialchars($contrato['propiedad_nombre']) ?></strong></a><br>
+      Tipo: <strong><?= htmlspecialchars($contrato['propiedad_tipo'] ?? '') ?></strong><br>
+      Dirección: <strong><?= htmlspecialchars($contrato['propiedad_direccion'] ?? '') ?></strong>
+    <?php endif; ?>
   </p>
 
   <?php if ($message): ?>
@@ -283,8 +356,15 @@ include 'includes/header_nav.php';
             <label for="periodo" class="form-label">Período *</label>
             <select name="periodo" id="periodo" class="form-select" required>
               <option value="">Seleccione un período...</option>
-              <?php foreach ($periodos as $periodo): ?>
-                <option value="<?= $periodo ?>" <?= $periodo === ($edit_data['periodo'] ?? '') ? 'selected' : '' ?>><?= $periodo ?></option>
+              <?php
+                $periodo_actual = $fecha_actual->format('Y-m');
+                $periodo_anterior = (clone $fecha_actual)->modify('-1 month')->format('Y-m');
+                foreach ($periodos as $periodo):
+                  $etiqueta = $periodo;
+                  if ($periodo === $periodo_actual) $etiqueta .= ' (actual)';
+                  elseif ($periodo === $periodo_anterior) $etiqueta .= ' (anterior)';
+              ?>
+                <option value="<?= $periodo ?>" <?= $periodo === ($edit_data['periodo'] ?? $periodo_actual) ? 'selected' : '' ?>><?= $etiqueta ?></option>
               <?php endforeach; ?>
             </select>
           </div>
@@ -293,18 +373,24 @@ include 'includes/header_nav.php';
             <input type="date" class="form-control" id="fecha_pago" name="fecha_pago" value="<?= $edit_data['fecha'] ?? date('Y-m-d') ?>" required>
           </div>
           <div class="mb-3">
-            <label for="concepto" class="form-label">Concepto *</label>
-            <select name="concepto" id="concepto" class="form-select" required>
-              <option value="">Seleccione...</option>
-              <option value="Pago mensual" <?= ($edit_data['concepto'] ?? '') === 'Pago mensual' ? 'selected' : '' ?>>Pago mensual</option>
-              <option value="Impuestos" <?= ($edit_data['concepto'] ?? '') === 'Impuestos' ? 'selected' : '' ?>>Impuestos</option>
-              <option value="Gastos comunes" <?= ($edit_data['concepto'] ?? '') === 'Gastos comunes' ? 'selected' : '' ?>>Gastos comunes</option>
-              <option value="Comisiones" <?= ($edit_data['concepto'] ?? '') === 'Comisiones' ? 'selected' : '' ?>>Comisiones</option>
-            </select>
+            <label class="form-label">Concepto *</label>
+            <div class="btn-group flex-wrap" role="group" aria-label="Concepto">
+              <input type="radio" class="btn-check" name="concepto" id="concepto_pago_mensual" value="Pago mensual" <?= ($edit_data['concepto'] ?? '') === 'Pago mensual' ? 'checked' : '' ?> required>
+              <label class="btn btn-outline-primary" for="concepto_pago_mensual">Pago mensual</label>
+
+              <input type="radio" class="btn-check" name="concepto" id="concepto_impuestos" value="Impuestos" <?= ($edit_data['concepto'] ?? '') === 'Impuestos' ? 'checked' : '' ?>>
+              <label class="btn btn-outline-primary" for="concepto_impuestos">Impuestos</label>
+
+              <input type="radio" class="btn-check" name="concepto" id="concepto_gastos_comunes" value="Gastos comunes" <?= ($edit_data['concepto'] ?? '') === 'Gastos comunes' ? 'checked' : '' ?>>
+              <label class="btn btn-outline-primary" for="concepto_gastos_comunes">Gastos comunes</label>
+
+              <input type="radio" class="btn-check" name="concepto" id="concepto_comisiones" value="Comisiones" <?= ($edit_data['concepto'] ?? '') === 'Comisiones' ? 'checked' : '' ?>>
+              <label class="btn btn-outline-primary" for="concepto_comisiones">Comisiones</label>
+            </div>
           </div>
           <div class="mb-3">
             <label for="importe" class="form-label">Importe *</label>
-            <input type="number" step="0.01" min="0" class="form-control" id="importe" name="importe" value="<?= htmlspecialchars($edit_data['importe'] ?? $contrato['importe']) ?>" required>
+            <input type="number" step="0.01" min="0" class="form-control" id="importe" name="importe" value="<?= htmlspecialchars($edit_data['importe'] ?? $importe_sugerido) ?>" required>
           </div>
 
           <!-- Nuevo campo para Tipo de Pago -->
@@ -339,7 +425,7 @@ include 'includes/header_nav.php';
               <?= $edit_id ? 'Actualizar Pago' : 'Registrar Pago' ?>
             </button>
             <?php if ($edit_id): ?>
-              <a href="pagos.php?contrato_id=<?= $contrato_id ?>" class="btn btn-outline-secondary">Cancelar</a>
+              <a href="<?= $url_base ?>" class="btn btn-outline-secondary">Cancelar</a>
             <?php endif; ?>
           </div>
         </form>
@@ -348,11 +434,11 @@ include 'includes/header_nav.php';
   </div>
 
   <?php if (count($pagos_list) === 0): ?>
-    <p>No hay pagos registrados para este contrato.</p>
+    <p>No hay pagos registrados<?= $sin_contrato ? ' para esta propiedad' : ' para este contrato' ?>.</p>
   <?php else: ?>
     <form method="POST">
       <div class="mb-3">
-        <a href="pagos.php?contrato_id=<?= $contrato_id ?>&export=csv" class="btn btn-success">
+        <a href="<?= $url_base ?>&export=csv" class="btn btn-success">
           <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
         </a>
       </div>
@@ -377,7 +463,7 @@ include 'includes/header_nav.php';
               <td>
                 <b><?= htmlspecialchars($pago['concepto']) ?></b> <br> $<?= number_format($pago['importe'], 2, ",", ".") ?><br>
                 <span class="badge bg-info"><?= htmlspecialchars($pago['tipo_pago'] ?? '') ?></span><br>
-                <small><?= htmlspecialchars($pago['comentario']) ?><br>
+                <small><?= nl2br(htmlspecialchars($pago['comentario'])) ?><br>
                   <?php if ($pago['comprobante']): ?>
                     <a href="uploads/<?= htmlspecialchars($pago['comprobante']) ?>" target="_blank">Ver Comprobante</a>
                   <?php endif; ?>
@@ -408,10 +494,10 @@ include 'includes/header_nav.php';
               <td>
                 <?php if ($_SESSION['user_role'] === 'admin'): ?>
                   <div class="btn-group btn-group-sm" role="group">
-                    <a href="pagos.php?contrato_id=<?= $contrato_id ?>&edit=<?= intval($pago['id']) ?>" class="btn btn-outline-primary" title="Editar">
+                    <a href="<?= $url_base ?>&edit=<?= intval($pago['id']) ?>" class="btn btn-outline-primary" title="Editar">
                       <i class="bi bi-pencil"></i>
                     </a>
-                    <a href="pagos.php?contrato_id=<?= $contrato_id ?>&delete=<?= intval($pago['id']) ?>" class="btn btn-outline-danger" title="Eliminar" onclick="return confirm('¿Seguro que desea eliminar este pago?')">
+                    <a href="<?= $url_base ?>&delete=<?= intval($pago['id']) ?>" class="btn btn-outline-danger" title="Eliminar" onclick="return confirm('¿Seguro que desea eliminar este pago?')">
                       <i class="bi bi-trash"></i>
                     </a>
                   </div>
@@ -421,8 +507,12 @@ include 'includes/header_nav.php';
           <?php endforeach; ?>
         </tbody>
       </table>
-      <a href="contratos.php" class="btn btn-secondary ms-2">Volver a Contratos</a>
-      <a href="movimientos.php?propiedad_id=<?= $contrato['propiedad_id'] ?>" class="btn btn-info ms-2">Ver Movimientos</a>
+      <?php if ($sin_contrato): ?>
+        <a href="propiedades.php" class="btn btn-secondary ms-2">Volver a Propiedades</a>
+      <?php else: ?>
+        <a href="contratos.php" class="btn btn-secondary ms-2">Volver a Contratos</a>
+      <?php endif; ?>
+      <a href="movimientos.php?propiedad_id=<?= $propiedad_id ?>" class="btn btn-info ms-2">Ver Movimientos</a>
     </form>
   <?php endif; ?>
 

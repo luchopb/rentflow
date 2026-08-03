@@ -895,10 +895,16 @@ include 'includes/header_nav.php';
                       </div>
                     <?php else: ?>
                       <div class="mt-2">
-                        <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-sm btn-light bg-dark-subtle mb-1 me-2" style="white-space: nowrap;">
+                        <a href="pagos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-sm btn-light bg-dark-subtle mb-1">
+                          Pagos
+                        </a>
+                        <a href="gastos.php?propiedad_id=<?= intval($p['id']) ?>&add=true" class="btn btn-sm btn-light bg-dark-subtle mb-1">
+                          Gastos
+                        </a>
+                        <a href="contratos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-sm btn-light bg-dark-subtle mb-1" style="white-space: nowrap;">
                           Crear contrato
                         </a>
-                        <a href="movimientos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-sm btn-light bg-dark-subtle mb-1 me-2">
+                        <a href="movimientos.php?propiedad_id=<?= intval($p['id']) ?>" class="btn btn-sm btn-light bg-dark-subtle mb-1">
                           Movimientos
                         </a>
                       </div>

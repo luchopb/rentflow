@@ -77,9 +77,9 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
             p.importe,
             p.comentario
         FROM pagos p
-        JOIN contratos c ON p.contrato_id = c.id
-        JOIN propiedades prop ON c.propiedad_id = prop.id
-        JOIN inquilinos i ON c.inquilino_id = i.id
+        LEFT JOIN contratos c ON p.contrato_id = c.id
+        LEFT JOIN propiedades prop ON prop.id = COALESCE(p.propiedad_id, c.propiedad_id)
+        LEFT JOIN inquilinos i ON c.inquilino_id = i.id
         WHERE 1=1
     ";
 
@@ -201,7 +201,7 @@ $sql_base = "
         i.telefono as inquilino_telefono
     FROM pagos p
     LEFT JOIN contratos c ON p.contrato_id = c.id
-    LEFT JOIN propiedades prop ON c.propiedad_id = prop.id
+    LEFT JOIN propiedades prop ON prop.id = COALESCE(p.propiedad_id, c.propiedad_id)
     LEFT JOIN inquilinos i ON c.inquilino_id = i.id
     WHERE 1=1 AND p.concepto != 'Arqueo de Caja (suma)'
 ";
@@ -542,7 +542,7 @@ include 'includes/header_nav.php';
                                     <td>
                                         <strong>
                                             <a href="propiedades.php?edit=<?= intval($pago['propiedad_id']) ?>" class="text-decoration-none text-dark">
-                                                <?= htmlspecialchars($pago['propiedad_nombre']) ?>
+                                                <?= htmlspecialchars($pago['propiedad_nombre'] ?? '') ?>
                                             </a>
                                         </strong>
                                         <?php if ($pago['propiedad_direccion']): ?>
@@ -550,13 +550,17 @@ include 'includes/header_nav.php';
                                         <?php endif; ?>
                                     </td>
                                     <td>
+                                        <?php if (!empty($pago['inquilino_id'])): ?>
                                         <strong>
                                             <a href="inquilinos.php?edit=<?= intval($pago['inquilino_id']) ?>" class="text-decoration-none text-dark">
-                                                <?= htmlspecialchars($pago['inquilino_nombre']) ?>
+                                                <?= htmlspecialchars($pago['inquilino_nombre'] ?? '') ?>
                                             </a>
                                         </strong>
                                         <?php if ($pago['inquilino_telefono']): ?>
                                             <br><small class="text-muted"><?= htmlspecialchars($pago['inquilino_telefono']) ?></small>
+                                        <?php endif; ?>
+                                        <?php else: ?>
+                                          <span class="badge bg-secondary">Sin contrato</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
@@ -605,8 +609,13 @@ include 'includes/header_nav.php';
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="pagos.php?contrato_id=<?= $pago['contrato_id'] ?>"
-                                                class="btn btn-sm btn-outline-success" title="Ver contrato">
+                                            <?php
+                                              $url_detalle_pago = !empty($pago['contrato_id'])
+                                                ? 'pagos.php?contrato_id=' . intval($pago['contrato_id'])
+                                                : 'pagos.php?propiedad_id=' . intval($pago['propiedad_id']);
+                                            ?>
+                                            <a href="<?= $url_detalle_pago ?>"
+                                                class="btn btn-sm btn-outline-success" title="Ver detalle">
                                                 Detalle
                                             </a>
                                             <?php if ($_SESSION['user_role'] === 'admin'): ?>

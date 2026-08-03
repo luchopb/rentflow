@@ -25,7 +25,7 @@ $stmt = $pdo->prepare("SELECT c.*, i.nombre as inquilino_nombre FROM contratos c
 $stmt->execute([$propiedad_id]);
 $contratos_activos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Obtener pagos de la propiedad (a través de contratos)
+// Obtener pagos de la propiedad (por contrato o directos sin contrato)
 $stmt = $pdo->prepare("
   SELECT 
     'pago' as tipo,
@@ -42,13 +42,13 @@ $stmt = $pdo->prepare("
     i.nombre as inquilino_nombre,
     u.username as usuario_nombre
   FROM pagos p
-  JOIN contratos c ON p.contrato_id = c.id
+  LEFT JOIN contratos c ON p.contrato_id = c.id
   LEFT JOIN inquilinos i ON c.inquilino_id = i.id
   LEFT JOIN usuarios u ON p.usuario_id = u.id
-  WHERE c.propiedad_id = ?
+  WHERE c.propiedad_id = ? OR (p.propiedad_id = ? AND p.contrato_id IS NULL)
   ORDER BY p.fecha DESC, p.id DESC
 ");
-$stmt->execute([$propiedad_id]);
+$stmt->execute([$propiedad_id, $propiedad_id]);
 $pagos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Obtener gastos de la propiedad
@@ -134,6 +134,10 @@ include 'includes/header_nav.php';
                 <a href="pagos.php?contrato_id=<?= $contratos_activos[0]['id'] ?>&add=true" class="btn btn-lg btn-primary" style="font-weight:600;">
                     <i class="bi bi-cash-coin"></i> Registrar Pago
                 </a>
+            <?php else: ?>
+                <a href="pagos.php?propiedad_id=<?= $propiedad_id ?>&add=true" class="btn btn-lg btn-primary" style="font-weight:600;">
+                    <i class="bi bi-cash-coin"></i> Registrar Pago
+                </a>
             <?php endif; ?>
             <a href="gastos.php?propiedad_id=<?= $propiedad_id ?>&add=true" class="btn btn-lg btn-warning" style="font-weight:600;">
                 <i class="bi bi-receipt"></i> Registrar Gasto
@@ -194,7 +198,12 @@ include 'includes/header_nav.php';
                                             <?php endif; ?>
                                             <?php if ($_SESSION['user_role'] === 'admin'): ?>
                                                 <?php if ($movimiento['tipo'] === 'pago'): ?>
-                                                    <a href="pagos.php?contrato_id=<?= $movimiento['contrato_id'] ?>&edit=<?= $movimiento['id'] ?>" class="btn btn-sm btn-outline-primary" title="Editar">
+                                                    <?php
+                                                      $url_editar_pago = !empty($movimiento['contrato_id'])
+                                                        ? 'pagos.php?contrato_id=' . intval($movimiento['contrato_id']) . '&edit=' . intval($movimiento['id'])
+                                                        : 'pagos.php?propiedad_id=' . intval($propiedad_id) . '&edit=' . intval($movimiento['id']);
+                                                    ?>
+                                                    <a href="<?= $url_editar_pago ?>" class="btn btn-sm btn-outline-primary" title="Editar">
                                                         <i class="bi bi-pencil"></i>
                                                     </a>
                                                 <?php else: ?>
@@ -214,7 +223,7 @@ include 'includes/header_nav.php';
                                 <div id="comentario-<?= $movimiento['id'] ?>" class="mt-2 p-2 bg-light rounded" style="display: none;">
                                     <small class="text-muted">
                                         <i class="bi bi-chat-text me-1"></i>
-                                        <strong>Comentario:</strong> <?= htmlspecialchars($movimiento['comentario']) ?>
+                                        <strong>Comentario:</strong> <?= nl2br(htmlspecialchars($movimiento['comentario'])) ?>
                                     </small>
                                 </div>
                             <?php endif; ?>
