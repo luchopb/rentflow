@@ -120,10 +120,10 @@ if ($propietario_id) {
     $propietario_todos = "";
     $propietario_todos_gastos = "";
     if ($propietario_id === 1) {
-        // Si filtro por propietario id 1 (todos) agrego los pagos y gastos sin propíetario y de 
+        // Si filtro por propietario id 1 agrego pagos de otros propietarios y sin propietario
         $propietario_todos = " OR pr.propietario_id = 2 OR pr.propietario_id = 9 OR pr.propietario_id IS NULL";
-        // para los gastos agrego los gastos de todos porque salen de nuestra cuenta 
-        $propietario_todos_gastos = " OR pr.propietario_id = 2 OR pr.propietario_id = 5 OR pr.propietario_id = 6 OR pr.propietario_id = 9 OR pr.propietario_id IS NULL";
+        // Gastos de otros propietarios, sin dueño y sin propiedad asignada (salen de nuestra cuenta)
+        $propietario_todos_gastos = " OR pr.propietario_id = 2 OR pr.propietario_id = 5 OR pr.propietario_id = 6 OR pr.propietario_id = 9 OR pr.propietario_id IS NULL OR g.propiedad_id IS NULL";
     }
     $query_gastos .= " AND (pr.propietario_id = ? $propietario_todos_gastos )";
     $query_pagos .= " AND (pr.propietario_id = ? $propietario_todos )";
@@ -146,7 +146,7 @@ if ($busqueda_propiedad) {
 
 // Ejecutar consultas
 $movimientos = [];
-$stmt = $pdo->prepare($query_pagos . " ORDER BY fecha ASC");
+$stmt = $pdo->prepare($query_pagos . " ORDER BY fecha ASC, p.id ASC");
 if ($types) {
     $stmt->execute($params);
 } else {
@@ -159,7 +159,7 @@ foreach ($result as $row) {
     $movimientos[] = $row;
 }
 
-$stmt = $pdo->prepare($query_gastos . " ORDER BY fecha ASC");
+$stmt = $pdo->prepare($query_gastos . " ORDER BY fecha ASC, g.id ASC");
 if ($types) {
     $stmt->execute($params);
 } else {
